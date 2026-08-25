@@ -1,0 +1,10 @@
+import { SiteNav } from "../components/SiteNav";
+const dims=[
+{n:"01",title:"Task execution",desc:"Success, completion, sequence length, and intervention count.",tests:"LIBERO · CALVIN · Bridge"},
+{n:"02",title:"Real operations",desc:"Units per hour, mean time between failures, and recovery burden.",tests:"PhAIL-style field runs"},
+{n:"03",title:"Embodied brain",desc:"Intent, perception, planning, affordance, and failure analysis.",tests:"RoboBench dimensions"},
+{n:"04",title:"Real-time behavior",desc:"Control-loop deadlines and behavior under representative system load.",tests:"OpenNav-style missions"},
+{n:"05",title:"Generalization",desc:"Fresh objects, poses, scenes, instructions, and embodiments.",tests:"OXE · DROID · fresh sets"},
+{n:"06",title:"Deployment economics",desc:"Human attention, energy, hardware utilization, and cost per useful action.",tests:"Operator baselines"},
+];
+export default function Atlas(){return <main><SiteNav/><section className="subHero shell"><span className="kicker">BENCHMARK ATLAS</span><h1>One robot.<br/><em>Many ways to fail.</em></h1><p>A first-party field guide to choosing tests that expose capability, brittleness, and operating cost.</p></section><section className="routeSection shell"><div className="atlasGrid">{dims.map(x=><article key={x.n}><span>{x.n}</span><h2>{x.title}</h2><p>{x.desc}</p><small>{x.tests}</small></article>)}</div><div className="linkbait"><span className="kicker">CITATION-READY RESOURCE</span><h2>The Robot Benchmark<br/>Selection Checklist</h2><p>Before publishing a score, disclose the hardware, control rate, sample count, uncertainty, intervention policy, object novelty, data overlap, failure taxonomy, raw-run availability, and human baseline.</p><div className="checklist">{["Hardware + sensors","Task manifest","Episode count","Confidence interval","Intervention rule","Fresh test set","Raw failure runs","Human baseline"].map((x,i)=><span key={x}><b>{String(i+1).padStart(2,"0")}</b>{x}</span>)}</div><p className="citeLine">Suggested citation: Embodied Arena, “Robot Benchmark Selection Checklist,” public beta, 2026.</p></div></section></main>}

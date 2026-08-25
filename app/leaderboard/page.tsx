@@ -1,0 +1,14 @@
+"use client";
+import { useMemo,useState } from "react";
+import { SiteNav } from "../components/SiteNav";
+import { track } from "../components/AnalyticsHeartbeat";
+
+const models=[
+{name:"π0.5",org:"Physical Intelligence",overall:78.4,manipulation:86.2,navigation:65.4,reasoning:82.5,reality:"REAL",open:true},
+{name:"GR00T N1.6",org:"NVIDIA",overall:75.9,manipulation:80.4,navigation:71.5,reasoning:77.1,reality:"REAL",open:true},
+{name:"OpenVLA-OFT",org:"Stanford / TRI",overall:72.6,manipulation:79.3,navigation:67.0,reasoning:74.8,reality:"REAL",open:true},
+{name:"Helix 02",org:"Figure AI",overall:69.8,manipulation:76.6,navigation:70.2,reasoning:68.5,reality:"REAL",open:false},
+{name:"RoboBrain 2.0",org:"BAAI",overall:67.2,manipulation:62.1,navigation:66.8,reasoning:81.2,reality:"SIM",open:true},
+{name:"SmolVLA",org:"Hugging Face",overall:58.7,manipulation:65.0,navigation:52.8,reasoning:63.1,reality:"REAL",open:true},
+];
+export default function Leaderboard(){const [metric,setMetric]=useState<"overall"|"manipulation"|"navigation"|"reasoning">("overall");const [query,setQuery]=useState("");const [open,setOpen]=useState(false);const rows=useMemo(()=>models.filter(x=>(!open||x.open)&&`${x.name} ${x.org}`.toLowerCase().includes(query.toLowerCase())).sort((a,b)=>b[metric]-a[metric]),[metric,query,open]);return <main><SiteNav/><section className="subHero shell"><span className="kicker">RANKINGS / PUBLIC BETA</span><h1>Robot AI,<br/><em>ranked with context.</em></h1><p>A compact normalized index. Treat every score as a doorway to evidence, not a deployment certificate.</p></section><section className="routeSection shell"><div className="leaderTools"><div>{(["overall","manipulation","navigation","reasoning"] as const).map(x=><button key={x} className={metric===x?"active":""} onClick={()=>{setMetric(x);track("leaderboard_filter","/leaderboard",{metric:x})}}>{x}</button>)}</div><label><span>⌕</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search models"/></label><label className="openCheck"><input type="checkbox" checked={open} onChange={e=>setOpen(e.target.checked)}/> open only</label></div><div className="simpleBoard"><header><span>#</span><span>MODEL</span><span>{metric.toUpperCase()}</span><span>EVIDENCE</span></header>{rows.map((x,i)=><article key={x.name}><b className={i===0?"topRank":""}>{i+1}</b><div><strong>{x.name}{x.open&&<i>OPEN</i>}</strong><small>{x.org}</small></div><div className="metricBar"><strong>{x[metric].toFixed(1)}</strong><i><span style={{width:`${x[metric]}%`}}/></i></div><span className={x.reality==="REAL"?"realTag":"simTag"}>● {x.reality}</span></article>)}</div><p className="betaNote">Seed rankings are illustrative public-beta data normalized from heterogeneous reports. Hardware, tasks, training data, and evaluation protocols differ.</p></section></main>}

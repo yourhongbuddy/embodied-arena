@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import { AnalyticsHeartbeat } from "./components/AnalyticsHeartbeat";
 
 export async function generateMetadata(): Promise<Metadata> {
   const h = await headers();
@@ -18,7 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({children}:{children:React.ReactNode}) {
-  const structuredData = {"@context":"https://schema.org","@type":"WebSite",name:"Embodied Arena",url:"https://embodied-arena.example",description:"An open index for robot AI benchmarks, real-world results, URDF readiness analysis, and robotics video research.",potentialAction:{"@type":"SearchAction",target:"https://embodied-arena.example/?q={search_term_string}","query-input":"required name=search_term_string"}};
-  return <html lang="en"><body>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structuredData)}} /></body></html>;
+export default async function RootLayout({children}:{children:React.ReactNode}) {
+  const h=await headers(); const host=h.get("host")||"embodied-arena.example"; const origin=`${host.includes("localhost")?"http":"https"}://${host}`;
+  const structuredData = {"@context":"https://schema.org","@type":"WebSite",name:"Embodied Arena",url:origin,description:"A private URDF readiness scanner, robot AI benchmark index, and first-party robotics research library.",potentialAction:{"@type":"SearchAction",target:`${origin}/leaderboard?q={search_term_string}`,"query-input":"required name=search_term_string"}};
+  return <html lang="en"><body><AnalyticsHeartbeat/>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structuredData)}} /></body></html>;
 }
