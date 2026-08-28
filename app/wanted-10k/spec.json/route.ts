@@ -37,6 +37,7 @@ const spec = {
     openapi: "/wanted-10k/openapi.json",
     reference_score: "/wanted-10k/reference-score.py",
     local_score_calculator: "/wanted-10k/calculator",
+    research_basis: "/wanted-10k/evidence",
   },
 };
 
