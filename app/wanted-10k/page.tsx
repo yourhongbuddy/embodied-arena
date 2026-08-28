@@ -157,7 +157,7 @@ export default function Wanted10K() {
 
     <section className="certSection" id="certification">
       <div className="shell">
-        <div className="sectionHead wantedHead"><div><span className="kicker">05 / CERTIFICATION PATH</span><h2>Simulation first.<br/><em>Real preference last.</em></h2></div><p>Digital twins reduce human exposure to predictable failures. Only real people in real environments produce a WANTED Score.</p></div>
+        <div className="sectionHead wantedHead"><div><span className="kicker">05 / CERTIFICATION PATH</span><h2>Simulation first.<br/><em>Real preference last.</em></h2></div><p>Digital twins reduce human exposure to predictable failures. Only real people in real environments produce a WANTED Score. <a className="contractLink" href="/wanted-10k/audit">Prepare certification evidence ↗</a></p></div>
         <div className="levelGrid">{levels.map(([n,name,hours,copy])=><article key={n}><span>{n}</span><small>{hours}</small><h3>{name}</h3><p>{copy}</p><i>→</i></article>)}</div>
       </div>
     </section>
@@ -168,7 +168,7 @@ export default function Wanted10K() {
         <div className="wantedBoard">
           <header><span>#</span><span>ROBOT / COHORT</span><span>W</span><span>95% CI</span><span>N</span><span>HOURS</span><span>S(10K)</span><span>I<sub>100</sub></span><span>MTBHR</span><span>SAFETY</span></header>
           <div className="wantedEmpty"><span>∅</span><b>NO AUDITED WANTED WILD RUNS YET</b><p>The first qualifying cohort sets the baseline. Provisional runs will remain separate from official ranking.</p></div>
-          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · DOWNTIME · INCIDENTS · WITHDRAWALS</span><a href="/wanted-10k/calculator">OPEN SCORE LAB ↗</a></footer>
+          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · DOWNTIME · INCIDENTS · WITHDRAWALS</span><a href="/wanted-10k/audit">PREPARE AUDIT PACK ↗</a></footer>
         </div>
       </div>
     </section>

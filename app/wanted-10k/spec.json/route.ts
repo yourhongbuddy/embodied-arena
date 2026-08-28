@@ -57,6 +57,15 @@ const spec = {
     preregistration_schema: "/wanted-10k/preregistration.schema.json",
     preregistration_template: "/wanted-10k/preregistration.template.json",
     endpoint_rules: "/wanted-10k/endpoint-rules.json",
+    audit_pack: "/wanted-10k/audit",
+    audit_manifest_schema: "/wanted-10k/audit-manifest.schema.json",
+    audit_manifest_template: "/wanted-10k/audit-manifest.template.json",
+  },
+  certification_handoff: {
+    public_unit: "aggregate_audit_manifest",
+    participant_data_permitted: false,
+    binds: ["preregistration", "robot_versions", "cohort_summary", "primary_score", "diagnostics", "safety_evidence", "telemetry_commitments", "endpoint_adjudication", "withdrawal_results", "independent_audit"],
+    local_readiness_is_certification: false,
   },
   changelog: {
     "0.2": ["forbid_unsupported_10k_RMST_extrapolation", "freeze_endpoint_and_censoring_taxonomy", "define_RFC8785_hash_chain", "add_preregistration_and_conformance_resources"],

@@ -35,6 +35,8 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
+  assert.match(protocolHtml, /Eight artifacts/);
+  assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
 
 test("publishes internally consistent protocol 0.2 resources", async () => {
@@ -68,4 +70,25 @@ test("serves the local conformance checker and corrected score lab", async () =>
   assert.equal(calculator.status, 200);
   const calculatorHtml = await calculator.text();
   assert.match(calculatorHtml, /refuses unsupported 10,000-hour extrapolation/);
+});
+
+test("publishes the aggregate certification audit contract", async () => {
+  const [pageResponse, schemaResponse, templateResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/audit"),
+    request("/wanted-10k/audit-manifest.schema.json", "application/json"),
+    request("/wanted-10k/audit-manifest.template.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, schemaResponse, templateResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /One row/);
+  assert.match(pageHtml, /Every claim bound/);
+  assert.match(pageHtml, /CERTIFICATION HANDOFF/);
+  const [schema, template, spec] = await Promise.all([schemaResponse.json(), templateResponse.json(), specResponse.json()]);
+  assert.equal(schema.properties.protocol_version.const, "0.2");
+  assert.equal(template.protocol_version, "0.2");
+  assert.equal(template.submission_mode, "test");
+  assert.equal(template.privacy.participant_data_included, false);
+  assert.equal(spec.certification_handoff.participant_data_permitted, false);
+  assert.equal(spec.developer_resources.audit_pack, "/wanted-10k/audit");
 });
