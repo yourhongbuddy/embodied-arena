@@ -1,0 +1,70 @@
+import type { Metadata } from "next";
+import { SiteNav } from "../../components/SiteNav";
+
+export const metadata: Metadata = {
+  title: "Protocol Kit — WANTED-10K",
+  description: "Operational WANTED-10K protocol resources for preregistration, endpoint adjudication, telemetry conformance, scoring, and audit.",
+  alternates: { canonical: "/wanted-10k/protocol" },
+};
+
+const decisions = [
+  ["PRIMARY EVENT", "Permanent, uncoerced participant request to remove the robot", "Event at first unambiguous request timestamp"],
+  ["10K COMPLETION", "Environment reaches 10,000 resident hours without rejection", "Administrative censor at 10,000"],
+  ["UNRELATED EXIT", "Move, illness, or site closure adjudicated unrelated to the robot", "Censor at last observed resident hour"],
+  ["SAFETY TERMINATION", "Permanent removal under the safety plan", "Competing terminal cause + safety-gate review"],
+  ["DEVELOPER WITHDRAWAL", "Robot or support permanently withdrawn by its developer", "Terminal cause; cohort is not rankable"],
+  ["CONSENT / PRIVACY", "Data or consent withdrawal without an adjudicated rejection request", "Terminal cause reported separately"],
+  ["TEMPORARY PAUSE", "Travel, reversible pause, or short maintenance", "Not terminal; preregistered resident-clock rule applies"],
+];
+
+const eligibility = [
+  ["01", "COHORT", "N ≥ 20 independent environments"],
+  ["02", "EXPOSURE", "Σ resident time ≥ 10,000 hours"],
+  ["03", "SUPPORT", "10K RMST is identifiable without extrapolation"],
+  ["04", "UNCERTAINTY", "≥95% of environment bootstrap draws identify 10K"],
+  ["05", "SAFETY", "All gates pass; no verified L4 event"],
+  ["06", "AUDIT", "Preregistration, telemetry, and adjudication verified"],
+];
+
+const kit = [
+  ["PREREGISTRATION TEMPLATE", "Freeze recruitment, incentives, endpoints, safety, operations, updates, privacy, telemetry, and analysis before hour one.", "/wanted-10k/preregistration.template.json", "DOWNLOAD JSON ↓"],
+  ["PREREGISTRATION SCHEMA", "Machine-check every field that prevents post-hoc rule changes or hidden operational support.", "/wanted-10k/preregistration.schema.json", "OPEN SCHEMA ↗"],
+  ["ENDPOINT RULES", "Use one shared disposition vocabulary for rejection, censoring, safety termination, developer withdrawal, and consent exit.", "/wanted-10k/endpoint-rules.json", "OPEN RULES ↗"],
+  ["ADAPTER CHECKER", "Exercise the five-event profile and verify ordered RFC 8785 / SHA-256 hash-chain continuity locally.", "/wanted-10k/conformance", "RUN CHECKER →"],
+  ["SCORING REFERENCE", "Reproduce Kaplan–Meier normalized RMST and refuse unsupported 10,000-hour extrapolation.", "/wanted-10k/reference-score.py", "DOWNLOAD PYTHON ↓"],
+  ["SCORE LAB", "Enter an environment-level cohort, inspect support and uncertainty, and export an audit summary.", "/wanted-10k/calculator", "OPEN SCORE LAB →"],
+];
+
+export default function ProtocolPage() {
+  return <main className="protocolPage">
+    <SiteNav />
+    <section className="protocolHero shell">
+      <span className="eyebrow"><i className="liveDot"/> IMPLEMENTATION KIT · PROTOCOL 0.2</span>
+      <h1>Freeze the rules.<br/><em>Then start the clock.</em></h1>
+      <p>The benchmark becomes credible only when rejection, censoring, assistance, software changes, safety termination, and missing data are defined before deployment. Protocol 0.2 turns those decisions into machine-readable artifacts.</p>
+      <div className="protocolHeroActions"><a className="primary" href="/wanted-10k/preregistration.template.json">Download preregistration <span>↓</span></a><a className="secondary" href="/wanted-10k/conformance">Validate an adapter</a></div>
+      <div className="protocolRelease"><b>0.2</b><div><span>SCIENTIFIC CORRECTION</span><p>W is never extrapolated to 10,000 hours when follow-up ends earlier while estimated retention remains above zero.</p></div><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10861099/" target="_blank" rel="noreferrer">RMST BASIS ↗</a></div>
+    </section>
+
+    <section className="decisionSection" id="adjudication"><div className="shell">
+      <div className="sectionHead wantedHead"><div><span className="kicker">01 / ENDPOINT ADJUDICATION</span><h2>Every exit gets<br/><em>one disposition.</em></h2></div><p>Ambiguous exits are reviewed independently. Safety and developer terminations cannot be relabeled as harmless censoring.</p></div>
+      <div className="decisionTable"><header><span>CODE</span><span>OBSERVED DISPOSITION</span><span>ANALYSIS</span></header>{decisions.map(([code,observed,analysis])=><div key={code}><b>{code}</b><p>{observed}</p><span>{analysis}</span></div>)}</div>
+      <aside className="adjudicationRule"><b>TIE RULE</b><p>Process endpoint events before censoring at an identical timestamp. Two adjudicators review ambiguous terminal outcomes using only the evidence classes frozen in the preregistration.</p></aside>
+    </div></section>
+
+    <section className="eligibilitySection"><div className="shell">
+      <div className="sectionHead wantedHead"><div><span className="kicker">02 / LEADERBOARD ELIGIBILITY</span><h2>Six gates.<br/><em>All must pass.</em></h2></div><p>Study duration alone is not enough. A ranked score must be statistically supported, safe, and independently auditable.</p></div>
+      <div className="eligibilityGrid">{eligibility.map(([n,title,copy])=><article key={n}><span>{n}</span><b>{title}</b><p>{copy}</p><i>REQUIRED</i></article>)}</div>
+    </div></section>
+
+    <section className="kitSection" id="resources"><div className="shell">
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Six artifacts.<br/><em>One frozen protocol.</em></h2></div><p>Everything needed to define a run, validate the adapter, reproduce the score, and prepare an independent audit.</p></div>
+      <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
+    </div></section>
+
+    <section className="integrityChain"><div className="shell">
+      <div><span>01</span><b>PREREGISTER</b><p>Freeze decisions and sign the canonical document hash.</p></div><i>→</i><div><span>02</span><b>CONFORM</b><p>Validate every adapter and its ordered event chain.</p></div><i>→</i><div><span>03</span><b>RUN</b><p>Commit periodic roots while resident time accrues.</p></div><i>→</i><div><span>04</span><b>AUDIT</b><p>Reconcile source evidence, terminal dispositions, and score.</p></div><i>→</i><div><span>05</span><b>PUBLISH</b><p>Release W with uncertainty, burden, safety, and support.</p></div>
+    </div></section>
+    <footer className="wantedFooter"><div className="shell"><div className="brand"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b> / PROTOCOL 0.2</span></div><p>The operational study package for WANTED-10K.</p><a href="/wanted-10k">BACK TO BENCHMARK →</a></div></footer>
+  </main>;
+}

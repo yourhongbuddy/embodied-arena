@@ -10,7 +10,7 @@
 .foundationGrid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:13px;overflow:hidden}
 .foundationGrid article{min-height:470px;padding:27px;display:flex;flex-direction:column;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
 .foundationGrid article:nth-child(2n){border-right:0}
-.foundationGrid article:nth-last-child(1){grid-column:1/3;border:0;min-height:410px}
+.foundationGrid article:nth-last-child(-n+2){border-bottom:0}
 .foundationGrid header{display:flex;justify-content:space-between;align-items:center;font:8px "Courier New";letter-spacing:.08em;color:#727c73}
 .foundationGrid header span{width:33px;height:33px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center}
 .foundationGrid h3{font-size:25px;letter-spacing:-.025em;margin:54px 0 16px}
@@ -53,5 +53,5 @@
 .evidenceCta>div b{font-size:16px}
 .evidenceCta .primary{background:var(--lime);color:var(--ink);white-space:nowrap}
 .evidenceCta .primary span{color:var(--ink)}
-@media(max-width:950px){.foundationGrid{grid-template-columns:1fr}.foundationGrid article{border-right:0}.foundationGrid article:nth-last-child(1){grid-column:auto}.standardsTable{overflow:auto}.standardsTable>header,.standardsTable>div{min-width:900px}.boundaryGrid{grid-template-columns:1fr 1fr}.boundaryGrid article:nth-child(2){border-right:0}.boundaryGrid article:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+@media(max-width:950px){.foundationGrid{grid-template-columns:1fr}.foundationGrid article{border-right:0;border-bottom:1px solid var(--line)}.foundationGrid article:last-child{border-bottom:0}.standardsTable{overflow:auto}.standardsTable>header,.standardsTable>div{min-width:900px}.boundaryGrid{grid-template-columns:1fr 1fr}.boundaryGrid article:nth-child(2){border-right:0}.boundaryGrid article:nth-child(-n+2){border-bottom:1px solid var(--line)}}
 @media(max-width:720px){.evidenceHero{padding:60px 0}.evidenceHero h1{font-size:52px}.evidenceHeroActions{flex-direction:column;align-items:flex-start}.evidencePrinciple{margin-top:48px;grid-template-columns:1fr}.evidenceFoundations,.standardsSection,.methodBoundary{padding:76px 0}.foundationGrid article{min-height:440px}.foundationGrid dl{grid-template-columns:1fr}.foundationGrid dl div{border-right:0;border-bottom:1px solid var(--line);min-height:auto}.scopeNotice{grid-template-columns:1fr}.boundaryGrid{grid-template-columns:1fr}.boundaryGrid article{border-right:0!important;border-bottom:1px solid var(--line)!important;min-height:210px}.boundaryGrid article:last-child{border-bottom:0!important}.evidenceCta{align-items:flex-start;flex-direction:column}}

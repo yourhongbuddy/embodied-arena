@@ -28,7 +28,7 @@ const gates = [
 const levels = [
   ["01", "PREQUALIFIED", "Digital twin", "Failure injection, collision, recovery, network loss, sensing drift, and human-trajectory stress tests."],
   ["02", "WANTED LAB", "100+ hours", "Real robot, real people, instrumented site, passed safety gates, and complete event telemetry."],
-  ["03", "WANTED WILD", "10,000+ cohort hours", "At least 20 independent environments. Publishes W, confidence interval, retention curve, and burden metrics."],
+  ["03", "WANTED WILD", "10,000+ cohort hours", "At least 20 independent environments, supported 10K estimand, passed safety gates, and independent audit."],
   ["04", "WANTED 10K", "One 10,000-hour residence", "Uninterrupted lifetime run plus a seven-day withdrawal and voluntary reacquisition test."],
 ];
 
@@ -40,11 +40,11 @@ export default function Wanted10K() {
 
     <section className="wantedHero shell">
       <div className="wantedHeroCopy">
-        <span className="eyebrow"><i className="liveDot"/> OPEN TECHNICAL SPEC · VERSION 0.1</span>
+        <span className="eyebrow"><i className="liveDot"/> OPEN TECHNICAL SPEC · VERSION 0.2</span>
         <h1>Still wanted<br/><em>after 10,000 hours?</em></h1>
         <p>Most benchmarks ask whether a robot can complete a task. WANTED-10K asks whether people continue choosing the robot after novelty fades, hardware ages, routines change, and mistakes accumulate.</p>
         <div className="wantedActions">
-          <a className="primary" href="#protocol">Read the protocol <span>↓</span></a>
+          <a className="primary" href="/wanted-10k/protocol">Open protocol kit <span>→</span></a>
           <a className="secondary" href="#integration">Integrate a robot</a>
           <a className="secondary" href="/wanted-10k/calculator">Calculate a cohort</a>
           <a className="secondary" href="/wanted-10k/evidence">Research basis</a>
@@ -91,7 +91,7 @@ export default function Wanted10K() {
       </div>
       <div className="shell protocolRules">
         <article><span>01</span><b>Resident time counts reality</b><p>Charging, autonomous sleep, scheduled updates, and normal downtime stay in the denominator. Developer removal does not earn hours.</p></article>
-        <article><span>02</span><b>The environment is the unit</b><p>Households and deployment sites—not actions—are statistically independent. Cohort ranking requires N ≥ 20 and Σt<sub>i</sub> ≥ 10,000.</p></article>
+        <article><span>02</span><b>The environment is the unit</b><p>Ranking requires N ≥ 20, Σt<sub>i</sub> ≥ 10,000, and observable support for the 10K estimand. W is never extrapolated beyond unsupported follow-up.</p></article>
         <article><span>03</span><b>Withdrawal is behavioral</b><p>At 10,000 hours, remove the robot for seven days and report time-to-return request plus voluntary reacquisition rate.</p></article>
       </div>
     </section>
@@ -116,11 +116,13 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/event.schema.json">EVENT SCHEMA <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/reference-score.py">SCORING REFERENCE <b>↓</b></a>
+            <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
+            <a className="contractLink" href="/wanted-10k/preregistration.template.json">PREREGISTRATION <b>↓</b></a>
           </div>
         </div>
         <div className="codeCard">
-          <header><span>SDK / TYPESCRIPT</span><i>v0.1</i></header>
-          <pre><code><span className="codeMuted">// Adapter contract — transport is vendor-neutral</span>{`\n`}<span className="codeLime">const</span> wanted = createWantedClient({`{`}{`\n`}  deploymentId: <span className="codeString">"dep_7f2"</span>,{`\n`}  environmentId: <span className="codeString">"env_104"</span>{`\n`}{`}`});{`\n\n`}<span className="codeLime">await</span> wanted.emit({`{`}{`\n`}  type: <span className="codeString">"HUMAN_INTERVENTION"</span>,{`\n`}  occurredAt: <span className="codeString">"2026-08-28T18:04:12Z"</span>,{`\n`}  payload: {`{`}{`\n`}    mode: <span className="codeString">"remote_guidance"</span>,{`\n`}    durationSeconds: <span className="codeNumber">43</span>,{`\n`}    reason: <span className="codeString">"recovery"</span>{`\n`}  {`}`}{`\n`}{`}`});</code></pre>
+          <header><span>SDK / TYPESCRIPT</span><i>v0.2</i></header>
+          <pre><code><span className="codeMuted">{"// The adapter adds sequence, hash, signature + event ID"}</span>{`\n`}<span className="codeLime">const</span> wanted = createWantedClient({`{`}{`\n`}  deploymentId: <span className="codeString">&quot;dep_7f2&quot;</span>,{`\n`}  environmentId: <span className="codeString">&quot;env_104&quot;</span>,{`\n`}  robotId: <span className="codeString">&quot;robot_07&quot;</span>,{`\n`}  signingKeyId: <span className="codeString">&quot;key_prod_07&quot;</span>{`\n`}{`}`});{`\n\n`}<span className="codeLime">await</span> wanted.emit({`{`}{`\n`}  type: <span className="codeString">&quot;HUMAN_INTERVENTION&quot;</span>,{`\n`}  occurredAt: <span className="codeString">&quot;2026-08-28T18:04:12Z&quot;</span>,{`\n`}  payload: {`{`}{`\n`}    mode: <span className="codeString">&quot;remote_guidance&quot;</span>,{`\n`}    duration_seconds: <span className="codeNumber">43</span>,{`\n`}    reason: <span className="codeString">&quot;recovery&quot;</span>{`\n`}  {`}`}{`\n`}{`}`});</code></pre>
           <footer><span>POST /v1/events</span><span>JSONL · HTTPS · SIGNED</span></footer>
         </div>
       </div>

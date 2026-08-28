@@ -1,0 +1,33 @@
+.conformancePage{min-height:100vh;background:var(--paper)}
+.conformanceHero{padding:78px 0 58px;border-bottom:1px solid var(--line)}
+.conformanceHero h1{font-size:clamp(60px,7.6vw,98px);margin:22px 0 25px}
+.conformanceHero>p{max-width:720px;font-size:15px;line-height:1.7;color:var(--muted)}
+.conformanceLinks{display:flex;flex-wrap:wrap;gap:22px;margin-top:27px}
+.conformanceLinks a{font:700 8px "Courier New";letter-spacing:.06em;border-bottom:1px solid;padding-bottom:5px}
+.conformanceWorkspace{padding:42px 0 100px}
+.validatorGrid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+.streamEditor,.validationReport{border:1px solid var(--line);border-radius:12px;background:#fafaf5;overflow:hidden}
+.streamEditor>header{min-height:67px;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;align-items:center}
+.streamEditor>header>div:first-child{display:flex;flex-direction:column;gap:6px}
+.streamEditor>header span,.streamEditor>header small{font:700 8px "Courier New"}.streamEditor>header small{font-size:7px;color:#879087}
+.streamEditor>header>div:last-child{display:flex;gap:6px}
+.streamEditor button,.streamEditor label{border:1px solid var(--line);background:transparent;border-radius:5px;padding:8px 10px;font:700 8px "Courier New";cursor:pointer}
+.streamEditor label input{display:none}
+.streamEditor textarea{display:block;width:100%;min-height:520px;border:0;resize:vertical;background:#fff;padding:19px;outline:0;font:10px/1.7 "Courier New";color:#253027}
+.streamEditor>footer{min-height:62px;padding:12px 16px;background:#f1f2ec;display:flex;justify-content:space-between;align-items:center;gap:15px}
+.streamEditor>footer span{font:8px "Courier New";color:#707970}.streamEditor>footer button{background:var(--ink);color:#fff;border-color:var(--ink)}
+.streamEditor button:disabled{opacity:.55;cursor:wait}
+.validationReport{background:var(--ink);color:#fff;padding:20px;display:flex;flex-direction:column}
+.validationReport>header{min-height:50px;border-bottom:1px solid #354238;display:flex;justify-content:space-between;align-items:start;font:8px "Courier New";color:#7c887f}
+.validationReport>header b{font-size:13px;color:#fff}.validationReport.pass>header b{color:var(--lime)}.validationReport.fail>header b{color:#ff938d}
+.validationStats{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #354238;margin:20px 0}
+.validationStats div{min-height:83px;padding:12px;border-right:1px solid #354238;display:flex;flex-direction:column}.validationStats div:last-child{border:0}
+.validationStats span{font:7px "Courier New";color:#768279}.validationStats b{font-size:21px;margin-top:auto;color:var(--lime)}
+.validationMessages{max-height:470px;overflow:auto;padding-right:5px}
+.validationMessages p{font-size:9px;line-height:1.55;color:#89958c;margin:0;padding:10px 0;border-bottom:1px solid #2d382f;display:flex;gap:9px}
+.validationMessages i{width:17px;height:17px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-style:normal;font:700 8px "Courier New"}
+.validationMessages .error{color:#ffaaa5}.validationMessages .error i{background:#542327}.validationMessages .warning{color:#d8c58e}.validationMessages .warning i{background:#493d1a}.validationMessages .success{color:#b9e7a8}.validationMessages .success i{background:#23472a}
+.validatorBoundary{display:grid;grid-template-columns:150px 1fr 185px 1fr;gap:18px;align-items:center;border:1px solid #d7c269;background:#fff7d4;border-radius:9px;padding:17px 20px;margin-top:14px}
+.validatorBoundary b{font:700 7px "Courier New"}.validatorBoundary span{font-size:9px;line-height:1.5;color:#706733}
+@media(max-width:950px){.validatorGrid{grid-template-columns:1fr}.validationReport{min-height:430px}.validatorBoundary{grid-template-columns:150px 1fr}}
+@media(max-width:720px){.conformanceHero{padding:58px 0 44px}.conformanceHero h1{font-size:53px}.conformanceWorkspace{padding:26px 0 75px}.streamEditor>header{align-items:flex-start;flex-direction:column}.streamEditor>header>div:last-child{flex-wrap:wrap}.streamEditor textarea{min-height:420px}.validatorBoundary{grid-template-columns:1fr}.validationStats b{font-size:17px}}

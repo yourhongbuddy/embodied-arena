@@ -1,6 +1,6 @@
 const spec = {
   name: "WANTED-10K",
-  version: "0.1",
+  version: "0.2",
   horizon_resident_hours: 10000,
   primary_endpoint: "time_to_permanent_voluntary_rejection",
   primary_score: {
@@ -10,20 +10,34 @@ const spec = {
     formula: "100 / 10000 * integral_0^10000 S_hat(t) dt",
     range: [0, 100],
     confidence_interval: "cluster_bootstrap_by_environment",
+    identifiability_rule: "do_not_report_W_at_10000_if_followup_ends_before_10000_while_S_hat_remains_above_zero",
+    bootstrap_support_rule: "at_least_95_percent_of_environment_resamples_must_identify_the_horizon",
   },
   cohort: {
     minimum_independent_environments: 20,
     minimum_total_resident_hours: 10000,
     recommended_environments: 50,
+    rankability_requires: ["rmst_identifiable_at_10000", "bootstrap_interval_available", "safety_gate_passed", "independent_audit_complete"],
+  },
+  endpoint_adjudication: {
+    event: "permanent_uncoerced_participant_request_to_remove_robot",
+    event_time: "timestamp_at_which_request_is_first_unambiguously_communicated",
+    censored: ["administrative_completion_at_10000", "participant_exit_unrelated_to_robot", "site_or_sponsor_termination_unrelated_to_robot"],
+    not_censored: ["temporary_pause", "ordinary_charging", "scheduled_update", "normal_autonomous_sleep"],
+    separately_reported_terminal_causes: ["safety_mandated_termination", "developer_withdrawal", "consent_or_privacy_withdrawal"],
+    adjudication: "blinded_independent_review_from_preregistered_evidence",
   },
   robot_description_formats: ["URDF", "MJCF", "USD"],
   mandatory_events: ["ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"],
   event_envelope: {
-    required: ["schema_version", "deployment_id", "environment_id", "sequence", "occurred_at", "type", "payload"],
+    required: ["schema_version", "event_id", "deployment_id", "environment_id", "robot_id", "sequence", "occurred_at", "type", "payload", "signing_key_id", "signature"],
     ordering: "monotonic_sequence_per_deployment",
     timestamp: "RFC3339_UTC",
     transport: "signed_JSON_or_JSONL_over_HTTPS",
-    tamper_evidence: "previous_event_SHA256_hash_chain",
+    canonicalization: "RFC_8785_JCS",
+    tamper_evidence: "previous_event_hash_is_lowercase_hex_SHA256_of_full_previous_JCS_event",
+    signature_scope: "JCS_of_current_event_with_signature_field_removed",
+    signature_algorithm_and_public_key: "frozen_in_preregistration",
   },
   safety: {
     scoring: "gate_not_weight",
@@ -38,6 +52,14 @@ const spec = {
     reference_score: "/wanted-10k/reference-score.py",
     local_score_calculator: "/wanted-10k/calculator",
     research_basis: "/wanted-10k/evidence",
+    protocol_kit: "/wanted-10k/protocol",
+    conformance_checker: "/wanted-10k/conformance",
+    preregistration_schema: "/wanted-10k/preregistration.schema.json",
+    preregistration_template: "/wanted-10k/preregistration.template.json",
+    endpoint_rules: "/wanted-10k/endpoint-rules.json",
+  },
+  changelog: {
+    "0.2": ["forbid_unsupported_10k_RMST_extrapolation", "freeze_endpoint_and_censoring_taxonomy", "define_RFC8785_hash_chain", "add_preregistration_and_conformance_resources"],
   },
 };
 

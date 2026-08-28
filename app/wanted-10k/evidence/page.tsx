@@ -43,6 +43,13 @@ const foundations = [
     limit: "A removal decision is not a complete measure of trust, attachment, benefit, or safety.",
     links: [["Harvard SEAS overview", "https://seas.harvard.edu/news/automaton-we-trust"], ["Piggybacking Robots paper", "https://kgajos.seas.harvard.edu/papers/booth17piggybacking.pdf"]],
   },
+  {
+    n: "06", field: "DATA INTEGRITY", title: "Repeatable hashes need canonical bytes",
+    copy: "RFC 8785 defines a JSON Canonicalization Scheme so equivalent event objects have one deterministic representation for hashing and signing. WANTED 0.2 uses JCS before SHA-256 hash-chain and signature operations.",
+    supports: "Supports interoperable verification of event ordering and post-hoc modification.",
+    limit: "A valid hash chain does not prove that every real-world event was logged or that a logged claim is true.",
+    links: [["RFC 8785 — JSON Canonicalization Scheme", "https://www.rfc-editor.org/rfc/rfc8785.html"]],
+  },
 ];
 
 const standards = [
@@ -65,7 +72,7 @@ export default function EvidencePage() {
     </section>
 
     <section className="evidenceFoundations" id="foundations"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">01 / EVIDENCE MAP</span><h2>Five foundations.<br/><em>Five explicit limits.</em></h2></div><p>Each source informs a defined part of the protocol. None is presented as validation of the complete WANTED construct.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">01 / EVIDENCE MAP</span><h2>Six foundations.<br/><em>Six explicit limits.</em></h2></div><p>Each source informs a defined part of the protocol. None is presented as validation of the complete WANTED construct.</p></div>
       <div className="foundationGrid">{foundations.map((item) => <article key={item.n}>
         <header><span>{item.n}</span><small>{item.field}</small></header><h3>{item.title}</h3><p>{item.copy}</p>
         <dl><div><dt>SUPPORTS</dt><dd>{item.supports}</dd></div><div><dt>DOES NOT PROVE</dt><dd>{item.limit}</dd></div></dl>

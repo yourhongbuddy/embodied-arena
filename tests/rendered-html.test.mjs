@@ -1,91 +1,71 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-const templateRoot = new URL("../", import.meta.url);
-const previewRoot = new URL("../app/_sites-preview/", import.meta.url);
+let workerPromise;
+async function worker() {
+  if (!workerPromise) {
+    const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+    workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
+    workerPromise = import(workerUrl.href).then(module => module.default);
+  }
+  return workerPromise;
+}
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
+async function request(path, accept = "text/html") {
+  return (await worker()).fetch(
+    new Request(`http://localhost${path}`, { headers: { accept } }),
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+    { waitUntil() {}, passThroughOnException() {} },
   );
 }
 
-test("server-renders the starter loading skeleton", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
+test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
+  const benchmark = await request("/wanted-10k");
+  assert.equal(benchmark.status, 200);
+  const benchmarkHtml = await benchmark.text();
+  assert.match(benchmarkHtml, /Still wanted/);
+  assert.match(benchmarkHtml, /VERSION 0\.2/);
+  assert.match(benchmarkHtml, /Open protocol kit/);
+  assert.match(benchmarkHtml, /CONFORMANCE CHECKER/);
 
-  const html = await response.text();
-  assert.match(html, developmentPreviewMeta);
-  assert.match(html, /<title>Your site is taking shape<\/title>/i);
-  assert.match(html, /Building your site/);
-  assert.match(html, /Your site is taking shape/);
-  assert.match(
-    html,
-    /Your first version will appear here automatically when it’s ready\./,
-  );
-  assert.doesNotMatch(html, /Codex/);
-  assert.match(html, /react-loading-skeleton/);
-  assert.match(html, /role="status"/);
+  const protocol = await request("/wanted-10k/protocol");
+  assert.equal(protocol.status, 200);
+  const protocolHtml = await protocol.text();
+  assert.match(protocolHtml, /Freeze the rules/);
+  assert.match(protocolHtml, /W is never extrapolated/);
+  assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
+  assert.match(protocolHtml, /Six gates/);
 });
 
-test("keeps the loading skeleton scoped and disposable", async () => {
-  const [preview, css, page, layout, packageJson, files] = await Promise.all([
-    readFile(new URL("SkeletonPreview.tsx", previewRoot), "utf8"),
-    readFile(new URL("preview.css", previewRoot), "utf8"),
-    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../package.json", import.meta.url), "utf8"),
-    readdir(previewRoot),
+test("publishes internally consistent protocol 0.2 resources", async () => {
+  const [specResponse, eventResponse, preregResponse, templateResponse, rulesResponse] = await Promise.all([
+    request("/wanted-10k/spec.json", "application/json"),
+    request("/wanted-10k/event.schema.json", "application/json"),
+    request("/wanted-10k/preregistration.schema.json", "application/json"),
+    request("/wanted-10k/preregistration.template.json", "application/json"),
+    request("/wanted-10k/endpoint-rules.json", "application/json"),
   ]);
+  for (const response of [specResponse, eventResponse, preregResponse, templateResponse, rulesResponse]) assert.equal(response.status, 200);
+  const [spec, eventSchema, preregSchema, template, rules] = await Promise.all([specResponse.json(), eventResponse.json(), preregResponse.json(), templateResponse.json(), rulesResponse.json()]);
+  assert.equal(spec.version, "0.2");
+  assert.equal(eventSchema.properties.schema_version.const, "0.2");
+  assert.ok(eventSchema.required.includes("signature"));
+  assert.ok(eventSchema.required.includes("robot_id"));
+  assert.equal(preregSchema.properties.protocol_version.const, "0.2");
+  assert.equal(template.protocol_version, "0.2");
+  assert.equal(rules.protocol_version, "0.2");
+  assert.match(spec.primary_score.identifiability_rule, /do_not_report/);
+});
 
-  assert.deepEqual(files.sort(), ["SkeletonPreview.tsx", "preview.css"]);
-  assert.match(preview, /from "react-loading-skeleton"/);
-  assert.match(preview, /baseColor="#eceae7"/);
-  assert.match(preview, /highlightColor="#f9f8f6"/);
-  assert.match(preview, /duration=\{2\.8\}/);
-  assert.match(preview, /sites-skeleton-search-placeholder/);
-  assert.match(packageJson, /"react-loading-skeleton": "3\.5\.0"/);
+test("serves the local conformance checker and corrected score lab", async () => {
+  const conformance = await request("/wanted-10k/conformance");
+  assert.equal(conformance.status, 200);
+  const conformanceHtml = await conformance.text();
+  assert.match(conformanceHtml, /Prove the stream/);
+  assert.match(conformanceHtml, /LOCAL VALIDATOR/);
 
-  const shellIndex = preview.indexOf('className="sites-skeleton-shell"');
-  const statusIndex = preview.indexOf('className="sites-skeleton-status"');
-  assert.ok(shellIndex >= 0 && statusIndex > shellIndex);
-  assert.match(css, /position:\s*fixed/);
-  assert.match(css, /inset:\s*0/);
-  assert.match(css, /opacity:\s*0\.52/);
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
-  assert.doesNotMatch(css, /#020617|canvas|pets|progress/i);
-  assert.doesNotMatch(
-    preview,
-    /loading-spinner|status-mark|status-progress|canvas|cookie|random/i,
-  );
-
-  assert.match(page, /export const metadata:\s*Metadata/);
-  assert.match(page, /"codex-preview": "development"/);
-  assert.match(page, /<SkeletonPreview \/>/);
-  assert.match(layout, /title:\s*"Starter Project"/);
-  assert.doesNotMatch(layout, /codex-preview|_sites-preview|themeColor|\bViewport\b/);
-  assert.doesNotMatch(css, /(^|\s)(html|body)\s*\{/m);
-
-  await assert.rejects(
-    access(new URL("public/_sites-preview", templateRoot)),
-  );
+  const calculator = await request("/wanted-10k/calculator");
+  assert.equal(calculator.status, 200);
+  const calculatorHtml = await calculator.text();
+  assert.match(calculatorHtml, /refuses unsupported 10,000-hour extrapolation/);
 });
