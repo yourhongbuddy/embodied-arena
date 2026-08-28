@@ -13,6 +13,12 @@ const spec = {
     identifiability_rule: "do_not_report_W_at_10000_if_followup_ends_before_10000_while_S_hat_remains_above_zero",
     bootstrap_support_rule: "at_least_95_percent_of_environment_resamples_must_identify_the_horizon",
   },
+  robustness_profile: {
+    version: "0.2-R1",
+    changes_primary_estimator: false,
+    required: ["censoring_partial_identification_envelope", "leave_one_environment_out_influence", "tail_support_counts", "invalid_data_checks"],
+    bounds_are_rankable_scores: false,
+  },
   cohort: {
     minimum_independent_environments: 20,
     minimum_total_resident_hours: 10000,
@@ -62,6 +68,7 @@ const spec = {
     diagnostic_lab: "/wanted-10k/diagnostics",
     diagnostic_contract: "/wanted-10k/diagnostics.json",
     diagnostic_input_schema: "/wanted-10k/diagnostic-input.schema.json",
+    robustness_contract: "/wanted-10k/robustness.json",
     event_schema: "/wanted-10k/event.schema.json",
     openapi: "/wanted-10k/openapi.json",
     reference_score: "/wanted-10k/reference-score.py",

@@ -146,6 +146,15 @@ test("publishes internally consistent protocol 0.2 resources", async () => {
   assert.match(spec.primary_score.identifiability_rule, /do_not_report/);
 });
 
+test("ships the robustness analysis in the dependency-free Python reference", async () => {
+  const response = await request("/wanted-10k/reference-score.py", "text/x-python");
+  assert.equal(response.status, 200);
+  const source = await response.text();
+  assert.match(source, /def robustness_profile/);
+  assert.match(source, /profile_version.*0\.2-R1/);
+  assert.match(source, /unidentifiable_exclusions/);
+});
+
 test("serves the local conformance checker and corrected score lab", async () => {
   const conformance = await request("/wanted-10k/conformance");
   assert.equal(conformance.status, 200);
@@ -157,6 +166,24 @@ test("serves the local conformance checker and corrected score lab", async () =>
   assert.equal(calculator.status, 200);
   const calculatorHtml = await calculator.text();
   assert.match(calculatorHtml, /refuses unsupported 10,000-hour extrapolation/);
+  assert.match(calculatorHtml, /ROBUSTNESS DISCLOSURE/);
+  assert.match(calculatorHtml, /CENSORING ENVELOPE/);
+});
+
+test("publishes the primary-score robustness contract", async () => {
+  const [contractResponse, preregResponse, auditResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/robustness.json", "application/json"),
+    request("/wanted-10k/preregistration.template.json", "application/json"),
+    request("/wanted-10k/audit-manifest.template.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [contractResponse, preregResponse, auditResponse, specResponse]) assert.equal(response.status, 200);
+  const [contract, prereg, audit, spec] = await Promise.all([contractResponse.json(), preregResponse.json(), auditResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-R1");
+  assert.equal(contract.primary_estimator_changed, false);
+  assert.equal(prereg.analysis.leave_one_environment_out, true);
+  assert.equal(audit.primary.robustness_profile_version, "0.2-R1");
+  assert.equal(spec.robustness_profile.bounds_are_rankable_scores, false);
 });
 
 test("publishes the aggregate certification audit contract", async () => {

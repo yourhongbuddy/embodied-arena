@@ -1,4 +1,4 @@
-const source = `"""Dependency-free WANTED-10K scoring reference, version 0.2."""
+const source = `"""Dependency-free WANTED-10K scoring reference, version 0.2 + robustness 0.2-R1."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,6 +10,7 @@ HORIZON = 10_000.0
 class Environment:
     hours: float
     rejected: bool
+    identifier: str = ""
 
 def wanted_score(rows: list[Environment], horizon: float = HORIZON) -> float:
     """Normalized RMST using Kaplan-Meier, without unsupported extrapolation."""
@@ -69,6 +70,55 @@ def confidence_interval(
         return estimates[low] + (estimates[high] - estimates[low]) * (index - low)
 
     return percentile(0.025), percentile(0.975)
+
+def robustness_profile(
+    rows: list[Environment], horizon: float = HORIZON
+) -> dict[str, object]:
+    """Required stress disclosures; these bounds never replace primary W."""
+    observed = wanted_score(rows, horizon)
+    lower_rows = [
+        Environment(r.hours, r.rejected or r.hours < horizon, r.identifier)
+        for r in rows
+    ]
+    upper_rows = [
+        r if r.rejected else Environment(horizon, False, r.identifier)
+        for r in rows
+    ]
+    lower = wanted_score(lower_rows, horizon)
+    upper = wanted_score(upper_rows, horizon)
+    influence: list[dict[str, object]] = []
+    unsupported = 0
+    for index, row in enumerate(rows):
+        try:
+            estimate = wanted_score(rows[:index] + rows[index + 1 :], horizon)
+            influence.append({
+                "environment": row.identifier or f"row_{index + 1}",
+                "estimate": estimate,
+                "shift": estimate - observed,
+                "absolute_shift": abs(estimate - observed),
+            })
+        except ValueError:
+            unsupported += 1
+    influence.sort(key=lambda item: float(item["absolute_shift"]), reverse=True)
+    return {
+        "profile_version": "0.2-R1",
+        "censoring_bounds": {
+            "lower": lower,
+            "observed": observed,
+            "upper": upper,
+            "width": upper - lower,
+        },
+        "tail_support": {
+            "at_risk_9000": sum(r.hours >= 9000 for r in rows),
+            "at_risk_10000": sum(r.hours >= horizon for r in rows),
+        },
+        "leave_one_environment_out": {
+            "maximum_absolute_shift": influence[0]["absolute_shift"] if influence else None,
+            "most_influential_environment": influence[0]["environment"] if influence else None,
+            "unidentifiable_exclusions": unsupported,
+            "estimates": influence,
+        },
+    }
 `;
 
 export async function GET() {

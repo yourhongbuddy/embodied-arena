@@ -1,8 +1,25 @@
 export type Outcome = "completed" | "unrelated_censor" | "rejected" | "safety_termination" | "developer_withdrawal" | "consent_privacy_withdrawal";
 export type Row = { id: number; environment: string; hours: number; outcome: Outcome };
 export const HORIZON = 10_000;
+const outcomes: Outcome[] = ["completed", "unrelated_censor", "rejected", "safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"];
 
-export function score(rows: Row[]) {
+export function validateRows(rows: Row[]) {
+  const errors: string[] = [];
+  if (!rows.length) errors.push("Provide at least one independent environment.");
+  const identifiers = new Set<string>();
+  rows.forEach((row, index) => {
+    const label = row.environment.trim();
+    if (!label) errors.push(`Row ${index + 1}: environment identifier is required.`);
+    else if (identifiers.has(label)) errors.push(`Row ${index + 1}: duplicate environment identifier ${label}.`);
+    identifiers.add(label);
+    if (!Number.isFinite(row.hours) || row.hours < 0 || row.hours > HORIZON) errors.push(`Row ${index + 1}: resident hours must be between 0 and ${HORIZON}.`);
+    if (!outcomes.includes(row.outcome)) errors.push(`Row ${index + 1}: unrecognized outcome.`);
+    if (row.outcome === "completed" && row.hours !== HORIZON) errors.push(`Row ${index + 1}: completion requires exactly ${HORIZON} resident hours.`);
+  });
+  return errors;
+}
+
+function estimate(rows: Row[]) {
   if (!rows.length) return { wanted: null, survival10k: null, identifiable: false, lastObservableHours: 0, points: [{ time: 0, survival: 1 }] };
   const times = [...new Set(rows.filter(row => row.outcome === "rejected").map(row => row.hours))].sort((a,b)=>a-b);
   let survival = 1;
@@ -24,13 +41,19 @@ export function score(rows: Row[]) {
   return { wanted: 100 * area / HORIZON, survival10k: survival, identifiable, lastObservableHours, points };
 }
 
+export function score(rows: Row[]) {
+  const errors = validateRows(rows);
+  if (errors.length) return { wanted: null, survival10k: null, identifiable: false, lastObservableHours: 0, points: [{ time: 0, survival: 1 }], errors };
+  return { ...estimate(rows), errors };
+}
+
 export function bootstrap(rows: Row[], samples = 1_000) {
-  if (rows.length < 2) return { interval: null, validFraction: 0 };
+  if (rows.length < 2 || validateRows(rows).length) return { interval: null, validFraction: 0 };
   let state = 10_000;
   const random = () => { state = (1664525 * state + 1013904223) >>> 0; return state / 4294967296; };
   const estimates = Array.from({ length: samples }, () => {
     const sample = Array.from({ length: rows.length }, () => rows[Math.floor(random() * rows.length)]);
-    return score(sample).wanted;
+    return estimate(sample).wanted;
   }).filter((estimate): estimate is number => estimate !== null).sort((a,b)=>a-b);
   const validFraction = estimates.length / samples;
   if (validFraction < .95) return { interval: null, validFraction };
@@ -40,4 +63,26 @@ export function bootstrap(rows: Row[], samples = 1_000) {
     return estimates[low] + (estimates[high] - estimates[low]) * (index - low);
   };
   return { interval: [percentile(.025), percentile(.975)] as const, validFraction };
+}
+
+export function robustness(rows: Row[]) {
+  const errors = validateRows(rows);
+  if (errors.length) return { errors, bounds: null, influence: null, support: null };
+  const observed = estimate(rows);
+  const lowerRows = rows.map(row => row.outcome === "rejected" || row.outcome === "completed" ? row : { ...row, outcome: "rejected" as const });
+  const upperRows = rows.map(row => row.outcome === "rejected" ? row : { ...row, hours: HORIZON, outcome: "completed" as const });
+  const lower = estimate(lowerRows).wanted;
+  const upper = estimate(upperRows).wanted;
+  const leaveOneOut = rows.map((row, index) => ({ environment: row.environment, estimate: estimate(rows.filter((_, candidate) => candidate !== index)).wanted }));
+  const identifiable = leaveOneOut.filter((item): item is { environment: string; estimate: number } => item.estimate !== null && observed.wanted !== null).map(item => ({ ...item, shift: item.estimate - Number(observed.wanted), absolute_shift: Math.abs(item.estimate - Number(observed.wanted)) })).sort((a, b) => b.absolute_shift - a.absolute_shift);
+  const at9000 = rows.filter(row => row.hours >= 9000).length;
+  const at10000 = rows.filter(row => row.hours >= HORIZON).length;
+  const unrelatedEarly = rows.filter(row => row.outcome === "unrelated_censor" && row.hours < HORIZON).length;
+  const terminalEarly = rows.filter(row => ["safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"].includes(row.outcome) && row.hours < HORIZON).length;
+  return {
+    errors,
+    bounds: { lower, observed: observed.wanted, upper, width: lower === null || upper === null ? null : upper - lower, early_exits: unrelatedEarly + terminalEarly },
+    influence: { maximum_absolute_shift: identifiable[0]?.absolute_shift ?? null, most_influential_environment: identifiable[0]?.environment ?? null, unidentifiable_exclusions: leaveOneOut.length - identifiable.length, estimates: identifiable },
+    support: { at_risk_9000: at9000, at_risk_10000: at10000, unrelated_early_censors: unrelatedEarly, terminal_early_exits: terminalEarly, voluntary_rejections: rows.filter(row => row.outcome === "rejected").length },
+  };
 }
