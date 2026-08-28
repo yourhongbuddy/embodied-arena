@@ -46,6 +46,7 @@ export default function Wanted10K() {
         <div className="wantedActions">
           <a className="primary" href="#protocol">Read the protocol <span>↓</span></a>
           <a className="secondary" href="#integration">Integrate a robot</a>
+          <a className="secondary" href="/wanted-10k/calculator">Calculate a cohort</a>
         </div>
         <div className="wantedProof">
           <div><strong>10,000</strong><span>RESIDENT HOURS</span></div>
@@ -164,7 +165,7 @@ export default function Wanted10K() {
         <div className="wantedBoard">
           <header><span>#</span><span>ROBOT / COHORT</span><span>W</span><span>95% CI</span><span>N</span><span>HOURS</span><span>S(10K)</span><span>I<sub>100</sub></span><span>MTBHR</span><span>SAFETY</span></header>
           <div className="wantedEmpty"><span>∅</span><b>NO AUDITED WANTED WILD RUNS YET</b><p>The first qualifying cohort sets the baseline. Provisional runs will remain separate from official ranking.</p></div>
-          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · DOWNTIME · INCIDENTS · WITHDRAWALS</span><a href="#integration">SUBMISSION CONTRACT ↑</a></footer>
+          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · DOWNTIME · INCIDENTS · WITHDRAWALS</span><a href="/wanted-10k/calculator">OPEN SCORE LAB ↗</a></footer>
         </div>
       </div>
     </section>
