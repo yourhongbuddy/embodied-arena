@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 
 const links = [
-  ["/","Scan"],["/leaderboard","Leaderboard"],["/watch","Watch"],["/atlas","Atlas"],["/campaigns","Campaigns"],["/analytics","Heartbeat"],
+  ["/","Scan"],["/wanted-10k","WANTED-10K"],["/leaderboard","Leaderboard"],["/watch","Watch"],["/atlas","Atlas"],["/campaigns","Campaigns"],["/analytics","Heartbeat"],
 ];
 
 export function SiteNav() {
