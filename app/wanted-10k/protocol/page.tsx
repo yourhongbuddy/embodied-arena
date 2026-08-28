@@ -36,6 +36,9 @@ const kit = [
   ["SCORE LAB", "Enter an environment-level cohort, inspect support and uncertainty, and export an audit summary.", "/wanted-10k/calculator", "OPEN SCORE LAB →"],
   ["AUDIT MANIFEST SCHEMA", "Bind the public leaderboard row to versioned, hashed study, safety, telemetry, adjudication, and withdrawal evidence.", "/wanted-10k/audit-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["CERTIFICATION READINESS", "Assess a complete aggregate audit manifest locally before independent registry review.", "/wanted-10k/audit", "PREPARE AUDIT PACK →"],
+  ["DIAGNOSTIC PROFILE", "Compute burden, reliability, stop tails, initiative, learning, generalization, and reacquisition without creating a second ranking score.", "/wanted-10k/diagnostics", "OPEN PROFILE LAB →"],
+  ["DIAGNOSTIC CONTRACT", "Freeze canonical formulas, denominators, zero-event handling, aggregation units, and anti-gaming rules.", "/wanted-10k/diagnostics.json", "OPEN CONTRACT ↗"],
+  ["DIAGNOSTIC INPUT SCHEMA", "Validate the aggregate sufficient statistics used to reproduce every diagnostic result.", "/wanted-10k/diagnostic-input.schema.json", "OPEN SCHEMA ↗"],
 ];
 
 export default function ProtocolPage() {
@@ -61,7 +64,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Nine artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to connect a robot, define a run, validate the adapter, reproduce the score, and prepare an independent audit.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Twelve artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, and prepare an independent audit.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

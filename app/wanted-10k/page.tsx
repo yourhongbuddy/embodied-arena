@@ -133,6 +133,7 @@ export default function Wanted10K() {
         <div><span>RESCUE INTERVAL</span><b>MTBHR</b><p>Resident hours divided by human rescue events.</p></div>
         <div><span>REACQUISITION</span><b>R<sub>back</sub></b><p>Share choosing reinstall after the seven-day withdrawal.</p></div>
       </div>
+      <div className="shell diagnosticProfileLink"><span>BURDEN · RELIABILITY · STOP TAILS · INITIATIVE · LEARNING · GENERALIZATION</span><a href="/wanted-10k/diagnostics">OPEN LONGITUDINAL DIAGNOSTIC PROFILE →</a></div>
     </section>
 
     <section className="integritySection" id="integrity">

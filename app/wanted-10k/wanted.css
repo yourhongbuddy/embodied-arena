@@ -1,0 +1,2 @@
+.diagnosticProfileLink{display:flex;justify-content:space-between;gap:20px;padding:16px 18px;border:1px solid #36433a;border-top:0;font:8px "Courier New";color:#7a877d}.diagnosticProfileLink a{font-weight:700;color:var(--lime)}
+@media(max-width:720px){.diagnosticProfileLink{align-items:flex-start;flex-direction:column}}

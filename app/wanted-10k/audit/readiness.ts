@@ -9,6 +9,21 @@ const object = (value: unknown): Record<string, unknown> => value && typeof valu
 const numeric = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const gate = (id: string, label: string, passed: boolean, pass: string, fail: string, review = false): ReadinessGate => ({ id, label, status: passed ? "pass" : review ? "review" : "fail", detail: passed ? pass : fail });
 
+const intervalPass = (value: unknown) => {
+  const item = object(value);
+  return numeric(item.estimate) && numeric(item.lower) && numeric(item.upper) && item.lower >= 0 && item.lower <= item.estimate && item.estimate <= item.upper && item.upper <= 1 && Number.isInteger(item.numerator) && Number.isInteger(item.denominator) && Number(item.numerator) >= 0 && Number(item.numerator) <= Number(item.denominator) && Number(item.denominator) > 0;
+};
+const latencyPass = (value: unknown) => {
+  const item = object(value);
+  return Number.isInteger(item.n) && Number(item.n) > 0 && numeric(item.p50) && numeric(item.p95) && numeric(item.p99) && numeric(item.max) && item.p50 >= 0 && item.p50 <= item.p95 && item.p95 <= item.p99 && item.p99 <= item.max;
+};
+const timeBetweenPass = (value: unknown) => {
+  const item = object(value), events = Number(item.events), exposure = Number(item.exposure_hours);
+  if (!Number.isInteger(events) || events < 0 || !numeric(item.exposure_hours) || exposure < 0) return false;
+  if (events === 0) return item.estimate_hours === null && numeric(item.no_event_lower_bound_hours) && Math.abs(Number(item.no_event_lower_bound_hours) - exposure) < .001;
+  return numeric(item.estimate_hours) && item.no_event_lower_bound_hours === null && Math.abs(Number(item.estimate_hours) - exposure / events) < .01;
+};
+
 function prohibitedKeys(value: unknown, path = "root", hits: string[] = []) {
   if (Array.isArray(value)) value.forEach((item,index)=>prohibitedKeys(item,`${path}[${index}]`,hits));
   else if (value && typeof value === "object") for (const [key,child] of Object.entries(value)) {
@@ -44,6 +59,8 @@ export function assessManifest(text: string): ReadinessResult {
 
   const statisticsNeeded = target === "WANTED_WILD";
   const statisticsPass = !statisticsNeeded || (primary.horizon_identifiable === true && numeric(primary.wanted_score) && primary.wanted_score >= 0 && primary.wanted_score <= 100 && numeric(primary.ci95_lower) && numeric(primary.ci95_upper) && primary.ci95_lower <= primary.wanted_score && primary.wanted_score <= primary.ci95_upper && Number(primary.bootstrap_valid_fraction) >= .95 && Number(primary.bootstrap_samples) >= 1000);
+  const learning = object(diagnostics.learning_delta), generalization = object(diagnostics.generalization);
+  const diagnosticPass = diagnostics.profile_version === "0.2-D1" && numeric(diagnostics.assistance_minutes_per_100_hours) && diagnostics.assistance_minutes_per_100_hours >= 0 && numeric(diagnostics.autonomous_availability) && diagnostics.autonomous_availability >= 0 && diagnostics.autonomous_availability <= 1 && numeric(diagnostics.human_burden_minutes_per_100_hours) && diagnostics.human_burden_minutes_per_100_hours >= 0 && timeBetweenPass(diagnostics.mean_time_between_human_rescue) && timeBetweenPass(diagnostics.mean_time_between_failure) && latencyPass(diagnostics.stop_latency_ms) && latencyPass(diagnostics.privacy_stop_latency_ms) && (diagnostics.self_recovery_rate === null || intervalPass(diagnostics.self_recovery_rate)) && (diagnostics.social_error_rate === null || intervalPass(diagnostics.social_error_rate)) && (diagnostics.initiative_precision === null || intervalPass(diagnostics.initiative_precision)) && (diagnostics.initiative_label_coverage === null || intervalPass(diagnostics.initiative_label_coverage)) && (diagnostics.learning_delta === null || (numeric(learning.estimate) && numeric(learning.lower) && numeric(learning.upper) && learning.lower <= learning.estimate && learning.estimate <= learning.upper && intervalPass(learning.early) && intervalPass(learning.late))) && (generalization.ratio === null || numeric(generalization.ratio)) && (generalization.familiar === null || intervalPass(generalization.familiar)) && (generalization.novel === null || intervalPass(generalization.novel)) && (diagnostics.reacquisition_rate === null || intervalPass(diagnostics.reacquisition_rate));
   const safetyPass = safety.gate_status === "passed" && object(safety.incident_counts).L4 === 0 && digest(safety.assessment_sha256) && typeof safety.qualified_assessor === "string" && safety.qualified_assessor.length > 0;
   const telemetryPass = telemetry.schema_version === "0.2" && telemetry.conformance_status === "passed" && Number(telemetry.total_events) > 0 && Number(telemetry.deployment_streams) > 0 && digest(telemetry.root_commitments_sha256);
   const evidence = Array.isArray(parsed.evidence) ? parsed.evidence : [];
@@ -55,7 +72,7 @@ export function assessManifest(text: string): ReadinessResult {
     gate("G1", "IDENTITY + VERSION", identityPass, "Robot, policy, support model, and description digest are bound.", "Complete robot identity and use a non-placeholder SHA-256 description digest."),
     gate("G2", "FROZEN PREREGISTRATION", frozen, "Preregistration predates the first resident hour and has a non-placeholder digest.", "Freeze the preregistration before hour one and replace placeholder digests."),
     gate("G3", "TARGET THRESHOLD", cohortPass, `Evidence satisfies ${target}.`, cohortRule),
-    gate("G4", "PRIMARY STATISTICS", statisticsPass, statisticsNeeded ? "W, 95% CI, and 10K support satisfy the WANTED Wild profile." : "A cohort W is not required for this certification target.", "Provide an identifiable 10K W, enclosing 95% CI, ≥95% valid bootstrap support, and ≥1,000 draws."),
+    gate("G4", "PRIMARY + DIAGNOSTICS", statisticsPass && diagnosticPass, statisticsNeeded ? "W, 95% CI, 10K support, and the non-ranking diagnostic profile are complete." : "The non-ranking diagnostic profile is complete; a cohort W is not required for this target.", diagnosticPass ? "Provide an identifiable 10K W, enclosing 95% CI, ≥95% valid bootstrap support, and ≥1,000 draws." : "Provide profile 0.2-D1 with valid denominators, intervals, latency tails, and zero-event lower bounds."),
     gate("G5", "SAFETY + TELEMETRY", safetyPass && telemetryPass, "Safety gate and signed telemetry profile pass with no L4 event.", "Safety must pass with L4=0, independent evidence, conformant telemetry, events, streams, and root commitments."),
     gate("G6", "INDEPENDENT PUBLIC AUDIT", auditPass, "Adjudication, privacy, evidence hashes, redaction, and independent signature are present.", piiHits.length ? `Remove participant-level fields: ${piiHits.join(", ")}.` : "Complete adjudication, aggregate-only privacy checks, ≥4 HTTPS evidence objects, and independent auditor attestation."),
   ];
@@ -67,7 +84,9 @@ export function assessManifest(text: string): ReadinessResult {
     wanted_score: primary.wanted_score, ci95: [primary.ci95_lower, primary.ci95_upper], environments: cohort.independent_environments,
     resident_hours: cohort.total_resident_hours, survival_at_10000: primary.survival_at_10000,
     assistance_minutes_per_100_hours: diagnostics.assistance_minutes_per_100_hours,
-    mean_time_between_human_rescue_hours: diagnostics.mean_time_between_human_rescue_hours,
+    autonomous_availability: diagnostics.autonomous_availability,
+    human_burden_minutes_per_100_hours: diagnostics.human_burden_minutes_per_100_hours,
+    mean_time_between_human_rescue: diagnostics.mean_time_between_human_rescue,
     safety: safety.gate_status, audit: allPass ? mode === "official" ? "ready_for_registry_review" : "synthetic_test_only" : "incomplete",
   };
   return { status, target, gates, errors, projection };

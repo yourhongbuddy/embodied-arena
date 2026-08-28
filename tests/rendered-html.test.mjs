@@ -36,8 +36,29 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Nine artifacts/);
+  assert.match(protocolHtml, /Twelve artifacts/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
+});
+
+test("publishes the non-ranking longitudinal diagnostic profile", async () => {
+  const [pageResponse, contractResponse, schemaResponse, auditResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/diagnostics"),
+    request("/wanted-10k/diagnostics.json", "application/json"),
+    request("/wanted-10k/diagnostic-input.schema.json", "application/json"),
+    request("/wanted-10k/audit-manifest.template.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, contractResponse, schemaResponse, auditResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Explain the score/);
+  assert.match(pageHtml, /NOT A COMPOSITE SCORE/);
+  const [contract, schema, audit, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), auditResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-D1");
+  assert.equal(contract.ranking_effect, "none");
+  assert.equal(schema.additionalProperties, false);
+  assert.equal(audit.diagnostics.profile_version, "0.2-D1");
+  assert.equal(spec.diagnostic_profile.zero_event_rule, "right_censored_lower_bound_not_infinity");
+  assert.equal(spec.developer_resources.diagnostic_lab, "/wanted-10k/diagnostics");
 });
 
 test("ships an executable adapter that produces one conformant five-event chain", async () => {

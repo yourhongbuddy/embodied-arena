@@ -1,5 +1,10 @@
+import { calculateDiagnostics, diagnosticExample } from "../diagnostics/profile.ts";
+
 const digest = { type: "string", pattern: "^[a-f0-9]{64}$" };
 const uri = { type: "string", format: "uri" };
+const interval = { type: "object", additionalProperties: false, required: ["estimate", "lower", "upper", "numerator", "denominator"], properties: { estimate: { type: "number", minimum: 0, maximum: 1 }, lower: { type: "number", minimum: 0, maximum: 1 }, upper: { type: "number", minimum: 0, maximum: 1 }, numerator: { type: "integer", minimum: 0 }, denominator: { type: "integer", minimum: 1 } } };
+const latency = { type: "object", additionalProperties: false, required: ["n", "p50", "p95", "p99", "max"], properties: { n: { type: "integer", minimum: 1 }, p50: { type: "number", minimum: 0 }, p95: { type: "number", minimum: 0 }, p99: { type: "number", minimum: 0 }, max: { type: "number", minimum: 0 } } };
+const timeBetween = { type: "object", additionalProperties: false, required: ["estimate_hours", "no_event_lower_bound_hours", "events", "exposure_hours"], properties: { estimate_hours: { type: ["number", "null"], minimum: 0 }, no_event_lower_bound_hours: { type: ["number", "null"], minimum: 0 }, events: { type: "integer", minimum: 0 }, exposure_hours: { type: "number", minimum: 0 } } };
 
 export const auditManifestSchema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -27,8 +32,14 @@ export const auditManifestSchema = {
     primary: { type: "object", additionalProperties: false, required: ["wanted_score", "ci95_lower", "ci95_upper", "survival_at_10000", "horizon_identifiable", "bootstrap_valid_fraction", "bootstrap_samples"], properties: {
       wanted_score: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_lower: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_upper: { type: ["number", "null"], minimum: 0, maximum: 100 }, survival_at_10000: { type: ["number", "null"], minimum: 0, maximum: 1 }, horizon_identifiable: { type: "boolean" }, bootstrap_valid_fraction: { type: "number", minimum: 0, maximum: 1 }, bootstrap_samples: { type: "integer", minimum: 1000 },
     } },
-    diagnostics: { type: "object", additionalProperties: false, required: ["assistance_minutes_per_100_hours", "autonomous_availability", "mean_time_between_human_rescue_hours", "human_burden_minutes_per_100_hours", "stop_latency_ms", "reacquisition_rate"], properties: {
-      assistance_minutes_per_100_hours: { type: "number", minimum: 0 }, autonomous_availability: { type: "number", minimum: 0, maximum: 1 }, mean_time_between_human_rescue_hours: { type: ["number", "null"], minimum: 0 }, human_burden_minutes_per_100_hours: { type: "number", minimum: 0 }, stop_latency_ms: { type: "object", additionalProperties: false, required: ["p50", "p95", "p99", "max"], properties: { p50: { type: "number", minimum: 0 }, p95: { type: "number", minimum: 0 }, p99: { type: "number", minimum: 0 }, max: { type: "number", minimum: 0 } } }, reacquisition_rate: { type: ["number", "null"], minimum: 0, maximum: 1 },
+    diagnostics: { type: "object", additionalProperties: false, required: ["profile_version", "assistance_minutes_per_100_hours", "autonomous_availability", "human_burden_minutes_per_100_hours", "mean_time_between_human_rescue", "mean_time_between_failure", "self_recovery_rate", "stop_latency_ms", "privacy_stop_latency_ms", "social_error_rate", "initiative_precision", "initiative_label_coverage", "learning_delta", "generalization", "reacquisition_rate"], properties: {
+      profile_version: { const: "0.2-D1" },
+      assistance_minutes_per_100_hours: { type: "number", minimum: 0 }, autonomous_availability: { type: "number", minimum: 0, maximum: 1 }, human_burden_minutes_per_100_hours: { type: "number", minimum: 0 },
+      mean_time_between_human_rescue: timeBetween, mean_time_between_failure: timeBetween,
+      self_recovery_rate: { anyOf: [interval, { type: "null" }] }, stop_latency_ms: latency, privacy_stop_latency_ms: latency,
+      social_error_rate: { anyOf: [interval, { type: "null" }] }, initiative_precision: { anyOf: [interval, { type: "null" }] }, initiative_label_coverage: { anyOf: [interval, { type: "null" }] },
+      learning_delta: { anyOf: [{ type: "object", additionalProperties: false, required: ["estimate", "lower", "upper", "early", "late"], properties: { estimate: { type: "number", minimum: -1, maximum: 1 }, lower: { type: "number", minimum: -1, maximum: 1 }, upper: { type: "number", minimum: -1, maximum: 1 }, early: interval, late: interval } }, { type: "null" }] },
+      generalization: { type: "object", additionalProperties: false, required: ["ratio", "familiar", "novel"], properties: { ratio: { type: ["number", "null"], minimum: 0 }, familiar: { anyOf: [interval, { type: "null" }] }, novel: { anyOf: [interval, { type: "null" }] } } }, reacquisition_rate: { anyOf: [interval, { type: "null" }] },
     } },
     safety: { type: "object", additionalProperties: false, required: ["gate_status", "incident_counts", "qualified_assessor", "assessment_uri", "assessment_sha256", "applicable_rules"], properties: {
       gate_status: { enum: ["passed", "failed", "pending"] }, incident_counts: { type: "object", additionalProperties: false, required: ["L0", "L1", "L2", "L3", "L4"], properties: { L0: { type: "integer", minimum: 0 }, L1: { type: "integer", minimum: 0 }, L2: { type: "integer", minimum: 0 }, L3: { type: "integer", minimum: 0 }, L4: { type: "integer", minimum: 0 } } }, qualified_assessor: { type: "string", minLength: 1 }, assessment_uri: uri, assessment_sha256: digest, applicable_rules: { type: "array", minItems: 1, items: { type: "string" } },
@@ -51,6 +62,8 @@ export const auditManifestSchema = {
 };
 
 const hash = (character: string) => `${character}${"0123456789abcdef".repeat(4)}`.slice(0,64);
+const diagnosticMetrics = calculateDiagnostics(diagnosticExample).metrics;
+if (!diagnosticMetrics) throw new Error("Synthetic diagnostic profile must be calculable.");
 
 export const auditManifestTemplate = {
   protocol_version: "0.2",
@@ -61,7 +74,7 @@ export const auditManifestTemplate = {
   study: { study_id: "SYNTHETIC-STUDY-001", preregistration_uri: "https://example.org/wanted-preregistration.json", preregistration_sha256: hash("b"), preregistration_frozen_at: "2026-01-01T00:00:00Z", first_resident_hour_at: "2026-01-02T00:00:00Z", jurisdictions: ["US-CA"], ethics_review_reference: "SYNTHETIC-IRB-001" },
   cohort: { independent_environments: 24, total_resident_hours: 120000, lifetime_completions: 8, voluntary_rejections: 4, unrelated_censors: 12, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 },
   primary: { wanted_score: 71.4, ci95_lower: 62.1, ci95_upper: 79.8, survival_at_10000: 0.61, horizon_identifiable: true, bootstrap_valid_fraction: 1, bootstrap_samples: 10000 },
-  diagnostics: { assistance_minutes_per_100_hours: 18.2, autonomous_availability: 0.963, mean_time_between_human_rescue_hours: 428.6, human_burden_minutes_per_100_hours: 31.7, stop_latency_ms: { p50: 84, p95: 142, p99: 201, max: 244 }, reacquisition_rate: 0.75 },
+  diagnostics: { profile_version: "0.2-D1", ...diagnosticMetrics },
   safety: { gate_status: "passed", incident_counts: { L0: 2841, L1: 72, L2: 9, L3: 1, L4: 0 }, qualified_assessor: "Synthetic Independent Safety Assessor", assessment_uri: "https://example.org/wanted-safety.pdf", assessment_sha256: hash("c"), applicable_rules: ["Example only — qualified assessor selects applicable rules"] },
   telemetry: { schema_version: "0.2", conformance_status: "passed", total_events: 2400000, deployment_streams: 24, root_commitments_uri: "https://example.org/wanted-roots.json", root_commitments_sha256: hash("d") },
   adjudication: { completed: true, reviewer_count: 2, blinded: true, agreement_rate: 0.958, decisions_uri: "https://example.org/wanted-adjudication.json", decisions_sha256: hash("e") },
