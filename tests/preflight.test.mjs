@@ -40,4 +40,8 @@ test("requires the bound preflight profile for certification readiness", () => {
   const result = assessManifest(JSON.stringify(failed));
   assert.equal(result.status, "not_ready");
   assert.equal(result.gates.find(gate => gate.id === "G2").status, "fail");
+
+  const unbound = structuredClone(auditManifestTemplate);
+  unbound.preflight.robot_description_sha256 = `${"f".repeat(63)}e`;
+  assert.equal(assessManifest(JSON.stringify(unbound)).gates.find(gate => gate.id === "G2").status, "fail");
 });

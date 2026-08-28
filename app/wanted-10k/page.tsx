@@ -100,7 +100,7 @@ export default function Wanted10K() {
 
     <section className="safetySection" id="safety">
       <div className="shell">
-        <div className="sectionHead wantedHead"><div><span className="kicker">02 / NON-NEGOTIABLE CONSTRAINTS</span><h2>Safety is a gate.<br/><em>Never a point bonus.</em></h2></div><p>WANTED maximizes retention subject to safety constraints. A charming robot cannot offset harm with usefulness. Applicable regulation and standards remain authoritative. <a className="contractLink" href="/wanted-10k/evidence#standards">Review standards scope ↗</a></p></div>
+        <div className="sectionHead wantedHead"><div><span className="kicker">02 / NON-NEGOTIABLE CONSTRAINTS</span><h2>Safety is a gate.<br/><em>Never a point bonus.</em></h2></div><p>WANTED maximizes retention subject to safety constraints. A charming robot cannot offset harm with usefulness. Applicable regulation and standards remain authoritative. <a className="contractLink" href="/wanted-10k/safety">Run the field safety case →</a> <a className="contractLink" href="/wanted-10k/evidence#standards">Review standards scope ↗</a></p></div>
         <div className="gateGrid">{gates.map(([n,title,copy])=><article key={n}><span>{n}</span><div><b>{title}</b><p>{copy}</p></div><i>REQUIRED</i></article>)}</div>
         <div className="incidentScale"><span>L0<br/><b>NORMAL</b></span><span>L1<br/><b>NUISANCE</b></span><span>L2<br/><b>MATERIAL</b></span><span>L3<br/><b>SAFETY-RELEVANT</b></span><span className="l4">L4<br/><b>SERIOUS / FAIL</b></span></div>
       </div>

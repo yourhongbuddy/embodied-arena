@@ -37,9 +37,34 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Eighteen artifacts/);
+  assert.match(protocolHtml, /Twenty-one artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
+});
+
+test("publishes the non-compensatory field safety-case profile", async () => {
+  const [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/safety"),
+    request("/wanted-10k/safety.json", "application/json"),
+    request("/wanted-10k/safety-manifest.schema.json", "application/json"),
+    request("/wanted-10k/safety-manifest.template.json", "application/json"),
+    request("/wanted-10k/audit-manifest.template.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Pass every gate/);
+  assert.match(pageHtml, /No universal/);
+  assert.match(pageHtml, /NOT A CONFORMITY MARK/);
+  const [contract, schema, template, audit, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), templateResponse.json(), auditResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-S1");
+  assert.equal(contract.universal_latency_limit_ms, null);
+  assert.equal(schema.properties.profile_version.const, "0.2-S1");
+  assert.equal(template.protective_functions.protective_stop.trials >= 100, true);
+  assert.equal(audit.safety.profile_version, "0.2-S1");
+  assert.equal(audit.safety.policy_artifact_sha256, audit.robot.policy_artifact_sha256);
+  assert.equal(spec.safety_case_profile.conformity_claim, false);
+  assert.equal(spec.developer_resources.safety_case_lab, "/wanted-10k/safety");
 });
 
 test("publishes the audited WANTED registry without invented entries", async () => {
