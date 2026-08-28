@@ -109,7 +109,12 @@ export default function Wanted10K() {
           <h2>Five events.<br/><em>Any embodiment.</em></h2>
           <p>Keep the robot’s native control stack. WANTED only requires a signed, ordered event stream and one robot description: URDF, MJCF, or USD.</p>
           <div className="eventList">{events.map((event,i)=><div key={event}><span>0{i+1}</span><code>{event}</code></div>)}</div>
-          <a className="contractLink" href="/wanted-10k/spec.json">OPEN MACHINE-READABLE CONTRACT <b>↗</b></a>
+          <div className="contractLinks">
+            <a className="contractLink" href="/wanted-10k/spec.json">BENCHMARK CONTRACT <b>↗</b></a>
+            <a className="contractLink" href="/wanted-10k/event.schema.json">EVENT SCHEMA <b>↗</b></a>
+            <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
+            <a className="contractLink" href="/wanted-10k/reference-score.py">SCORING REFERENCE <b>↓</b></a>
+          </div>
         </div>
         <div className="codeCard">
           <header><span>SDK / TYPESCRIPT</span><i>v0.1</i></header>
@@ -125,16 +130,37 @@ export default function Wanted10K() {
       </div>
     </section>
 
+    <section className="integritySection" id="integrity">
+      <div className="shell">
+        <div className="sectionHead wantedHead"><div><span className="kicker">04 / STUDY INTEGRITY</span><h2>Hard to game.<br/><em>Easy to audit.</em></h2></div><p>Retention only means something when participants are free to reject the robot and teams cannot hide the operational burden.</p></div>
+        <div className="integrityGrid">
+          <article><span>PREREGISTER</span><b>Freeze the rules before hour one.</b><p>Eligibility, incentives, censoring, stopping rules, software-update policy, safety gates, and analysis code are timestamped before deployment.</p></article>
+          <article><span>SEPARATE INCENTIVES</span><b>Never pay people to keep it.</b><p>Base compensation is fixed and independent of robot retention. Milestone choice offers use a preregistered randomized mechanism.</p></article>
+          <article><span>LOG THE HIDDEN LABOR</span><b>Teleoperation is allowed, secrecy is not.</b><p>Remote guidance, recovery, maintenance, off-site debugging, and researcher contact are recorded with duration and reason.</p></article>
+          <article><span>TAMPER EVIDENCE</span><b>Order every event.</b><p>Per-deployment sequence numbers, UTC timestamps, signatures, and rolling hashes make deletion, reordering, and silent backfilling detectable.</p></article>
+          <article><span>INDEPENDENT ADJUDICATION</span><b>Classify the endpoint consistently.</b><p>A blinded reviewer distinguishes voluntary rejection from unrelated dropout, safety termination, research withdrawal, and study completion.</p></article>
+          <article><span>VERSION DISCLOSURE</span><b>Publish what changed.</b><p>Robot hardware, policy, remote-support model, and material software changes are versioned. Cohorts may not be silently pooled across incompatible systems.</p></article>
+        </div>
+        <div className="humanMeasures">
+          <div><span>Q1 / KEEP</span><b>Remove it today at no cost?</b><small>BINARY · DIAGNOSTIC</small></div>
+          <div><span>Q2 / VALUE</span><b>Life better or worse recently?</b><small>−2 TO +2 · DIAGNOSTIC</small></div>
+          <div><span>Q3 / BURDEN</span><b>How much work is it creating?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
+          <div><span>Q4 / TRUST</span><b>Operate without supervision?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
+        </div>
+        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score.</p>
+      </div>
+    </section>
+
     <section className="certSection" id="certification">
       <div className="shell">
-        <div className="sectionHead wantedHead"><div><span className="kicker">04 / CERTIFICATION PATH</span><h2>Simulation first.<br/><em>Real preference last.</em></h2></div><p>Digital twins reduce human exposure to predictable failures. Only real people in real environments produce a WANTED Score.</p></div>
+        <div className="sectionHead wantedHead"><div><span className="kicker">05 / CERTIFICATION PATH</span><h2>Simulation first.<br/><em>Real preference last.</em></h2></div><p>Digital twins reduce human exposure to predictable failures. Only real people in real environments produce a WANTED Score.</p></div>
         <div className="levelGrid">{levels.map(([n,name,hours,copy])=><article key={n}><span>{n}</span><small>{hours}</small><h3>{name}</h3><p>{copy}</p><i>→</i></article>)}</div>
       </div>
     </section>
 
     <section className="wantedBoardSection" id="leaderboard">
       <div className="shell">
-        <div className="sectionHead wantedHead"><div><span className="kicker">05 / AUDITED LEADERBOARD</span><h2>Rank the wanted hours.<br/><em>Publish the burden.</em></h2></div><p>Only WANTED Wild cohorts are ranked. Smaller or incomplete studies remain visible as provisional evidence.</p></div>
+        <div className="sectionHead wantedHead"><div><span className="kicker">06 / AUDITED LEADERBOARD</span><h2>Rank the wanted hours.<br/><em>Publish the burden.</em></h2></div><p>Only WANTED Wild cohorts are ranked. Smaller or incomplete studies remain visible as provisional evidence.</p></div>
         <div className="wantedBoard">
           <header><span>#</span><span>ROBOT / COHORT</span><span>W</span><span>95% CI</span><span>N</span><span>HOURS</span><span>S(10K)</span><span>I<sub>100</sub></span><span>MTBHR</span><span>SAFETY</span></header>
           <div className="wantedEmpty"><span>∅</span><b>NO AUDITED WANTED WILD RUNS YET</b><p>The first qualifying cohort sets the baseline. Provisional runs will remain separate from official ranking.</p></div>

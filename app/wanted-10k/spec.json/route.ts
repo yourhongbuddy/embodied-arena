@@ -23,6 +23,7 @@ const spec = {
     ordering: "monotonic_sequence_per_deployment",
     timestamp: "RFC3339_UTC",
     transport: "signed_JSON_or_JSONL_over_HTTPS",
+    tamper_evidence: "previous_event_SHA256_hash_chain",
   },
   safety: {
     scoring: "gate_not_weight",
@@ -31,6 +32,11 @@ const spec = {
   },
   required_diagnostics: ["assistance_minutes_per_100_hours", "autonomous_availability", "mean_time_between_human_rescue", "reacquisition_rate"],
   certification: ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD", "WANTED_10K"],
+  developer_resources: {
+    event_schema: "/wanted-10k/event.schema.json",
+    openapi: "/wanted-10k/openapi.json",
+    reference_score: "/wanted-10k/reference-score.py",
+  },
 };
 
 export async function GET() {
