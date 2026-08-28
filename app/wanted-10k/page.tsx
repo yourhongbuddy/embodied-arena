@@ -46,6 +46,7 @@ export default function Wanted10K() {
         <div className="wantedActions">
           <a className="primary" href="/wanted-10k/protocol">Open protocol kit <span>→</span></a>
           <a className="secondary" href="/wanted-10k/sdk">Integrate a robot</a>
+          <a className="secondary" href="/wanted-10k/preflight">Preflight a policy</a>
           <a className="secondary" href="/wanted-10k/calculator">Calculate a cohort</a>
           <a className="secondary" href="/wanted-10k/evidence">Research basis</a>
         </div>

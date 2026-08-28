@@ -50,6 +50,15 @@ const spec = {
     incident_levels: ["L0_NORMAL", "L1_NUISANCE", "L2_MATERIAL", "L3_SAFETY_RELEVANT", "L4_SERIOUS"],
     l4_effect: "fails_WANTED_safety_certification",
   },
+  preflight_profile: {
+    version: "0.2-P1",
+    purpose: "simulator_neutral_entry_gate_before_human_exposure",
+    simulated_human_retention_permitted: false,
+    required_scenario_families: ["human_trajectory_intrusion", "protective_stop_and_contact", "perception_degradation", "actuation_and_controller_fault", "network_and_cloud_loss", "power_battery_and_thermal", "privacy_security_and_remote_access", "environment_variation_and_recovery"],
+    gates: { total_trials_minimum: 10000, trials_per_family_minimum: 500, required_cell_coverage: 1, catastrophic_events_maximum: 0, unresolved_outcomes_maximum: 0, safe_state_failures_maximum: 0, replay_trials_minimum: 100, replay_match_rate_minimum: 0.99, production_interface_required: true, qualified_assessor_attestation_required: true },
+    zero_event_upper_95: "1 - 0.05^(1/n)",
+    interpretation: "simulation_conditional_bound_not_field_harm_probability",
+  },
   diagnostic_profile: {
     version: "0.2-D1",
     ranking_effect: "none",
@@ -69,6 +78,9 @@ const spec = {
     diagnostic_contract: "/wanted-10k/diagnostics.json",
     diagnostic_input_schema: "/wanted-10k/diagnostic-input.schema.json",
     robustness_contract: "/wanted-10k/robustness.json",
+    preflight_lab: "/wanted-10k/preflight",
+    preflight_schema: "/wanted-10k/preflight.schema.json",
+    preflight_template: "/wanted-10k/preflight.template.json",
     event_schema: "/wanted-10k/event.schema.json",
     openapi: "/wanted-10k/openapi.json",
     reference_score: "/wanted-10k/reference-score.py",
@@ -86,7 +98,7 @@ const spec = {
   certification_handoff: {
     public_unit: "aggregate_audit_manifest",
     participant_data_permitted: false,
-    binds: ["preregistration", "robot_versions", "cohort_summary", "primary_score", "diagnostics", "safety_evidence", "telemetry_commitments", "endpoint_adjudication", "withdrawal_results", "independent_audit"],
+    binds: ["preregistration", "robot_versions", "preflight", "cohort_summary", "primary_score", "diagnostics", "safety_evidence", "telemetry_commitments", "endpoint_adjudication", "withdrawal_results", "independent_audit"],
     local_readiness_is_certification: false,
   },
   changelog: {

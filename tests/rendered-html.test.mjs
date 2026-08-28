@@ -36,8 +36,31 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Twelve artifacts/);
+  assert.match(protocolHtml, /Fifteen artifacts/);
+  assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
+});
+
+test("publishes the simulator-neutral digital-twin preflight contract", async () => {
+  const [pageResponse, schemaResponse, templateResponse, auditResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/preflight"),
+    request("/wanted-10k/preflight.schema.json", "application/json"),
+    request("/wanted-10k/preflight.template.json", "application/json"),
+    request("/wanted-10k/audit-manifest.template.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, schemaResponse, templateResponse, auditResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Stress it first/);
+  assert.match(pageHtml, /SIMULATION BOUNDARY/);
+  assert.match(pageHtml, /CLOPPER/);
+  const [schema, template, audit, spec] = await Promise.all([schemaResponse.json(), templateResponse.json(), auditResponse.json(), specResponse.json()]);
+  assert.equal(schema.properties.profile_version.const, "0.2-P1");
+  assert.equal(template.families.length, 8);
+  assert.equal(audit.preflight.profile_version, "0.2-P1");
+  assert.equal(audit.preflight.catastrophic_events, 0);
+  assert.equal(spec.preflight_profile.simulated_human_retention_permitted, false);
+  assert.equal(spec.developer_resources.preflight_lab, "/wanted-10k/preflight");
 });
 
 test("publishes the non-ranking longitudinal diagnostic profile", async () => {

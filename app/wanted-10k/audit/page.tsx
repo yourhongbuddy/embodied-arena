@@ -14,7 +14,7 @@ export default function AuditPage() {
     <section className="auditHero shell">
       <span className="eyebrow"><i className="liveDot"/> CERTIFICATION HANDOFF · PROTOCOL 0.2</span>
       <h1>One row.<br/><em>Every claim bound.</em></h1>
-      <p>A leaderboard score should never be a loose spreadsheet entry. The WANTED Audit Pack binds the public row to frozen study rules, robot versions, cohort results, safety evidence, telemetry commitments, endpoint decisions, and independent sign-off.</p>
+      <p>A leaderboard score should never be a loose spreadsheet entry. The WANTED Audit Pack binds the public row to frozen study rules, robot and policy artifacts, digital-twin preflight, cohort results, safety evidence, telemetry commitments, endpoint decisions, and independent sign-off.</p>
       <div className="auditHeroActions"><a className="primary" href="/wanted-10k/audit-manifest.template.json">Download manifest <span>↓</span></a><a className="secondary" href="/wanted-10k/audit-manifest.schema.json">Open schema</a><a className="secondary" href="/wanted-10k/protocol">Protocol kit</a></div>
       <div className="auditPrinciples"><div><span>PUBLIC</span><b>Aggregate results and evidence hashes</b></div><div><span>PRIVATE</span><b>Participant identity and raw household data</b></div><div><span>INDEPENDENT</span><b>Safety, adjudication, and audit sign-off</b></div></div>
     </section>
