@@ -45,7 +45,7 @@ export default function Wanted10K() {
         <p>Most benchmarks ask whether a robot can complete a task. WANTED-10K asks whether people continue choosing the robot after novelty fades, hardware ages, routines change, and mistakes accumulate.</p>
         <div className="wantedActions">
           <a className="primary" href="/wanted-10k/protocol">Open protocol kit <span>→</span></a>
-          <a className="secondary" href="#integration">Integrate a robot</a>
+          <a className="secondary" href="/wanted-10k/sdk">Integrate a robot</a>
           <a className="secondary" href="/wanted-10k/calculator">Calculate a cohort</a>
           <a className="secondary" href="/wanted-10k/evidence">Research basis</a>
         </div>
@@ -112,6 +112,7 @@ export default function Wanted10K() {
           <p>Keep the robot’s native control stack. WANTED only requires a signed, ordered event stream and one robot description: URDF, MJCF, or USD.</p>
           <div className="eventList">{events.map((event,i)=><div key={event}><span>0{i+1}</span><code>{event}</code></div>)}</div>
           <div className="contractLinks">
+            <a className="contractLink" href="/wanted-10k/sdk">ADAPTER QUICKSTART <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/spec.json">BENCHMARK CONTRACT <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/event.schema.json">EVENT SCHEMA <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
@@ -121,8 +122,8 @@ export default function Wanted10K() {
           </div>
         </div>
         <div className="codeCard">
-          <header><span>SDK / TYPESCRIPT</span><i>v0.2</i></header>
-          <pre><code><span className="codeMuted">{"// The adapter adds sequence, hash, signature + event ID"}</span>{`\n`}<span className="codeLime">const</span> wanted = createWantedClient({`{`}{`\n`}  deploymentId: <span className="codeString">&quot;dep_7f2&quot;</span>,{`\n`}  environmentId: <span className="codeString">&quot;env_104&quot;</span>,{`\n`}  robotId: <span className="codeString">&quot;robot_07&quot;</span>,{`\n`}  signingKeyId: <span className="codeString">&quot;key_prod_07&quot;</span>{`\n`}{`}`});{`\n\n`}<span className="codeLime">await</span> wanted.emit({`{`}{`\n`}  type: <span className="codeString">&quot;HUMAN_INTERVENTION&quot;</span>,{`\n`}  occurredAt: <span className="codeString">&quot;2026-08-28T18:04:12Z&quot;</span>,{`\n`}  payload: {`{`}{`\n`}    mode: <span className="codeString">&quot;remote_guidance&quot;</span>,{`\n`}    duration_seconds: <span className="codeNumber">43</span>,{`\n`}    reason: <span className="codeString">&quot;recovery&quot;</span>{`\n`}  {`}`}{`\n`}{`}`});</code></pre>
+          <header><span>SDK / JAVASCRIPT ESM</span><i>v0.2</i></header>
+          <pre><code><span className="codeMuted">{"// Executable adapter: sequence + JCS + signature + chain"}</span>{`\n`}<span className="codeLime">import</span> {`{ WantedClient, createHttpSink }`} <span className="codeLime">from</span>{`\n`}  <span className="codeString">&quot;./wanted-sdk.mjs&quot;</span>;{`\n\n`}<span className="codeLime">const</span> wanted = <span className="codeLime">new</span> WantedClient({`{`}{`\n`}  deploymentId: <span className="codeString">&quot;dep_7f2&quot;</span>,{`\n`}  environmentId: <span className="codeString">&quot;env_104&quot;</span>,{`\n`}  robotId: <span className="codeString">&quot;robot_07&quot;</span>,{`\n`}  signingKeyId: <span className="codeString">&quot;key_prod_07&quot;</span>,{`\n`}  sign: bytes {`=>`} secureModule.sign(bytes),{`\n`}  sink: createHttpSink(eventsUrl){`\n`}{`}`});{`\n\n`}<span className="codeLime">await</span> wanted.intervention({`\n`}  <span className="codeString">&quot;remote_guidance&quot;</span>, <span className="codeNumber">43</span>, <span className="codeString">&quot;recovery&quot;</span>{`\n`});</code></pre>
           <footer><span>POST /v1/events</span><span>JSONL · HTTPS · SIGNED</span></footer>
         </div>
       </div>

@@ -47,6 +47,10 @@ const spec = {
   required_diagnostics: ["assistance_minutes_per_100_hours", "autonomous_availability", "mean_time_between_human_rescue", "reacquisition_rate"],
   certification: ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD", "WANTED_10K"],
   developer_resources: {
+    adapter_quickstart: "/wanted-10k/sdk",
+    reference_sdk: "/wanted-10k/wanted-sdk.mjs",
+    deployment_schema: "/wanted-10k/deployment.schema.json",
+    deployment_template: "/wanted-10k/deployment.template.json",
     event_schema: "/wanted-10k/event.schema.json",
     openapi: "/wanted-10k/openapi.json",
     reference_score: "/wanted-10k/reference-score.py",
@@ -68,6 +72,7 @@ const spec = {
     local_readiness_is_certification: false,
   },
   changelog: {
+    "0.2-adapter-1": ["ship_executable_zero_dependency_ESM_adapter", "define_durable_restart_checkpoint", "publish_machine_readable_deployment_configuration"],
     "0.2": ["forbid_unsupported_10k_RMST_extrapolation", "freeze_endpoint_and_censoring_taxonomy", "define_RFC8785_hash_chain", "add_preregistration_and_conformance_resources"],
   },
 };

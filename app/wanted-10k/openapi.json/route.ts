@@ -19,8 +19,20 @@ const openapi = {
         },
       },
     },
+    "/v1/deployments/{deployment_id}/tail": {
+      get: {
+        operationId: "getWantedDeploymentTail",
+        summary: "Recover the last accepted chain checkpoint after restart",
+        parameters: [{ name: "deployment_id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "Authoritative accepted tail", content: { "application/json": { schema: { type: "object", required: ["next_sequence", "previous_event_hash", "last_occurred_at"], properties: { next_sequence: { type: "integer", minimum: 1 }, previous_event_hash: { type: "string", pattern: "^[a-f0-9]{64}$" }, last_occurred_at: { type: "string", format: "date-time" } } } } } },
+          "404": { description: "No accepted event; initialize a genesis checkpoint at sequence zero" },
+        },
+      },
+    },
   },
   "x-wanted-status": "contract-only",
+  "x-wanted-reference-sdk": "/wanted-10k/wanted-sdk.mjs",
 };
 
 export async function GET() {

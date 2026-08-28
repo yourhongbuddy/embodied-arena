@@ -27,6 +27,7 @@ const eligibility = [
 ];
 
 const kit = [
+  ["REFERENCE ADAPTER", "Connect a native robot stack with five helpers while the module owns ordering, JCS signing bytes, hash chaining, and restart checkpoints.", "/wanted-10k/sdk", "OPEN QUICKSTART →"],
   ["PREREGISTRATION TEMPLATE", "Freeze recruitment, incentives, endpoints, safety, operations, updates, privacy, telemetry, and analysis before hour one.", "/wanted-10k/preregistration.template.json", "DOWNLOAD JSON ↓"],
   ["PREREGISTRATION SCHEMA", "Machine-check every field that prevents post-hoc rule changes or hidden operational support.", "/wanted-10k/preregistration.schema.json", "OPEN SCHEMA ↗"],
   ["ENDPOINT RULES", "Use one shared disposition vocabulary for rejection, censoring, safety termination, developer withdrawal, and consent exit.", "/wanted-10k/endpoint-rules.json", "OPEN RULES ↗"],
@@ -44,7 +45,7 @@ export default function ProtocolPage() {
       <span className="eyebrow"><i className="liveDot"/> IMPLEMENTATION KIT · PROTOCOL 0.2</span>
       <h1>Freeze the rules.<br/><em>Then start the clock.</em></h1>
       <p>The benchmark becomes credible only when rejection, censoring, assistance, software changes, safety termination, and missing data are defined before deployment. Protocol 0.2 turns those decisions into machine-readable artifacts.</p>
-      <div className="protocolHeroActions"><a className="primary" href="/wanted-10k/preregistration.template.json">Download preregistration <span>↓</span></a><a className="secondary" href="/wanted-10k/conformance">Validate an adapter</a><a className="secondary" href="/wanted-10k/audit">Prepare audit pack</a></div>
+      <div className="protocolHeroActions"><a className="primary" href="/wanted-10k/sdk">Install the adapter <span>→</span></a><a className="secondary" href="/wanted-10k/preregistration.template.json">Download preregistration</a><a className="secondary" href="/wanted-10k/conformance">Validate an adapter</a><a className="secondary" href="/wanted-10k/audit">Prepare audit pack</a></div>
       <div className="protocolRelease"><b>0.2</b><div><span>SCIENTIFIC CORRECTION</span><p>W is never extrapolated to 10,000 hours when follow-up ends earlier while estimated retention remains above zero.</p></div><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10861099/" target="_blank" rel="noreferrer">RMST BASIS ↗</a></div>
     </section>
 
@@ -60,7 +61,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Eight artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to define a run, validate the adapter, reproduce the score, and prepare an independent audit.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Nine artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to connect a robot, define a run, validate the adapter, reproduce the score, and prepare an independent audit.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 
