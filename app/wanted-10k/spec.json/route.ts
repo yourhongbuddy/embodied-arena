@@ -89,7 +89,23 @@ const spec = {
     zero_event_rule: "right_censored_lower_bound_not_infinity",
   },
   certification: ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD", "WANTED_10K"],
+  certification_profile: {
+    version: "0.2-C1",
+    ordering: "inherited_evidence_classes_not_scalar_quality_ladder",
+    rankable_target: "WANTED_WILD",
+    wanted_10k_is_lifetime_badge_not_cohort_rank: true,
+    targets: {
+      PREQUALIFIED: { environment: "simulation_only", minimum_resident_hours: 0, required: ["preflight_0.2-P1", "simulation_report"], not_applicable: ["primary_W", "field_diagnostics", "field_safety", "field_telemetry", "endpoint_adjudication"] },
+      WANTED_LAB: { inherits: "PREQUALIFIED", minimum_independent_environments: 1, minimum_resident_hours: 100, required: ["field_safety_0.2-S1", "signed_telemetry", "diagnostics_0.2-D1", "endpoint_adjudication", "lab_report"], not_applicable: ["primary_W"] },
+      WANTED_WILD: { inherits: "WANTED_LAB", minimum_independent_environments: 20, minimum_total_resident_hours: 10000, required: ["identifiable_W", "cluster_bootstrap_95CI", "robustness_0.2-R1"], rankable: true },
+      WANTED_10K: { inherits: "WANTED_LAB", minimum_independent_environments: 1, minimum_resident_hours: 10000, required: ["lifetime_completion", "seven_day_withdrawal", "reacquisition_result"], rankable: false },
+    },
+    not_applicable_encoding: { applicable: false, reason: "target-specific reason of at least 10 characters" },
+  },
   developer_resources: {
+    certification_matrix: "/wanted-10k/certification",
+    certification_contract: "/wanted-10k/certification.json",
+    certification_templates: "/wanted-10k/certification-templates.json",
     adapter_quickstart: "/wanted-10k/sdk",
     reference_sdk: "/wanted-10k/wanted-sdk.mjs",
     deployment_schema: "/wanted-10k/deployment.schema.json",

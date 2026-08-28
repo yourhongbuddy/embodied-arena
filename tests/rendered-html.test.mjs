@@ -37,9 +37,34 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Twenty-one artifacts/);
+  assert.match(protocolHtml, /Twenty-four artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
+});
+
+test("publishes the target-specific certification applicability contract", async () => {
+  const [pageResponse, contractResponse, templatesResponse, schemaResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/certification"),
+    request("/wanted-10k/certification.json", "application/json"),
+    request("/wanted-10k/certification-templates.json", "application/json"),
+    request("/wanted-10k/audit-manifest.schema.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, contractResponse, templatesResponse, schemaResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Ask only for evidence/);
+  assert.match(pageHtml, /Do not fake a ladder/);
+  assert.match(pageHtml, /TYPED NOT APPLICABLE/);
+  const [contract, templates, schema, spec] = await Promise.all([contractResponse.json(), templatesResponse.json(), schemaResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-C1");
+  assert.equal(contract.ranking.only_target, "WANTED_WILD");
+  assert.equal(templates.certification_profile_version, "0.2-C1");
+  assert.deepEqual(Object.keys(templates.templates), ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD", "WANTED_10K"]);
+  assert.equal(templates.templates.PREQUALIFIED.primary.applicable, false);
+  assert.equal(templates.templates.WANTED_10K.primary.applicable, false);
+  assert.equal(schema.allOf.length, 4);
+  assert.equal(spec.certification_profile.rankable_target, "WANTED_WILD");
+  assert.equal(spec.developer_resources.certification_matrix, "/wanted-10k/certification");
 });
 
 test("publishes the non-compensatory field safety-case profile", async () => {

@@ -7,6 +7,7 @@ const uri = { type: "string", format: "uri" };
 const interval = { type: "object", additionalProperties: false, required: ["estimate", "lower", "upper", "numerator", "denominator"], properties: { estimate: { type: "number", minimum: 0, maximum: 1 }, lower: { type: "number", minimum: 0, maximum: 1 }, upper: { type: "number", minimum: 0, maximum: 1 }, numerator: { type: "integer", minimum: 0 }, denominator: { type: "integer", minimum: 1 } } };
 const latency = { type: "object", additionalProperties: false, required: ["n", "p50", "p95", "p99", "max"], properties: { n: { type: "integer", minimum: 1 }, p50: { type: "number", minimum: 0 }, p95: { type: "number", minimum: 0 }, p99: { type: "number", minimum: 0 }, max: { type: "number", minimum: 0 } } };
 const timeBetween = { type: "object", additionalProperties: false, required: ["estimate_hours", "no_event_lower_bound_hours", "events", "exposure_hours"], properties: { estimate_hours: { type: ["number", "null"], minimum: 0 }, no_event_lower_bound_hours: { type: ["number", "null"], minimum: 0 }, events: { type: "integer", minimum: 0 }, exposure_hours: { type: "number", minimum: 0 } } };
+const notApplicable = { type: "object", additionalProperties: false, required: ["applicable", "reason"], properties: { applicable: { const: false }, reason: { type: "string", minLength: 10 } } };
 
 export const auditManifestSchema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -37,10 +38,10 @@ export const auditManifestSchema = {
     cohort: { type: "object", additionalProperties: false, required: ["independent_environments", "total_resident_hours", "lifetime_completions", "voluntary_rejections", "unrelated_censors", "safety_terminations", "developer_withdrawals", "consent_privacy_withdrawals"], properties: {
       independent_environments: { type: "integer", minimum: 0 }, total_resident_hours: { type: "number", minimum: 0 }, lifetime_completions: { type: "integer", minimum: 0 }, voluntary_rejections: { type: "integer", minimum: 0 }, unrelated_censors: { type: "integer", minimum: 0 }, safety_terminations: { type: "integer", minimum: 0 }, developer_withdrawals: { type: "integer", minimum: 0 }, consent_privacy_withdrawals: { type: "integer", minimum: 0 },
     } },
-    primary: { type: "object", additionalProperties: false, required: ["wanted_score", "ci95_lower", "ci95_upper", "survival_at_10000", "horizon_identifiable", "bootstrap_valid_fraction", "bootstrap_samples", "robustness_profile_version", "censoring_bound_lower", "censoring_bound_upper", "censoring_bound_width", "loo_max_absolute_shift", "loo_unidentifiable_exclusions", "support_at_10000", "early_exit_count"], properties: {
+    primary: { oneOf: [{ type: "object", additionalProperties: false, required: ["wanted_score", "ci95_lower", "ci95_upper", "survival_at_10000", "horizon_identifiable", "bootstrap_valid_fraction", "bootstrap_samples", "robustness_profile_version", "censoring_bound_lower", "censoring_bound_upper", "censoring_bound_width", "loo_max_absolute_shift", "loo_unidentifiable_exclusions", "support_at_10000", "early_exit_count"], properties: {
       wanted_score: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_lower: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_upper: { type: ["number", "null"], minimum: 0, maximum: 100 }, survival_at_10000: { type: ["number", "null"], minimum: 0, maximum: 1 }, horizon_identifiable: { type: "boolean" }, bootstrap_valid_fraction: { type: "number", minimum: 0, maximum: 1 }, bootstrap_samples: { type: "integer", minimum: 1000 }, robustness_profile_version: { const: "0.2-R1" }, censoring_bound_lower: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_upper: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_width: { type: "number", minimum: 0, maximum: 100 }, loo_max_absolute_shift: { type: ["number", "null"], minimum: 0, maximum: 100 }, loo_unidentifiable_exclusions: { type: "integer", minimum: 0 }, support_at_10000: { type: "integer", minimum: 0 }, early_exit_count: { type: "integer", minimum: 0 },
-    } },
-    diagnostics: { type: "object", additionalProperties: false, required: ["profile_version", "assistance_minutes_per_100_hours", "autonomous_availability", "human_burden_minutes_per_100_hours", "mean_time_between_human_rescue", "mean_time_between_failure", "self_recovery_rate", "stop_latency_ms", "privacy_stop_latency_ms", "social_error_rate", "initiative_precision", "initiative_label_coverage", "learning_delta", "generalization", "reacquisition_rate"], properties: {
+    } }, notApplicable] },
+    diagnostics: { oneOf: [{ type: "object", additionalProperties: false, required: ["profile_version", "assistance_minutes_per_100_hours", "autonomous_availability", "human_burden_minutes_per_100_hours", "mean_time_between_human_rescue", "mean_time_between_failure", "self_recovery_rate", "stop_latency_ms", "privacy_stop_latency_ms", "social_error_rate", "initiative_precision", "initiative_label_coverage", "learning_delta", "generalization", "reacquisition_rate"], properties: {
       profile_version: { const: "0.2-D1" },
       assistance_minutes_per_100_hours: { type: "number", minimum: 0 }, autonomous_availability: { type: "number", minimum: 0, maximum: 1 }, human_burden_minutes_per_100_hours: { type: "number", minimum: 0 },
       mean_time_between_human_rescue: timeBetween, mean_time_between_failure: timeBetween,
@@ -48,27 +49,59 @@ export const auditManifestSchema = {
       social_error_rate: { anyOf: [interval, { type: "null" }] }, initiative_precision: { anyOf: [interval, { type: "null" }] }, initiative_label_coverage: { anyOf: [interval, { type: "null" }] },
       learning_delta: { anyOf: [{ type: "object", additionalProperties: false, required: ["estimate", "lower", "upper", "early", "late"], properties: { estimate: { type: "number", minimum: -1, maximum: 1 }, lower: { type: "number", minimum: -1, maximum: 1 }, upper: { type: "number", minimum: -1, maximum: 1 }, early: interval, late: interval } }, { type: "null" }] },
       generalization: { type: "object", additionalProperties: false, required: ["ratio", "familiar", "novel"], properties: { ratio: { type: ["number", "null"], minimum: 0 }, familiar: { anyOf: [interval, { type: "null" }] }, novel: { anyOf: [interval, { type: "null" }] } } }, reacquisition_rate: { anyOf: [interval, { type: "null" }] },
-    } },
-    safety: { type: "object", additionalProperties: false, required: ["profile_version", "gate_status", "manifest_uri", "manifest_sha256", "robot_description_sha256", "policy_artifact_sha256", "participant_stop_trials", "protective_stop_trials", "privacy_stop_trials", "remote_loss_trials", "rollback_trials", "all_required_trials_passed", "context_coverage", "privileged_path_coverage", "unacceptable_residual_risks", "unresolved_material_incidents", "unresolved_high_severity_vulnerabilities", "l4_incidents", "safety_terminations", "incident_counts", "qualified_assessor", "assessor_attested", "assessment_uri", "assessment_sha256", "applicable_rules"], properties: {
+    } }, notApplicable] },
+    safety: { oneOf: [{ type: "object", additionalProperties: false, required: ["profile_version", "gate_status", "manifest_uri", "manifest_sha256", "robot_description_sha256", "policy_artifact_sha256", "participant_stop_trials", "protective_stop_trials", "privacy_stop_trials", "remote_loss_trials", "rollback_trials", "all_required_trials_passed", "context_coverage", "privileged_path_coverage", "unacceptable_residual_risks", "unresolved_material_incidents", "unresolved_high_severity_vulnerabilities", "l4_incidents", "safety_terminations", "incident_counts", "qualified_assessor", "assessor_attested", "assessment_uri", "assessment_sha256", "applicable_rules"], properties: {
       profile_version: { const: "0.2-S1" }, gate_status: { enum: ["passed", "failed", "pending"] }, manifest_uri: uri, manifest_sha256: digest, robot_description_sha256: digest, policy_artifact_sha256: digest,
       participant_stop_trials: { type: "integer", minimum: 30 }, protective_stop_trials: { type: "integer", minimum: 100 }, privacy_stop_trials: { type: "integer", minimum: 30 }, remote_loss_trials: { type: "integer", minimum: 30 }, rollback_trials: { type: "integer", minimum: 10 }, all_required_trials_passed: { const: true }, context_coverage: { const: 1 }, privileged_path_coverage: { const: 1 }, unacceptable_residual_risks: { const: 0 }, unresolved_material_incidents: { const: 0 }, unresolved_high_severity_vulnerabilities: { const: 0 }, l4_incidents: { const: 0 }, safety_terminations: { const: 0 },
       incident_counts: { type: "object", additionalProperties: false, required: ["L0", "L1", "L2", "L3", "L4"], properties: { L0: { type: "integer", minimum: 0 }, L1: { type: "integer", minimum: 0 }, L2: { type: "integer", minimum: 0 }, L3: { type: "integer", minimum: 0 }, L4: { type: "integer", minimum: 0 } } }, qualified_assessor: { type: "string", minLength: 1 }, assessor_attested: { const: true }, assessment_uri: uri, assessment_sha256: digest, applicable_rules: { type: "array", minItems: 1, items: { type: "string" } },
-    } },
-    telemetry: { type: "object", additionalProperties: false, required: ["schema_version", "conformance_status", "total_events", "deployment_streams", "root_commitments_uri", "root_commitments_sha256"], properties: {
+    } }, notApplicable] },
+    telemetry: { oneOf: [{ type: "object", additionalProperties: false, required: ["schema_version", "conformance_status", "total_events", "deployment_streams", "root_commitments_uri", "root_commitments_sha256"], properties: {
       schema_version: { const: "0.2" }, conformance_status: { enum: ["passed", "failed", "pending"] }, total_events: { type: "integer", minimum: 0 }, deployment_streams: { type: "integer", minimum: 0 }, root_commitments_uri: uri, root_commitments_sha256: digest,
-    } },
-    adjudication: { type: "object", additionalProperties: false, required: ["completed", "reviewer_count", "blinded", "agreement_rate", "decisions_uri", "decisions_sha256"], properties: {
+    } }, notApplicable] },
+    adjudication: { oneOf: [{ type: "object", additionalProperties: false, required: ["completed", "reviewer_count", "blinded", "agreement_rate", "decisions_uri", "decisions_sha256"], properties: {
       completed: { type: "boolean" }, reviewer_count: { type: "integer", minimum: 1 }, blinded: { type: "boolean" }, agreement_rate: { type: "number", minimum: 0, maximum: 1 }, decisions_uri: uri, decisions_sha256: digest,
-    } },
+    } }, notApplicable] },
     withdrawal: { type: "object", additionalProperties: false, required: ["eligible", "completed", "reacquisition_rate", "median_days_to_return_request"], properties: {
       eligible: { type: "integer", minimum: 0 }, completed: { type: "integer", minimum: 0 }, reacquisition_rate: { type: ["number", "null"], minimum: 0, maximum: 1 }, median_days_to_return_request: { type: ["number", "null"], minimum: 0, maximum: 7 },
     } },
-    evidence: { type: "array", minItems: 4, items: { type: "object", additionalProperties: false, required: ["role", "uri", "sha256", "public"], properties: { role: { enum: ["cohort_summary", "analysis_code", "incident_register", "safety_case", "security_assessment", "intervention_register", "version_history", "withdrawal_results", "simulation_report", "lab_report", "other"] }, uri, sha256: digest, public: { type: "boolean" } } } },
+    evidence: { type: "array", minItems: 2, items: { type: "object", additionalProperties: false, required: ["role", "uri", "sha256", "public"], properties: { role: { enum: ["cohort_summary", "analysis_code", "incident_register", "safety_case", "security_assessment", "intervention_register", "version_history", "withdrawal_results", "simulation_report", "lab_report", "other"] }, uri, sha256: digest, public: { type: "boolean" } } } },
     privacy: { type: "object", additionalProperties: false, required: ["participant_data_included", "redaction_reviewed", "public_pack_contains_aggregate_data_only"], properties: { participant_data_included: { const: false }, redaction_reviewed: { const: true }, public_pack_contains_aggregate_data_only: { const: true } } },
     audit: { type: "object", additionalProperties: false, required: ["auditor", "auditor_organization", "independence_statement", "scope", "signed_at", "signature_algorithm", "public_key_uri", "auditor_signature"], properties: {
       auditor: { type: "string", minLength: 1 }, auditor_organization: { type: "string", minLength: 1 }, independence_statement: { type: "string", minLength: 20 }, scope: { type: "array", minItems: 1, items: { type: "string" } }, signed_at: { type: "string", format: "date-time" }, signature_algorithm: { type: "string", minLength: 1 }, public_key_uri: uri, auditor_signature: { type: "string", pattern: "^[A-Za-z0-9_-]{32,}$" },
     } },
   },
+  allOf: [
+    {
+      if: { properties: { submission: { properties: { target_certification: { const: "PREQUALIFIED" } }, required: ["target_certification"] } } },
+      then: { properties: {
+        cohort: { properties: { independent_environments: { const: 0 }, total_resident_hours: { const: 0 } } },
+        primary: notApplicable, diagnostics: notApplicable, safety: notApplicable, telemetry: notApplicable, adjudication: notApplicable,
+        withdrawal: { properties: { eligible: { const: 0 }, completed: { const: 0 }, reacquisition_rate: { const: null }, median_days_to_return_request: { const: null } } },
+      } },
+    },
+    {
+      if: { properties: { submission: { properties: { target_certification: { const: "WANTED_LAB" } }, required: ["target_certification"] } } },
+      then: { properties: {
+        cohort: { properties: { independent_environments: { minimum: 1 }, total_resident_hours: { minimum: 100 } } },
+        primary: notApplicable, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
+      } },
+    },
+    {
+      if: { properties: { submission: { properties: { target_certification: { const: "WANTED_WILD" } }, required: ["target_certification"] } } },
+      then: { properties: {
+        cohort: { properties: { independent_environments: { minimum: 20 }, total_resident_hours: { minimum: 10000 } } },
+        primary: { not: notApplicable }, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
+      } },
+    },
+    {
+      if: { properties: { submission: { properties: { target_certification: { const: "WANTED_10K" } }, required: ["target_certification"] } } },
+      then: { properties: {
+        cohort: { properties: { independent_environments: { minimum: 1 }, total_resident_hours: { minimum: 10000 }, lifetime_completions: { minimum: 1 } } },
+        primary: notApplicable, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
+        withdrawal: { properties: { eligible: { minimum: 1 }, completed: { minimum: 1 }, reacquisition_rate: { type: "number" } } },
+      } },
+    },
+  ],
 };
 
 const hash = (character: string) => `${character}${"0123456789abcdef".repeat(4)}`.slice(0,64);
@@ -109,4 +142,41 @@ export const auditManifestTemplate = {
   ],
   privacy: { participant_data_included: false, redaction_reviewed: true, public_pack_contains_aggregate_data_only: true },
   audit: { auditor: "Synthetic Auditor", auditor_organization: "Independent Example Assurance", independence_statement: "Synthetic example: auditor is organizationally and financially independent of the sponsor.", scope: ["Preregistration", "Telemetry continuity", "Endpoint dispositions", "Safety evidence", "Score reproduction"], signed_at: "2026-08-28T18:00:00Z", signature_algorithm: "Ed25519", public_key_uri: "https://example.org/wanted-auditor-key.txt", auditor_signature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+};
+
+const na = (reason: string) => ({ applicable: false as const, reason });
+const cloneTemplate = () => JSON.parse(JSON.stringify(auditManifestTemplate));
+export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" | "WANTED_WILD" | "WANTED_10K") {
+  const value = cloneTemplate();
+  value.submission.target_certification = target;
+  if (target === "WANTED_WILD") return value;
+  if (target === "PREQUALIFIED") {
+    value.cohort = { independent_environments: 0, total_resident_hours: 0, lifetime_completions: 0, voluntary_rejections: 0, unrelated_censors: 0, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 };
+    value.primary = na("No real-environment cohort score exists at simulation-only prequalification.");
+    value.diagnostics = na("Longitudinal field diagnostics begin only after real resident exposure.");
+    value.safety = na("Field safety profile 0.2-S1 begins before real resident exposure, not for simulation-only prequalification.");
+    value.telemetry = na("Field event telemetry begins with a WANTED LAB deployment.");
+    value.adjudication = na("No human-retention endpoint exists in simulation-only prequalification.");
+    value.withdrawal = { eligible: 0, completed: 0, reacquisition_rate: null, median_days_to_return_request: null };
+    value.evidence = value.evidence.filter((item: { role: string }) => ["simulation_report", "version_history"].includes(item.role));
+  }
+  if (target === "WANTED_LAB") {
+    value.cohort = { independent_environments: 1, total_resident_hours: 100, lifetime_completions: 0, voluntary_rejections: 0, unrelated_censors: 0, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 };
+    value.primary = na("WANTED LAB reports field evidence and diagnostics but no rankable 10,000-hour cohort W.");
+    value.withdrawal = { eligible: 0, completed: 0, reacquisition_rate: null, median_days_to_return_request: null };
+    value.evidence.push({ role: "lab_report", uri: "https://example.org/wanted-lab-report.json", sha256: hash("9"), public: true });
+  }
+  if (target === "WANTED_10K") {
+    value.cohort = { independent_environments: 1, total_resident_hours: 10000, lifetime_completions: 1, voluntary_rejections: 0, unrelated_censors: 0, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 };
+    value.primary = na("WANTED 10K is a one-residence lifetime badge; only a separate qualifying WANTED WILD cohort produces a ranked W.");
+    value.withdrawal = { eligible: 1, completed: 1, reacquisition_rate: 1, median_days_to_return_request: 1 };
+  }
+  return value;
+}
+
+export const auditManifestTemplates = {
+  PREQUALIFIED: auditManifestTemplateFor("PREQUALIFIED"),
+  WANTED_LAB: auditManifestTemplateFor("WANTED_LAB"),
+  WANTED_WILD: auditManifestTemplateFor("WANTED_WILD"),
+  WANTED_10K: auditManifestTemplateFor("WANTED_10K"),
 };

@@ -161,7 +161,7 @@ export default function Wanted10K() {
 
     <section className="certSection" id="certification">
       <div className="shell">
-        <div className="sectionHead wantedHead"><div><span className="kicker">05 / CERTIFICATION PATH</span><h2>Simulation first.<br/><em>Real preference last.</em></h2></div><p>Digital twins reduce human exposure to predictable failures. Only real people in real environments produce a WANTED Score. <a className="contractLink" href="/wanted-10k/audit">Prepare certification evidence ↗</a></p></div>
+        <div className="sectionHead wantedHead"><div><span className="kicker">05 / CERTIFICATION PATH</span><h2>Simulation first.<br/><em>Real preference last.</em></h2></div><p>Digital twins reduce human exposure to predictable failures. Only a qualifying WANTED WILD cohort produces a ranked WANTED Score. <a className="contractLink" href="/wanted-10k/certification">Open applicability matrix ↗</a></p></div>
         <div className="levelGrid">{levels.map(([n,name,hours,copy])=><article key={n}><span>{n}</span><small>{hours}</small><h3>{name}</h3><p>{copy}</p><i>→</i></article>)}</div>
       </div>
     </section>

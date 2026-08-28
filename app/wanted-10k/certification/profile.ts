@@ -1,0 +1,68 @@
+export const certificationProfile = {
+  name: "WANTED Certification Applicability Profile",
+  version: "0.2-C1",
+  protocol_version: "0.2",
+  purpose: "Request only the evidence that can exist at the target certification stage.",
+  ordering: {
+    type: "evidence_classes_not_scalar_ladder",
+    meaning: "A later label adds a distinct evidence claim; it does not turn incomparable evidence into one quality score.",
+    inherits: {
+      PREQUALIFIED: [],
+      WANTED_LAB: ["PREQUALIFIED"],
+      WANTED_WILD: ["WANTED_LAB"],
+      WANTED_10K: ["WANTED_LAB"],
+    },
+  },
+  not_applicable: {
+    encoding: { applicable: false, reason: "A target-specific reason of at least 10 characters." },
+    rule: "Use a typed not-applicable object. Never invent zero-valued field evidence or a synthetic W score.",
+  },
+  targets: {
+    PREQUALIFIED: {
+      claim: "The frozen robot and production policy passed simulator-neutral preflight 0.2-P1.",
+      environment: "simulation_only",
+      minimum_independent_environments: 0,
+      minimum_resident_hours: 0,
+      requires: ["identity_and_version_binding", "frozen_preregistration", "preflight_0.2-P1", "simulation_report", "independent_audit"],
+      not_applicable: ["primary_W", "diagnostics_0.2-D1", "field_safety_0.2-S1", "field_telemetry", "endpoint_adjudication"],
+      rankable: false,
+    },
+    WANTED_LAB: {
+      claim: "The robot produced auditable short-horizon evidence with real people in at least one controlled environment.",
+      environment: "controlled_real_environment",
+      minimum_independent_environments: 1,
+      minimum_resident_hours: 100,
+      inherits: ["PREQUALIFIED"],
+      requires: ["field_safety_0.2-S1", "signed_field_telemetry", "diagnostics_0.2-D1", "endpoint_adjudication", "lab_report", "independent_audit"],
+      not_applicable: ["primary_W"],
+      rankable: false,
+    },
+    WANTED_WILD: {
+      claim: "A multi-environment cohort supports an identifiable, uncertainty-qualified W at 10,000 hours.",
+      environment: "independent_real_environments",
+      minimum_independent_environments: 20,
+      minimum_total_resident_hours: 10000,
+      inherits: ["WANTED_LAB"],
+      requires: ["identifiable_primary_W", "cluster_bootstrap_95CI", "robustness_0.2-R1", "tail_support", "independent_audit"],
+      rankable: true,
+    },
+    WANTED_10K: {
+      claim: "One residence completed 10,000 resident hours and a seven-day withdrawal/reacquisition test.",
+      environment: "single_lifetime_residence",
+      minimum_independent_environments: 1,
+      minimum_resident_hours: 10000,
+      inherits: ["WANTED_LAB"],
+      requires: ["one_lifetime_completion", "seven_day_withdrawal", "reacquisition_result", "independent_audit"],
+      not_applicable: ["primary_W_unless_separately_WANTED_WILD"],
+      rankable: false,
+      badge_only: true,
+    },
+  },
+  ranking: {
+    only_target: "WANTED_WILD",
+    WANTED_10K_badge_changes_rank: false,
+    WANTED_LAB_changes_rank: false,
+    PREQUALIFIED_changes_rank: false,
+  },
+} as const;
+

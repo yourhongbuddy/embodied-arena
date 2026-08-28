@@ -27,6 +27,9 @@ const eligibility = [
 ];
 
 const kit = [
+  ["CERTIFICATION MATRIX", "Choose the exact evidence claim before building an audit pack; only WANTED WILD produces a ranked cohort W.", "/wanted-10k/certification", "OPEN MATRIX →"],
+  ["CERTIFICATION CONTRACT", "Read the inherited 0.2-C1 requirements, typed not-applicable rule, and rankability boundary for all four targets.", "/wanted-10k/certification.json", "OPEN CONTRACT ↗"],
+  ["TARGET MANIFEST TEMPLATES", "Download passing synthetic audit examples for PREQUALIFIED, WANTED LAB, WANTED WILD, and WANTED 10K.", "/wanted-10k/certification-templates.json", "DOWNLOAD JSON ↓"],
   ["FIELD SAFETY CASE", "Evaluate seven non-compensatory gates for scope, stop authority, protective functions, incidents, security, operations, and independent assessment.", "/wanted-10k/safety", "OPEN SAFETY LAB →"],
   ["SAFETY MANIFEST SCHEMA", "Validate the strict deployment-scoped evidence object behind every WANTED field safety decision.", "/wanted-10k/safety-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["SAFETY MANIFEST TEMPLATE", "Start from a complete synthetic 0.2-S1 case with assessed limits, incident closure, security controls, and artifact bindings.", "/wanted-10k/safety-manifest.template.json", "DOWNLOAD JSON ↓"],
@@ -73,7 +76,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Twenty-one artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to preflight a policy, verify field safety, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Twenty-four artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, verify field safety, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 
