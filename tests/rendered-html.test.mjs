@@ -28,6 +28,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(benchmarkHtml, /VERSION 0\.2/);
   assert.match(benchmarkHtml, /Open protocol kit/);
   assert.match(benchmarkHtml, /CONFORMANCE CHECKER/);
+  assert.match(benchmarkHtml, /Audited registry/);
 
   const protocol = await request("/wanted-10k/protocol");
   assert.equal(protocol.status, 200);
@@ -36,9 +37,31 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Fifteen artifacts/);
+  assert.match(protocolHtml, /Eighteen artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
+});
+
+test("publishes the audited WANTED registry without invented entries", async () => {
+  const [pageResponse, contractResponse, schemaResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/leaderboard"),
+    request("/wanted-10k/leaderboard.json", "application/json"),
+    request("/wanted-10k/leaderboard-entry.schema.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, contractResponse, schemaResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /No one has/);
+  assert.match(pageHtml, /NO AUDITED WANTED WILD ENTRIES/);
+  assert.match(pageHtml, /1 · 1 · 3/);
+  const [contract, schema, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-L1");
+  assert.deepEqual(contract.entries, []);
+  assert.equal(contract.ranking.forbidden_tiebreakers.includes("safety_incidents"), true);
+  assert.equal(schema.additionalProperties, false);
+  assert.equal(schema.properties.registry_profile_version.const, "0.2-L1");
+  assert.equal(spec.leaderboard_profile.uncertainty_changes_rank, false);
+  assert.equal(spec.developer_resources.audited_registry, "/wanted-10k/leaderboard");
 });
 
 test("publishes the simulator-neutral digital-twin preflight contract", async () => {

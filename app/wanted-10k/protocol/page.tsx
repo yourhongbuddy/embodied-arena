@@ -27,6 +27,9 @@ const eligibility = [
 ];
 
 const kit = [
+  ["AUDITED REGISTRY", "See the official empty-until-earned WANTED ranking, certification lanes, tie policy, correction history, and required disclosures.", "/wanted-10k/leaderboard", "OPEN REGISTRY →"],
+  ["REGISTRY CONTRACT", "Read the exact admission, ranking, tie, lifecycle, and disclosure rules plus the current public entry set.", "/wanted-10k/leaderboard.json", "OPEN CONTRACT ↗"],
+  ["LEADERBOARD ENTRY SCHEMA", "Validate the immutable aggregate record projected from a passing independent audit manifest.", "/wanted-10k/leaderboard-entry.schema.json", "OPEN SCHEMA ↗"],
   ["PREFLIGHT LAB", "Assess the simulator-neutral eight-family stress matrix, exact zero-event bound, deterministic replay, safe resolution, and artifact binding.", "/wanted-10k/preflight", "OPEN PREFLIGHT LAB →"],
   ["PREFLIGHT MANIFEST SCHEMA", "Validate the portable digital-twin evidence object used by any simulator before human exposure.", "/wanted-10k/preflight.schema.json", "OPEN SCHEMA ↗"],
   ["PREFLIGHT TEMPLATE", "Start with a complete synthetic 0.2-P1 manifest covering all hard qualification gates.", "/wanted-10k/preflight.template.json", "DOWNLOAD JSON ↓"],
@@ -67,7 +70,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Fifteen artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to preflight a policy, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, and prepare an independent audit.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Eighteen artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to preflight a policy, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 
