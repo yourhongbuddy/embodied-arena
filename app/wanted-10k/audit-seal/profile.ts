@@ -13,7 +13,7 @@ export type AuditSealResult = {
 
 export const emptyAuditSealResult: AuditSealResult = { status: "idle", manifestSha256: null, publicKeySha256: null, signatureVerified: false, errors: [], checks: [] };
 
-const decodeBase64url = (value: string) => {
+export const decodeBase64url = (value: string) => {
   if (!/^[A-Za-z0-9_-]+$/.test(value)) throw new Error("value is not unpadded base64url");
   const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - value.length % 4) % 4);
   const decoded = atob(padded);
@@ -23,7 +23,7 @@ const decodeBase64url = (value: string) => {
 };
 
 const hex = (value: ArrayBuffer) => Array.from(new Uint8Array(value), byte => byte.toString(16).padStart(2, "0")).join("");
-const sha256Bytes = async (value: Uint8Array<ArrayBuffer>) => hex(await crypto.subtle.digest("SHA-256", value));
+export const sha256Bytes = async (value: Uint8Array<ArrayBuffer>) => hex(await crypto.subtle.digest("SHA-256", value));
 
 export function unsignedAuditManifest(manifest: Record<string, unknown>) {
   const unsigned = structuredClone(manifest);
@@ -102,8 +102,8 @@ export const auditSealSchema = {
   title: "WANTED-10K Independent Audit Seal",
   type: "object",
   additionalProperties: false,
-  required: ["profile_version", "auditor", "auditor_organization", "independence_statement", "scope", "signed_at", "signature_algorithm", "canonicalization", "signature_scope", "public_key_uri", "public_key_base64url", "public_key_sha256", "manifest_sha256", "auditor_signature"],
+  required: ["profile_version", "auditor", "auditor_organization", "independence_statement", "scope", "signed_at", "signature_algorithm", "canonicalization", "signature_scope", "public_key_uri", "public_key_base64url", "public_key_sha256", "credential", "manifest_sha256", "auditor_signature"],
   properties: {
-    profile_version: { const: AUDIT_SEAL_VERSION }, auditor: { type: "string", minLength: 1 }, auditor_organization: { type: "string", minLength: 1 }, independence_statement: { type: "string", minLength: 20 }, scope: { type: "array", minItems: 1, items: { type: "string" } }, signed_at: { type: "string", format: "date-time" }, signature_algorithm: { const: "Ed25519" }, canonicalization: { const: "RFC8785_JCS" }, signature_scope: { const: "audit_manifest_without_audit.manifest_sha256_and_audit.auditor_signature" }, public_key_uri: { type: "string", format: "uri", pattern: "^https://" }, public_key_base64url: { type: "string", pattern: "^[A-Za-z0-9_-]{43}$" }, public_key_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" }, manifest_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" }, auditor_signature: { type: "string", pattern: "^[A-Za-z0-9_-]{86}$" },
+    profile_version: { const: AUDIT_SEAL_VERSION }, auditor: { type: "string", minLength: 1 }, auditor_organization: { type: "string", minLength: 1 }, independence_statement: { type: "string", minLength: 20 }, scope: { type: "array", minItems: 1, items: { type: "string" } }, signed_at: { type: "string", format: "date-time" }, signature_algorithm: { const: "Ed25519" }, canonicalization: { const: "RFC8785_JCS" }, signature_scope: { const: "audit_manifest_without_audit.manifest_sha256_and_audit.auditor_signature" }, public_key_uri: { type: "string", format: "uri", pattern: "^https://" }, public_key_base64url: { type: "string", pattern: "^[A-Za-z0-9_-]{43}$" }, public_key_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" }, credential: { "$ref": "https://embodied-arena.chrishongap.chatgpt.site/wanted-10k/auditor-credential.schema.json" }, manifest_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" }, auditor_signature: { type: "string", pattern: "^[A-Za-z0-9_-]{86}$" },
   },
 } as const;

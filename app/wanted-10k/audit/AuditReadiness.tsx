@@ -20,7 +20,7 @@ export function AuditReadiness() {
       <div className="manifestEditor">
         <header><div><span>AUDIT MANIFEST</span><small>ONE AGGREGATE JSON OBJECT · NEVER INCLUDE PARTICIPANT DATA</small></div><div><select aria-label="Synthetic certification target" value={exampleTarget} onChange={event=>setExampleTarget(event.target.value as keyof typeof auditManifestTemplates)}>{Object.keys(auditManifestTemplates).map(target=><option key={target}>{target}</option>)}</select><button onClick={loadExample}>LOAD TARGET EXAMPLE</button><label>OPEN FILE<input type="file" accept=".json,application/json" onChange={loadFile}/></label></div></header>
         <textarea aria-label="WANTED certification audit manifest" spellCheck={false} value={input} onChange={event=>{setInput(event.target.value);setResult(emptyReadiness)}} placeholder={'{\n  "protocol_version": "0.2",\n  "submission_mode": "official",\n  ...\n}'}/>
-        <footer><span>{input.length.toLocaleString()} CHARACTERS · LOCAL ONLY</span><button onClick={()=>run()} disabled={working}>{working ? "VERIFYING SEAL…" : "VERIFY AUDIT + READINESS →"}</button></footer>
+        <footer><span>{input.length.toLocaleString()} CHARACTERS · LOCAL ONLY</span><button onClick={()=>run()} disabled={working}>{working ? "VERIFYING TRUST CHAIN…" : "VERIFY AUDIT + READINESS →"}</button></footer>
       </div>
       <aside className={`auditReport ${result.status}`}>
         <header><span>CERTIFICATION HANDOFF</span><b>{label}</b></header>
@@ -34,6 +34,6 @@ export function AuditReadiness() {
       </aside>
     </div>
     {result.projection && <div className="projectionRow"><span>{result.projection.rankable ? "LEADERBOARD CANDIDATE" : "CERTIFICATION PROJECTION"}</span><b>{String(result.projection.robot)}</b><strong>{result.projection.wanted_score === null ? "W —" : `W ${Number(result.projection.wanted_score).toFixed(1)}`}</strong><small>{Number(result.projection.environments)} SITES · {Number(result.projection.resident_hours).toLocaleString()} H · {String(result.projection.audit).replaceAll("_"," ")}</small></div>}
-    <div className="auditBoundary"><b>LOCAL PRE-CHECK ONLY</b><p>A passing result verifies the manifest structure, internal claims, canonical digest, and auditor Ed25519 seal. It does not verify external-file contents, auditor identity or competence, factual accuracy, regulatory conformity, or award certification.</p></div>
+    <div className="auditBoundary"><b>LOCAL PRE-CHECK ONLY</b><p>A passing test result verifies internal claims, the canonical audit seal, and a credential issued by the pinned synthetic registry root. It does not establish legal identity, competence, independence, external-file truth, regulatory conformity, or award certification. Official mode requires a separately configured production root.</p></div>
   </section>;
 }

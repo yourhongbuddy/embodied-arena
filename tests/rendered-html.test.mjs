@@ -28,7 +28,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(benchmarkHtml, /VERSION 0\.2/);
   assert.match(benchmarkHtml, /Open protocol kit/);
   assert.match(benchmarkHtml, /CONFORMANCE CHECKER/);
-  assert.match(benchmarkHtml, /AUDIT SEAL VERIFIER/);
+  assert.match(benchmarkHtml, /AUDIT TRUST VERIFIER/);
   assert.match(benchmarkHtml, /Audited registry/);
 
   const protocol = await request("/wanted-10k/protocol");
@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Forty-two artifacts/);
+  assert.match(protocolHtml, /Forty-five artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
@@ -96,31 +96,43 @@ test("publishes cryptographic field-telemetry verification", async () => {
 });
 
 test("publishes cryptographic aggregate-audit verification", async () => {
-  const [pageResponse, contractResponse, schemaResponse, auditResponse, certificationResponse, leaderboardResponse, specResponse] = await Promise.all([
+  const [pageResponse, contractResponse, schemaResponse, credentialContractResponse, credentialSchemaResponse, credentialTemplateResponse, auditResponse, certificationResponse, leaderboardResponse, specResponse] = await Promise.all([
     request("/wanted-10k/audit-seal"),
     request("/wanted-10k/audit-seal.json", "application/json"),
     request("/wanted-10k/audit-seal.schema.json", "application/json"),
+    request("/wanted-10k/auditor-credential.json", "application/json"),
+    request("/wanted-10k/auditor-credential.schema.json", "application/json"),
+    request("/wanted-10k/auditor-credential.template.json", "application/json"),
     request("/wanted-10k/audit-manifest.template.json", "application/json"),
     request("/wanted-10k/certification.json", "application/json"),
     request("/wanted-10k/leaderboard.json", "application/json"),
     request("/wanted-10k/spec.json", "application/json"),
   ]);
-  for (const response of [pageResponse, contractResponse, schemaResponse, auditResponse, certificationResponse, leaderboardResponse, specResponse]) assert.equal(response.status, 200);
+  for (const response of [pageResponse, contractResponse, schemaResponse, credentialContractResponse, credentialSchemaResponse, credentialTemplateResponse, auditResponse, certificationResponse, leaderboardResponse, specResponse]) assert.equal(response.status, 200);
   const pageHtml = await pageResponse.text();
   assert.match(pageHtml, /Trust the seal/);
-  assert.match(pageHtml, /NON-RECURSIVE SCOPE/);
-  assert.match(pageHtml, /CRYPTOGRAPHIC PROOF/);
-  const [contract, schema, audit, certification, leaderboard, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), auditResponse.json(), certificationResponse.json(), leaderboardResponse.json(), specResponse.json()]);
+  assert.match(pageHtml, /TWO-LAYER TRUST/);
+  assert.match(pageHtml, /Then trust the key/);
+  const [contract, schema, credentialContract, credentialSchema, credentialTemplate, audit, certification, leaderboard, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), credentialContractResponse.json(), credentialSchemaResponse.json(), credentialTemplateResponse.json(), auditResponse.json(), certificationResponse.json(), leaderboardResponse.json(), specResponse.json()]);
   assert.equal(contract.version, "0.2-V1");
   assert.equal(contract.algorithm, "Ed25519");
   assert.equal(schema.properties.profile_version.const, "0.2-V1");
   assert.equal(audit.audit.profile_version, "0.2-V1");
   assert.equal(audit.audit.auditor_signature.length, 86);
   assert.equal(audit.audit.manifest_sha256.length, 64);
+  assert.equal(credentialContract.version, "0.2-V2");
+  assert.equal(credentialContract.bundled_root, "synthetic_test_only");
+  assert.equal(credentialSchema.properties.profile_version.const, "0.2-V2");
+  assert.equal(credentialTemplate.credential_sha256, audit.audit.credential.credential_sha256);
+  assert.equal(credentialTemplate.issuer_signature.length, 86);
   assert.equal(certification.targets.PREQUALIFIED.requires.includes("independent_audit_seal_0.2-V1"), true);
+  assert.equal(certification.targets.PREQUALIFIED.requires.includes("auditor_credential_0.2-V2"), true);
   assert.equal(leaderboard.admission.includes("independent_audit_seal_profile_0.2-V1_passes"), true);
+  assert.equal(leaderboard.admission.includes("auditor_credential_profile_0.2-V2_passes"), true);
   assert.equal(spec.independent_audit_seal_profile.version, "0.2-V1");
+  assert.equal(spec.auditor_credential_profile.version, "0.2-V2");
   assert.equal(spec.developer_resources.audit_seal_verifier, "/wanted-10k/audit-seal");
+  assert.equal(spec.developer_resources.auditor_credential_template, "/wanted-10k/auditor-credential.template.json");
 });
 
 test("publishes the target-specific certification applicability contract", async () => {
@@ -137,6 +149,7 @@ test("publishes the target-specific certification applicability contract", async
   assert.match(pageHtml, /Do not fake a ladder/);
   assert.match(pageHtml, /TYPED NOT APPLICABLE/);
   assert.match(pageHtml, /AUDIT SEAL 0\.2-V1/);
+  assert.match(pageHtml, /AUDITOR CREDENTIAL 0\.2-V2/);
   const [contract, templates, schema, spec] = await Promise.all([contractResponse.json(), templatesResponse.json(), schemaResponse.json(), specResponse.json()]);
   assert.equal(contract.version, "0.2-C1");
   assert.equal(contract.ranking.only_target, "WANTED_WILD");
@@ -396,8 +409,11 @@ test("publishes the aggregate certification audit contract", async () => {
   assert.equal(template.telemetry.invalid_signatures, 0);
   assert.equal(template.audit.profile_version, "0.2-V1");
   assert.equal(template.audit.auditor_signature.length, 86);
+  assert.equal(template.audit.credential.profile_version, "0.2-V2");
+  assert.equal(template.audit.credential.registry_environment, "synthetic_test");
   assert.equal("audit_seal_verified" in template, false);
   assert.equal(spec.certification_handoff.participant_data_permitted, false);
   assert.equal(spec.certification_handoff.binds.includes("independent_audit_seal_0.2-V1"), true);
+  assert.equal(spec.certification_handoff.binds.includes("auditor_credential_0.2-V2"), true);
   assert.equal(spec.developer_resources.audit_pack, "/wanted-10k/audit");
 });

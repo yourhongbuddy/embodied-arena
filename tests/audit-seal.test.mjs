@@ -67,5 +67,6 @@ test("publishes the exact non-recursive Ed25519 seal contract", () => {
   assert.equal(auditSealContract.scoring, "certification_gate_not_score");
   assert.equal(auditSealSchema.additionalProperties, false);
   assert.equal(auditSealSchema.properties.profile_version.const, "0.2-V1");
+  assert.equal(auditSealSchema.properties.credential.$ref.endsWith("/wanted-10k/auditor-credential.schema.json"), true);
   assert.equal(auditSealSchema.properties.auditor_signature.pattern, "^[A-Za-z0-9_-]{86}$");
 });

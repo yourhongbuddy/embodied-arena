@@ -64,10 +64,12 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
 test("machine contracts encode target applicability and rankability", () => {
   for (const key of ["primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.ok(auditManifestSchema.properties[key].oneOf);
   assert.equal(auditManifestSchema.properties.telemetry.oneOf[0].properties.profile_version.const, "0.2-T1");
+  assert.equal(auditManifestSchema.properties.audit.properties.credential.properties.profile_version.const, "0.2-V2");
   assert.equal(auditManifestSchema.allOf.length, 4);
   assert.equal(certificationProfile.version, "0.2-C1");
   assert.deepEqual(certificationProfile.ordering.inherits.WANTED_10K, ["WANTED_LAB"]);
   assert.equal(certificationProfile.targets.WANTED_WILD.rankable, true);
+  assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("auditor_credential_0.2-V2"), true);
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
   assert.equal(certificationProfile.ranking.only_target, "WANTED_WILD");
 });
