@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Seventy-eight artifacts/);
+  assert.match(protocolHtml, /Eighty-two artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -161,6 +161,13 @@ test("publishes and reproduces immutable policy evolution",async()=>{
   assert.equal(audit.policy_evolution_integrity.profile_version,"0.2-U1");assert.equal(audit.policy_evolution_integrity.manifest_sha256,template.evidence.controlled_policy_register_sha256);assert.equal(audit.policy_evolution_integrity.baseline_artifact_sha256,audit.robot.policy_artifact_sha256);
   assert.equal(certification.targets.WANTED_LAB.requires.includes("policy_evolution_integrity_0.2-U1"),true);assert.equal(spec.policy_evolution_integrity_profile.rollout.global_atomic_max_hours,24);assert.equal(spec.developer_resources.policy_evolution_lab,"/wanted-10k/policy-evolution");
   assert.equal(leaderboard.admission.includes("policy_evolution_integrity_profile_0.2-U1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("policy_update_count"),true);assert.equal(prereg.software_updates.profile_version,"0.2-U1");assert.equal(prereg.software_updates.unmatched_deployed_artifacts_permitted,false);
+});
+
+test("publishes and reproduces privacy and consent integrity",async()=>{
+  const responses=await Promise.all([request("/wanted-10k/privacy-integrity"),request("/wanted-10k/privacy-integrity.json","application/json"),request("/wanted-10k/privacy-integrity.schema.json","application/json"),request("/wanted-10k/privacy-integrity.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/certification.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json")]);
+  for(const response of responses)assert.equal(response.status,200);const pageHtml=await responses[0].text();assert.match(pageHtml,/Life at home/);assert.match(pageHtml,/NOTICE BEFORE SENSING/);assert.match(pageHtml,/BENCHMARK GATE, NOT LEGAL APPROVAL/);const [contract,schema,template,audit,certification,spec,leaderboard]=await Promise.all(responses.slice(1).map(response=>response.json()));
+  assert.equal(contract.version,"0.2-PV1");assert.equal(contract.certification_effect,"hard_field_gate");assert.equal(contract.ranking_effect,"none");assert.equal(schema.properties.protocol.properties.raw_media_export_permitted.const,false);assert.equal(template.environments.length,24);assert.equal(template.claimed.raw_export_count,0);assert.equal(template.claimed.guest_notice_coverage,1);assert.equal(template.claimed.sensor_indicator_uptime,1);
+  assert.equal(audit.privacy_integrity.profile_version,"0.2-PV1");assert.equal(audit.privacy_integrity.manifest_sha256,template.evidence.controlled_privacy_register_sha256);assert.equal(certification.targets.WANTED_LAB.requires.includes("privacy_integrity_0.2-PV1"),true);assert.equal(spec.privacy_integrity_profile.ranking_effect,"none");assert.equal(spec.developer_resources.privacy_integrity_lab,"/wanted-10k/privacy-integrity");assert.equal(leaderboard.admission.includes("privacy_integrity_profile_0.2-PV1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("privacy_metrics"),true);
 });
 
 test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{
