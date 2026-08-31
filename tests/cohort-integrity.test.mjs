@@ -47,9 +47,9 @@ test("requires eligibility to be frozen before screening", () => {
   assert.equal(gate(assessCohortIntegrity(late), "E1").passed, false);
 });
 
-test("binds cohort integrity into every field audit target", () => {
+test("binds cohort integrity into every field audit target", async () => {
   for (const target of ["WANTED_LAB", "WANTED_WILD", "WANTED_10K"]) {
-    const result = assessManifest(JSON.stringify(auditManifestTemplates[target]));
+    const result = await assessManifest(JSON.stringify(auditManifestTemplates[target]));
     assert.equal(result.status, "test", `${target}: ${JSON.stringify(result.gates)}`);
     assert.equal(auditManifestTemplates[target].cohort_integrity.profile_version, "0.2-E1");
   }
@@ -57,15 +57,15 @@ test("binds cohort integrity into every field audit target", () => {
 
   const missing = clone(auditManifestTemplates.WANTED_WILD);
   missing.evidence = missing.evidence.filter(item => item.role !== "cohort_integrity_report");
-  assert.equal(gate(assessManifest(JSON.stringify(missing)), "G3").status, "fail");
+  assert.equal(gate(await assessManifest(JSON.stringify(missing)), "G3").status, "fail");
 
   const mismatch = clone(auditManifestTemplates.WANTED_WILD);
   mismatch.cohort_integrity.independent_environments = 23;
-  assert.equal(gate(assessManifest(JSON.stringify(mismatch)), "G3").status, "fail");
+  assert.equal(gate(await assessManifest(JSON.stringify(mismatch)), "G3").status, "fail");
 
   const unbound = clone(auditManifestTemplates.WANTED_WILD);
   unbound.evidence.find(item => item.role === "cohort_integrity_report").sha256 = `${"9a"}${"0123456789abcdef".repeat(4)}`.slice(0, 64);
-  assert.equal(gate(assessManifest(JSON.stringify(unbound)), "G3").status, "fail");
+  assert.equal(gate(await assessManifest(JSON.stringify(unbound)), "G3").status, "fail");
 });
 
 test("publishes a strict non-ranking machine contract", () => {

@@ -84,8 +84,8 @@ export const auditManifestSchema = {
     } },
     evidence: { type: "array", minItems: 2, items: { type: "object", additionalProperties: false, required: ["role", "uri", "sha256", "public"], properties: { role: { enum: ["cohort_summary", "cohort_integrity_report", "exposure_integrity_report", "analysis_reproduction_report", "analysis_code", "telemetry_authenticity_report", "incident_register", "safety_case", "security_assessment", "intervention_register", "version_history", "withdrawal_results", "simulation_report", "lab_report", "other"] }, uri, sha256: digest, public: { type: "boolean" } } } },
     privacy: { type: "object", additionalProperties: false, required: ["participant_data_included", "redaction_reviewed", "public_pack_contains_aggregate_data_only"], properties: { participant_data_included: { const: false }, redaction_reviewed: { const: true }, public_pack_contains_aggregate_data_only: { const: true } } },
-    audit: { type: "object", additionalProperties: false, required: ["auditor", "auditor_organization", "independence_statement", "scope", "signed_at", "signature_algorithm", "public_key_uri", "auditor_signature"], properties: {
-      auditor: { type: "string", minLength: 1 }, auditor_organization: { type: "string", minLength: 1 }, independence_statement: { type: "string", minLength: 20 }, scope: { type: "array", minItems: 1, items: { type: "string" } }, signed_at: { type: "string", format: "date-time" }, signature_algorithm: { type: "string", minLength: 1 }, public_key_uri: uri, auditor_signature: { type: "string", pattern: "^[A-Za-z0-9_-]{32,}$" },
+    audit: { type: "object", additionalProperties: false, required: ["profile_version", "auditor", "auditor_organization", "independence_statement", "scope", "signed_at", "signature_algorithm", "canonicalization", "signature_scope", "public_key_uri", "public_key_base64url", "public_key_sha256", "manifest_sha256", "auditor_signature"], properties: {
+      profile_version: { const: "0.2-V1" }, auditor: { type: "string", minLength: 1 }, auditor_organization: { type: "string", minLength: 1 }, independence_statement: { type: "string", minLength: 20 }, scope: { type: "array", minItems: 1, items: { type: "string" } }, signed_at: { type: "string", format: "date-time" }, signature_algorithm: { const: "Ed25519" }, canonicalization: { const: "RFC8785_JCS" }, signature_scope: { const: "audit_manifest_without_audit.manifest_sha256_and_audit.auditor_signature" }, public_key_uri: { type: "string", format: "uri", pattern: "^https://" }, public_key_base64url: { type: "string", pattern: "^[A-Za-z0-9_-]{43}$" }, public_key_sha256: digest, manifest_sha256: digest, auditor_signature: { type: "string", pattern: "^[A-Za-z0-9_-]{86}$" },
     } },
   },
   allOf: [
@@ -154,7 +154,7 @@ function analysisReproductionAuditSummary() {
 }
 const analysisReproductionSummaryValue = analysisReproductionAuditSummary();
 
-export const auditManifestTemplate = {
+const auditManifestTemplateBase = {
   protocol_version: "0.2",
   submission_mode: "test",
   submission: { submission_id: "SYNTHETIC-WANTED-001", created_at: "2026-08-28T19:00:00Z", target_certification: "WANTED_WILD", public_label: "Synthetic Robot / Demonstration Cohort" },
@@ -188,15 +188,20 @@ export const auditManifestTemplate = {
     { role: "withdrawal_results", uri: "https://example.org/wanted-withdrawal.json", sha256: hash("5"), public: true },
   ],
   privacy: { participant_data_included: false, redaction_reviewed: true, public_pack_contains_aggregate_data_only: true },
-  audit: { auditor: "Synthetic Auditor", auditor_organization: "Independent Example Assurance", independence_statement: "Synthetic example: auditor is organizationally and financially independent of the sponsor.", scope: ["Preregistration", "Telemetry continuity", "Endpoint dispositions", "Safety evidence", "Score reproduction"], signed_at: "2026-08-28T18:00:00Z", signature_algorithm: "Ed25519", public_key_uri: "https://example.org/wanted-auditor-key.txt", auditor_signature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+  audit: { profile_version: "0.2-V1", auditor: "Synthetic Auditor", auditor_organization: "Independent Example Assurance", independence_statement: "Synthetic example: auditor is organizationally and financially independent of the sponsor.", scope: ["Preregistration", "Telemetry continuity", "Endpoint dispositions", "Safety evidence", "Score reproduction"], signed_at: "2026-08-28T18:00:00Z", signature_algorithm: "Ed25519", canonicalization: "RFC8785_JCS", signature_scope: "audit_manifest_without_audit.manifest_sha256_and_audit.auditor_signature", public_key_uri: "https://example.org/wanted-auditor-key.txt", public_key_base64url: "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo", public_key_sha256: "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9", manifest_sha256: hash("a1"), auditor_signature: "A".repeat(86) },
 };
 
 const na = (reason: string) => ({ applicable: false as const, reason });
-const cloneTemplate = () => JSON.parse(JSON.stringify(auditManifestTemplate));
+const syntheticAuditSeals = {
+  PREQUALIFIED: { manifest_sha256: "4d9605eb7f42a0b20cb12e0115c3d229c6474f77dc576667f1aadff915eb6b94", auditor_signature: "Q8rWUxIUhrk7hYYlTn0IjuDHlb6QDnSGzip7N9ilLsJDk0KMgFON_MxSYxJpcbZJMTag1n2wHMobx1EaJt38Dg" },
+  WANTED_LAB: { manifest_sha256: "cbca4a57d04edea1f4447f314ce86d35ec72a02d07a82abb20eb5f7ab59f8df7", auditor_signature: "HcT9fcnHFbs55bs9VZtBfuq3CO1ORcSYAi60I1q57FXpWD2dXszsktMoRYAtqIc3C2FSDlogr582tOMQq3R8Dg" },
+  WANTED_WILD: { manifest_sha256: "e063c1e1bbd1d95171ec34b4df8dddbab2640166157c78b87c3426748618cec5", auditor_signature: "1s_JqeEdpJKRByxCzotHEqiT-BiKDV7tVYnP6aPga4gGf_GaLHNqY8bhdRsI--7lBsYgyCaIeqRZa91eLIUhAg" },
+  WANTED_10K: { manifest_sha256: "dd21a09c966de24e621a4583caecc1a87e38d1f7ea4129fcee928874279844f4", auditor_signature: "gzOd-fLL6UDr0b-q2MyCpviRE5vRNU026wyaxHytPCzv88b7YvtqQs6y179y_ykingiEapn2PC0u-4ZNWPyZDg" },
+};
+const cloneTemplate = () => JSON.parse(JSON.stringify(auditManifestTemplateBase));
 export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" | "WANTED_WILD" | "WANTED_10K") {
   const value = cloneTemplate();
   value.submission.target_certification = target;
-  if (target === "WANTED_WILD") return value;
   if (target === "PREQUALIFIED") {
     value.cohort = { independent_environments: 0, total_resident_hours: 0, lifetime_completions: 0, voluntary_rejections: 0, unrelated_censors: 0, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 };
     value.cohort_integrity = na("Cohort integrity begins with real participant screening and activation.");
@@ -229,6 +234,7 @@ export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" |
     value.primary = na("WANTED 10K is a one-residence lifetime badge; only a separate qualifying WANTED WILD cohort produces a ranked W.");
     value.withdrawal = { eligible: 1, completed: 1, reacquisition_rate: 1, median_days_to_return_request: 1 };
   }
+  Object.assign(value.audit, syntheticAuditSeals[target]);
   return value;
 }
 
@@ -238,3 +244,4 @@ export const auditManifestTemplates = {
   WANTED_WILD: auditManifestTemplateFor("WANTED_WILD"),
   WANTED_10K: auditManifestTemplateFor("WANTED_10K"),
 };
+export const auditManifestTemplate = auditManifestTemplates.WANTED_WILD;

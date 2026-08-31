@@ -10,7 +10,7 @@ const requirements = [
   ["03", "TELEMETRY AUTHENTIC", "Profile 0.2-T1 must verify every Ed25519 event signature, key-validity decision, and hash-chain link."],
   ["04", "SAFETY PASSES", "L4 must equal zero. Usefulness, retention, or a lifetime badge cannot offset a failed gate."],
   ["05", "BURDEN DISCLOSED", "Assistance, rescue interval, censoring envelope, tail support, and interventions remain beside W."],
-  ["06", "INDEPENDENT AUDIT", "The row binds to an immutable aggregate manifest, public evidence hashes, and a separate auditor sign-off."],
+  ["06", "VERIFIED AUDIT SEAL", "Profile 0.2-V1 must reproduce the canonical manifest digest, bind the declared auditor key, and verify its Ed25519 signature."],
 ];
 const lanes = [
   ["PREQUALIFIED", "DIGITAL-TWIN GATE", "0", "Listed after 0.2-P1 verification; never ranked."],

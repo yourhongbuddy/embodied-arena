@@ -65,14 +65,14 @@ test("rejects malformed key manifests before signature acceptance", async () => 
   assert.match(result.errors.join(" "), /decode to 32 bytes/);
 });
 
-test("binds 0.2-T1 into every field certification and the registry", () => {
+test("binds 0.2-T1 into every field certification and the registry", async () => {
   for (const target of ["WANTED_LAB", "WANTED_WILD", "WANTED_10K"]) {
     const manifest = clone(auditManifestTemplates[target]);
     assert.equal(manifest.telemetry.profile_version, TELEMETRY_AUTHENTICITY_VERSION);
-    assert.equal(assessManifest(JSON.stringify(manifest)).gates.find(gate => gate.id === "G5").status, "pass");
+    assert.equal((await assessManifest(JSON.stringify(manifest))).gates.find(gate => gate.id === "G5").status, "pass");
     manifest.telemetry.invalid_signatures = 1;
     manifest.telemetry.verified_signatures--;
-    assert.equal(assessManifest(JSON.stringify(manifest)).gates.find(gate => gate.id === "G5").status, "fail");
+    assert.equal((await assessManifest(JSON.stringify(manifest))).gates.find(gate => gate.id === "G5").status, "fail");
   }
   assert.equal(auditManifestTemplates.PREQUALIFIED.telemetry.applicable, false);
   assert.equal(leaderboardContract.admission.includes("telemetry_authenticity_profile_0.2-T1_passes"), true);

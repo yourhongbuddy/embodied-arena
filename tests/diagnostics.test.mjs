@@ -38,13 +38,13 @@ test("marks missing response tails incomplete and rejects impossible counters", 
   assert.match(impossible.errors.join(" "), /cannot exceed/);
 });
 
-test("requires the canonical diagnostic profile for audit readiness", () => {
-  const passing = assessManifest(JSON.stringify(auditManifestTemplate));
+test("requires the canonical diagnostic profile for audit readiness", async () => {
+  const passing = await assessManifest(JSON.stringify(auditManifestTemplate));
   assert.equal(passing.status, "test");
   assert.equal(passing.gates.find(gate => gate.id === "G4").status, "pass");
   const incomplete = structuredClone(auditManifestTemplate);
   delete incomplete.diagnostics.privacy_stop_latency_ms;
-  const failing = assessManifest(JSON.stringify(incomplete));
+  const failing = await assessManifest(JSON.stringify(incomplete));
   assert.equal(failing.status, "not_ready");
   assert.equal(failing.gates.find(gate => gate.id === "G4").status, "fail");
 });

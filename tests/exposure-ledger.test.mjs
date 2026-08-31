@@ -42,9 +42,9 @@ test("rejects duplicate environments and unsupported target exposure", () => {
   assert.equal(gate(assessExposureLedger(short), "X6").passed, false);
 });
 
-test("binds exposure integrity into every field audit target", () => {
+test("binds exposure integrity into every field audit target", async () => {
   for (const target of ["WANTED_LAB", "WANTED_WILD", "WANTED_10K"]) {
-    const result = assessManifest(JSON.stringify(auditManifestTemplates[target]));
+    const result = await assessManifest(JSON.stringify(auditManifestTemplates[target]));
     assert.equal(result.status, "test", `${target}: ${JSON.stringify(result.gates)}`);
     assert.equal(auditManifestTemplates[target].exposure_integrity.profile_version, "0.2-X1");
     assert.equal(result.projection.clock_verified_hours, result.projection.resident_hours);
@@ -53,11 +53,11 @@ test("binds exposure integrity into every field audit target", () => {
 
   const missing = clone(auditManifestTemplates.WANTED_WILD);
   missing.evidence = missing.evidence.filter(item => item.role !== "exposure_integrity_report");
-  assert.equal(gate(assessManifest(JSON.stringify(missing)), "G3").status, "fail");
+  assert.equal(gate(await assessManifest(JSON.stringify(missing)), "G3").status, "fail");
 
   const mismatch = clone(auditManifestTemplates.WANTED_WILD);
   mismatch.exposure_integrity.total_resident_seconds -= 3600;
-  assert.equal(gate(assessManifest(JSON.stringify(mismatch)), "G3").status, "fail");
+  assert.equal(gate(await assessManifest(JSON.stringify(mismatch)), "G3").status, "fail");
 });
 
 test("publishes a strict non-ranking machine contract", () => {

@@ -23,7 +23,7 @@ const eligibility = [
   ["03", "SUPPORT", "10K RMST is identifiable without extrapolation"],
   ["04", "UNCERTAINTY", "≥95% of environment bootstrap draws identify 10K"],
   ["05", "SAFETY", "All gates pass; no verified L4 event"],
-  ["06", "AUDIT", "Preregistration, telemetry, and adjudication verified"],
+  ["06", "AUDIT", "Canonical manifest digest and independent Ed25519 seal 0.2-V1 verified"],
 ];
 
 const kit = [
@@ -63,6 +63,9 @@ const kit = [
   ["SCORE LAB", "Enter an environment-level cohort, inspect support and uncertainty, and export an audit summary.", "/wanted-10k/calculator", "OPEN SCORE LAB →"],
   ["AUDIT MANIFEST SCHEMA", "Bind the public leaderboard row to versioned, hashed study, safety, telemetry, adjudication, and withdrawal evidence.", "/wanted-10k/audit-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["CERTIFICATION READINESS", "Assess a complete aggregate audit manifest locally before independent registry review.", "/wanted-10k/audit", "PREPARE AUDIT PACK →"],
+  ["AUDIT SEAL VERIFIER", "Reconstruct the non-recursive canonical manifest bytes, bind the declared auditor key, and verify its Ed25519 signature locally.", "/wanted-10k/audit-seal", "VERIFY SEAL →"],
+  ["AUDIT SEAL CONTRACT", "Read the 0.2-V1 signature scope, digest, key binding, signing-time, hard-failure, and interpretation rules.", "/wanted-10k/audit-seal.json", "OPEN CONTRACT ↗"],
+  ["AUDIT SEAL SCHEMA", "Validate the exact independent audit-seal object embedded in every certification manifest.", "/wanted-10k/audit-seal.schema.json", "OPEN SCHEMA ↗"],
   ["DIAGNOSTIC PROFILE", "Compute burden, reliability, stop tails, initiative, learning, generalization, and reacquisition without creating a second ranking score.", "/wanted-10k/diagnostics", "OPEN PROFILE LAB →"],
   ["DIAGNOSTIC CONTRACT", "Freeze canonical formulas, denominators, zero-event handling, aggregation units, and anti-gaming rules.", "/wanted-10k/diagnostics.json", "OPEN CONTRACT ↗"],
   ["DIAGNOSTIC INPUT SCHEMA", "Validate the aggregate sufficient statistics used to reproduce every diagnostic result.", "/wanted-10k/diagnostic-input.schema.json", "OPEN SCHEMA ↗"],
@@ -91,12 +94,12 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Thirty-nine artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, and telemetry authenticity, verify field safety, connect a robot, define a run, independently reproduce the score and diagnostics, prepare an audit, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Forty-two artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, and final-manifest authenticity, verify field safety, connect a robot, independently reproduce the score and diagnostics, prepare an audit, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 
     <section className="integrityChain"><div className="shell">
-      <div><span>01</span><b>PREREGISTER</b><p>Freeze decisions and the public-key manifest before hour one.</p></div><i>→</i><div><span>02</span><b>CONFORM</b><p>Verify every event signature and ordered chain link.</p></div><i>→</i><div><span>03</span><b>RUN</b><p>Commit periodic roots while resident time accrues.</p></div><i>→</i><div><span>04</span><b>AUDIT</b><p>Reconcile source evidence, terminal dispositions, and score.</p></div><i>→</i><div><span>05</span><b>PUBLISH</b><p>Release W with uncertainty, burden, safety, and support.</p></div>
+      <div><span>01</span><b>PREREGISTER</b><p>Freeze decisions and the public-key manifest before hour one.</p></div><i>→</i><div><span>02</span><b>CONFORM</b><p>Verify every event signature and ordered chain link.</p></div><i>→</i><div><span>03</span><b>RUN</b><p>Commit periodic roots while resident time accrues.</p></div><i>→</i><div><span>04</span><b>AUDIT</b><p>Reconcile evidence and seal the canonical manifest.</p></div><i>→</i><div><span>05</span><b>PUBLISH</b><p>Verify the seal, then release W and its full context.</p></div>
     </div></section>
     <footer className="wantedFooter"><div className="shell"><div className="brand"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b> / PROTOCOL 0.2</span></div><p>The operational study package for WANTED-10K.</p><a href="/wanted-10k">BACK TO BENCHMARK →</a></div></footer>
   </main>;

@@ -30,18 +30,18 @@ test("fails on a catastrophic outcome, incomplete family set, or weak replay", (
   assert.equal(assessPreflight(replay).gates.find(gate => gate.id === "P5").passed, false);
 });
 
-test("requires the bound preflight profile for certification readiness", () => {
-  const passing = assessManifest(JSON.stringify(auditManifestTemplate));
+test("requires the bound preflight profile for certification readiness", async () => {
+  const passing = await assessManifest(JSON.stringify(auditManifestTemplate));
   assert.equal(passing.status, "test");
   assert.equal(passing.gates.find(gate => gate.id === "G2").status, "pass");
 
   const failed = structuredClone(auditManifestTemplate);
   failed.preflight.catastrophic_events = 1;
-  const result = assessManifest(JSON.stringify(failed));
+  const result = await assessManifest(JSON.stringify(failed));
   assert.equal(result.status, "not_ready");
   assert.equal(result.gates.find(gate => gate.id === "G2").status, "fail");
 
   const unbound = structuredClone(auditManifestTemplate);
   unbound.preflight.robot_description_sha256 = `${"f".repeat(63)}e`;
-  assert.equal(assessManifest(JSON.stringify(unbound)).gates.find(gate => gate.id === "G2").status, "fail");
+  assert.equal((await assessManifest(JSON.stringify(unbound))).gates.find(gate => gate.id === "G2").status, "fail");
 });

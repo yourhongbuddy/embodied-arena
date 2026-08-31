@@ -1,10 +1,11 @@
+import { verifyAuditSeal } from "../audit-seal/profile.ts";
+
 export type GateStatus = "pass" | "fail" | "review";
 export type ReadinessGate = { id: string; label: string; status: GateStatus; detail: string };
 export type ReadinessResult = { status: "idle" | "invalid" | "test" | "ready" | "not_ready"; target: string; gates: ReadinessGate[]; errors: string[]; projection: Record<string, unknown> | null };
 export const emptyReadiness: ReadinessResult = { status: "idle", target: "—", gates: [], errors: [], projection: null };
 
 const digest = (value: unknown) => typeof value === "string" && /^[a-f0-9]{64}$/.test(value) && !/^([a-f0-9])\1{63}$/.test(value);
-const signature = (value: unknown) => typeof value === "string" && /^[A-Za-z0-9_-]{32,}$/.test(value);
 const object = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const numeric = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 const closeNumber = (left: unknown, right: unknown, tolerance = .000001) => numeric(left) && numeric(right) && Math.abs(left - right) <= tolerance;
@@ -35,7 +36,7 @@ function prohibitedKeys(value: unknown, path = "root", hits: string[] = []) {
   return hits;
 }
 
-export function assessManifest(text: string): ReadinessResult {
+export async function assessManifest(text: string): Promise<ReadinessResult> {
   let parsed: Record<string, unknown>;
   try { parsed = JSON.parse(text); } catch (error) { return { ...emptyReadiness, status: "invalid", errors: [error instanceof Error ? error.message : "Invalid JSON"] }; }
   if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") return { ...emptyReadiness, status: "invalid", errors: ["Manifest must be one JSON object."] };
@@ -85,7 +86,8 @@ export function assessManifest(text: string): ReadinessResult {
   const adjudicationPass = adjudication.completed === true && Number(adjudication.reviewer_count) >= 1 && digest(adjudication.decisions_sha256);
   const evidencePass = evidence.length >= (target === "PREQUALIFIED" ? 2 : 4) && evidence.every(item=>{ const record=object(item);return typeof record.uri === "string" && /^https:\/\//.test(record.uri) && digest(record.sha256); });
   const piiHits = prohibitedKeys(parsed);
-  const auditPass = (fieldEvidenceNeeded ? adjudicationPass : notApplicable(adjudication)) && privacy.participant_data_included === false && privacy.redaction_reviewed === true && privacy.public_pack_contains_aggregate_data_only === true && piiHits.length === 0 && evidencePass && typeof audit.auditor_organization === "string" && audit.auditor_organization !== String(organization.sponsor) && typeof audit.independence_statement === "string" && audit.independence_statement.length >= 20 && signature(audit.auditor_signature) && Date.parse(String(audit.signed_at)) <= Date.parse(String(submission.created_at));
+  const auditSeal = await verifyAuditSeal(parsed);
+  const auditPass = (fieldEvidenceNeeded ? adjudicationPass : notApplicable(adjudication)) && privacy.participant_data_included === false && privacy.redaction_reviewed === true && privacy.public_pack_contains_aggregate_data_only === true && piiHits.length === 0 && evidencePass && typeof audit.auditor_organization === "string" && audit.auditor_organization !== String(organization.sponsor) && typeof audit.independence_statement === "string" && audit.independence_statement.length >= 20 && auditSeal.status === "pass";
 
   const gates = [
     gate("G1", "IDENTITY + VERSION", identityPass, "Robot, policy artifact, support model, and description digest are bound.", "Complete robot identity and use non-placeholder SHA-256 description and policy-artifact digests."),
@@ -93,7 +95,7 @@ export function assessManifest(text: string): ReadinessResult {
     gate("G3", target === "PREQUALIFIED" ? "TARGET THRESHOLD" : "TARGET + COHORT + CLOCK INTEGRITY", cohortPass, target === "PREQUALIFIED" ? `Evidence satisfies ${target}; cohort and exposure integrity are correctly not applicable.` : `Evidence satisfies ${target}, cohort profile 0.2-E1, and exposure-ledger profile 0.2-X1.`, !cohortIntegrityPass ? target === "PREQUALIFIED" ? "Mark cohort integrity not applicable before participant screening begins." : "Provide a passing 0.2-E1 cohort-integrity manifest aligned to the target and cohort count." : !exposureIntegrityPass ? target === "PREQUALIFIED" ? "Mark exposure integrity not applicable before real deployment begins." : "Provide a passing 0.2-X1 exposure ledger whose independently attested signed boundaries reproduce the cohort hours exactly." : cohortRule),
     gate("G4", "TARGET ANALYSIS + REPRODUCTION", analysisPass, statisticsNeeded ? "W, deterministic 95% CI, robustness, diagnostics, and analysis-reproduction profile 0.2-A1 are complete." : diagnosticsNeeded ? "The non-ranking diagnostic profile is complete; primary W and ranked analysis reproduction are explicitly not applicable." : "Primary W, field diagnostics, and ranked analysis reproduction are explicitly not applicable before real exposure.", statisticsNeeded ? analysisReproductionPass ? "Provide an identifiable 10K W, enclosing 95% CI, profile 0.2-R1 bounds, influence, tail support, ≥95% valid bootstrap support, 10,000 draws, and profile 0.2-D1 diagnostics." : "Provide a passing 0.2-A1 manifest that reproduces every primary and robustness field from the bound endpoint table and upstream evidence." : diagnosticsNeeded ? "Provide profile 0.2-D1 diagnostics and mark primary W plus analysis reproduction not applicable for this non-ranking target." : "Mark primary W, longitudinal field diagnostics, and analysis reproduction not applicable with reasons."),
     gate("G5", fieldEvidenceNeeded ? "SAFETY + CRYPTOGRAPHIC TELEMETRY" : "FIELD EVIDENCE APPLICABILITY", operationsPass, fieldEvidenceNeeded ? "Safety profile 0.2-S1 and telemetry-authenticity profile 0.2-T1 pass with every Ed25519 signature verified and L4=0." : "Field safety and telemetry are correctly marked not applicable for simulation-only prequalification.", fieldEvidenceNeeded ? "Provide a passing 0.2-S1 safety case plus a bound 0.2-T1 report with every event signature and hash-chain link verified against the frozen key manifest." : "PREQUALIFIED is simulation-only; mark field safety and field telemetry not applicable rather than fabricating field results."),
-    gate("G6", "INDEPENDENT PUBLIC AUDIT", auditPass, fieldEvidenceNeeded ? "Adjudication, privacy, evidence hashes, redaction, and independent signature are present." : "Simulation evidence, typed adjudication applicability, privacy, redaction, and independent signature are present.", piiHits.length ? `Remove participant-level fields: ${piiHits.join(", ")}.` : fieldEvidenceNeeded ? "Complete adjudication, aggregate-only privacy checks, at least 4 HTTPS evidence objects, and independent auditor attestation." : "Mark adjudication not applicable, include at least 2 HTTPS evidence objects, and complete aggregate-only privacy and independent auditor attestation."),
+    gate("G6", "CRYPTOGRAPHIC INDEPENDENT AUDIT", auditPass, fieldEvidenceNeeded ? "Adjudication, privacy, evidence hashes, redaction, and independent audit seal 0.2-V1 are verified." : "Simulation evidence, typed adjudication applicability, privacy, redaction, and independent audit seal 0.2-V1 are verified.", piiHits.length ? `Remove participant-level fields: ${piiHits.join(", ")}.` : auditSeal.status !== "pass" ? `Repair the audit seal: ${auditSeal.errors.join(" ")}` : fieldEvidenceNeeded ? "Complete adjudication, aggregate-only privacy checks, at least 4 HTTPS evidence objects, and an independently signed 0.2-V1 manifest." : "Mark adjudication not applicable, include at least 2 HTTPS evidence objects, and provide an independently signed 0.2-V1 manifest."),
   ];
   const allPass = gates.every(item=>item.status === "pass");
   const mode = parsed.submission_mode;
@@ -107,7 +109,7 @@ export function assessManifest(text: string): ReadinessResult {
     human_burden_minutes_per_100_hours: numeric(diagnostics.human_burden_minutes_per_100_hours) ? diagnostics.human_burden_minutes_per_100_hours : null,
     cohort_selection_rate: numeric(cohortIntegrity.selection_rate) ? cohortIntegrity.selection_rate : null,
     mean_time_between_human_rescue: notApplicable(diagnostics) ? null : diagnostics.mean_time_between_human_rescue,
-    telemetry_signatures_verified: notApplicable(telemetry) ? null : telemetry.verified_signatures,
+    telemetry_signatures_verified: notApplicable(telemetry) ? null : telemetry.verified_signatures, audit_seal_verified: auditSeal.status === "pass", audit_manifest_sha256: auditSeal.manifestSha256,
     safety: notApplicable(safety) ? "not_applicable" : safety.gate_status, audit: allPass ? mode === "official" ? "ready_for_registry_review" : "synthetic_test_only" : "incomplete",
   };
   return { status, target, gates, errors, projection };
