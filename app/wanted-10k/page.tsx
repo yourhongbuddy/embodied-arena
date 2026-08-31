@@ -160,7 +160,7 @@ export default function Wanted10K() {
           <article><span>SEPARATE INCENTIVES</span><b>Never pay people to keep it.</b><p>Base compensation is fixed and independent of robot retention. Milestone choice offers use a preregistered randomized mechanism.</p></article>
           <article><span>LOG THE HIDDEN LABOR</span><b>Teleoperation is allowed, secrecy is not.</b><p>Remote guidance, recovery, maintenance, off-site debugging, and researcher contact are recorded with duration and reason.</p></article>
           <article><span>TAMPER EVIDENCE</span><b>Order every event.</b><p>Per-deployment sequence numbers, UTC timestamps, signatures, and rolling hashes make deletion, reordering, and silent backfilling detectable.</p></article>
-          <article><span>INDEPENDENT ADJUDICATION</span><b>Classify the endpoint consistently.</b><p>A blinded reviewer distinguishes voluntary rejection from unrelated dropout, safety termination, research withdrawal, and study completion.</p></article>
+          <article><span>INDEPENDENT ADJUDICATION</span><b>Classify the endpoint consistently.</b><p>Profile 0.2-J1 uses two blinded independent reviews—and a third-review majority on disagreement—to distinguish rejection, censoring, completion, and terminal competing causes. <a href="/wanted-10k/endpoint-adjudication">Open the verifier →</a></p></article>
           <article><span>VERSION DISCLOSURE</span><b>Publish what changed.</b><p>Robot hardware, policy, remote-support model, and material software changes are versioned. Cohorts may not be silently pooled across incompatible systems.</p></article>
         </div>
         <div className="humanMeasures">

@@ -59,6 +59,10 @@ const kit = [
   ["PREREGISTRATION TEMPLATE", "Freeze recruitment, incentives, endpoints, safety, operations, updates, privacy, telemetry, and analysis before hour one.", "/wanted-10k/preregistration.template.json", "DOWNLOAD JSON ↓"],
   ["PREREGISTRATION SCHEMA", "Machine-check every field that prevents post-hoc rule changes or hidden operational support.", "/wanted-10k/preregistration.schema.json", "OPEN SCHEMA ↗"],
   ["ENDPOINT RULES", "Use one shared disposition vocabulary for rejection, censoring, safety termination, developer withdrawal, and consent exit.", "/wanted-10k/endpoint-rules.json", "OPEN RULES ↗"],
+  ["ENDPOINT ADJUDICATION LAB", "Reproduce every environment-level terminal decision under authority, blinding, independence, consensus, and no-relabel rules.", "/wanted-10k/endpoint-adjudication", "OPEN ENDPOINT LAB →"],
+  ["ENDPOINT ADJUDICATION CONTRACT", "Read the 0.2-J1 event, review, disagreement, evidence-binding, and hard-failure rules.", "/wanted-10k/endpoint-adjudication.json", "OPEN CONTRACT ↗"],
+  ["ENDPOINT ADJUDICATION SCHEMA", "Validate the complete decision register, signed reviews, request evidence, final mapping, claims, and assurance bindings.", "/wanted-10k/endpoint-adjudication.schema.json", "OPEN SCHEMA ↗"],
+  ["ENDPOINT ADJUDICATION TEMPLATE", "Start from a passing synthetic WANTED WILD decision set aligned with the canonical survival endpoint table.", "/wanted-10k/endpoint-adjudication.template.json", "DOWNLOAD JSON ↓"],
   ["TELEMETRY AUTHENTICITY CONTRACT", "Read the 0.2-T1 Ed25519 signature scope, frozen-key validity, revocation, hash-chain, failure, and interpretation rules.", "/wanted-10k/telemetry-authenticity.json", "OPEN CONTRACT ↗"],
   ["TELEMETRY KEY SCHEMA", "Validate the frozen Ed25519 public-key manifest used to authenticate every field event without exporting a private key.", "/wanted-10k/telemetry-key-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["TELEMETRY KEY TEMPLATE", "Start from the synthetic RFC 8032 public-key manifest used by the local passing sample.", "/wanted-10k/telemetry-key-manifest.template.json", "DOWNLOAD JSON ↓"],
@@ -138,7 +142,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Eighty-six artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, privacy, service continuity, final-manifest authenticity, registered auditor-key trust, neutral human reports, matched learning, complete assistance burden, immutable policy evolution, realtime closed-loop burden, binding preference choices, and a seven-day absence, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Ninety artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, endpoint adjudication, privacy, service continuity, final-manifest authenticity, registered auditor-key trust, neutral human reports, matched learning, complete assistance burden, immutable policy evolution, realtime closed-loop burden, binding preference choices, and a seven-day absence, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

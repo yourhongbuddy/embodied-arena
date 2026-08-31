@@ -12,6 +12,7 @@ import { assessAssistance, assistanceTemplateFor } from "../assistance-integrity
 import { assessPolicyEvolution, policyEvolutionTemplateFor, reproducePolicyEvolution } from "../policy-evolution/profile.ts";
 import { assessPrivacy, privacyTemplateFor } from "../privacy-integrity/profile.ts";
 import { assessServiceContinuity, serviceTemplateFor } from "../service-continuity/profile.ts";
+import { assessEndpointAdjudication, endpointTemplateFor } from "../endpoint-adjudication/profile.ts";
 
 const digest = { type: "string", pattern: "^[a-f0-9]{64}$" };
 const uri = { type: "string", format: "uri" };
@@ -54,6 +55,7 @@ const privacyIntegritySummary = { type: "object", additionalProperties: false, r
 const serviceContinuitySummary = { type: "object", additionalProperties: false, required: ["profile_version","status","target_certification","manifest_uri","manifest_sha256","environment_count","resident_hours","autonomous_available_fraction","degraded_fraction","unavailable_fraction","planned_downtime_hours","unplanned_downtime_hours","unplanned_outage_count","longest_unplanned_outage_hours","mean_unplanned_recovery_hours","no_unplanned_outage_lower_bound_hours","maintenance_action_count","participant_maintenance_minutes_per_100_hours","technician_minutes_per_100_hours","technician_visit_count","replacement_part_count","consumable_unit_count","cloud_dependency_downtime_hours","preregistration_sha256","exposure_integrity_sha256","telemetry_authenticity_sha256","assistance_integrity_sha256","robot_policy_sha256","qualified_assessor","assessor_attested"], properties: {
   profile_version:{const:"0.2-SC1"},status:{const:"passed"},target_certification:{enum:["WANTED_LAB","WANTED_WILD","WANTED_10K"]},manifest_uri:uri,manifest_sha256:digest,environment_count:{type:"integer",minimum:1},resident_hours:{type:"number",minimum:0},autonomous_available_fraction:{type:"number",minimum:0,maximum:1},degraded_fraction:{type:"number",minimum:0,maximum:1},unavailable_fraction:{type:"number",minimum:0,maximum:1},planned_downtime_hours:{type:"number",minimum:0},unplanned_downtime_hours:{type:"number",minimum:0},unplanned_outage_count:{type:"integer",minimum:0},longest_unplanned_outage_hours:{type:"number",minimum:0},mean_unplanned_recovery_hours:{type:["number","null"],minimum:0},no_unplanned_outage_lower_bound_hours:{type:["number","null"],minimum:0},maintenance_action_count:{type:"integer",minimum:0},participant_maintenance_minutes_per_100_hours:{type:"number",minimum:0},technician_minutes_per_100_hours:{type:"number",minimum:0},technician_visit_count:{type:"integer",minimum:0},replacement_part_count:{type:"integer",minimum:0},consumable_unit_count:{type:"integer",minimum:0},cloud_dependency_downtime_hours:{type:"number",minimum:0},preregistration_sha256:digest,exposure_integrity_sha256:digest,telemetry_authenticity_sha256:digest,assistance_integrity_sha256:digest,robot_policy_sha256:digest,qualified_assessor:{type:"string",minLength:1},assessor_attested:{const:true},
 } };
+const endpointAdjudicationSummary = { type:"object", additionalProperties:false, required:["profile_version","status","target_certification","manifest_uri","manifest_sha256","environment_count","resident_hours","voluntary_rejections","administrative_completions","administrative_censors","unrelated_censors","safety_terminations","developer_withdrawals","consent_privacy_withdrawals","initial_review_disagreements","tie_break_reviews","unresolved_decisions","preregistration_sha256","cohort_integrity_sha256","exposure_integrity_sha256","telemetry_authenticity_sha256","qualified_assessor","assessor_attested"], properties:{profile_version:{const:"0.2-J1"},status:{const:"passed"},target_certification:{enum:["WANTED_LAB","WANTED_WILD","WANTED_10K"]},manifest_uri:uri,manifest_sha256:digest,environment_count:{type:"integer",minimum:1},resident_hours:{type:"number",minimum:0},voluntary_rejections:{type:"integer",minimum:0},administrative_completions:{type:"integer",minimum:0},administrative_censors:{type:"integer",minimum:0},unrelated_censors:{type:"integer",minimum:0},safety_terminations:{type:"integer",minimum:0},developer_withdrawals:{type:"integer",minimum:0},consent_privacy_withdrawals:{type:"integer",minimum:0},initial_review_disagreements:{type:"integer",minimum:0},tie_break_reviews:{type:"integer",minimum:0},unresolved_decisions:{const:0},preregistration_sha256:digest,cohort_integrity_sha256:digest,exposure_integrity_sha256:digest,telemetry_authenticity_sha256:digest,qualified_assessor:{type:"string",minLength:1},assessor_attested:{const:true}} };
 
 export const auditManifestSchema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -113,11 +115,9 @@ export const auditManifestSchema = {
     telemetry: { oneOf: [{ type: "object", additionalProperties: false, required: ["profile_version", "schema_version", "conformance_status", "signature_algorithm", "canonicalization", "signature_scope", "total_events", "verified_signatures", "invalid_signatures", "unknown_key_ids", "expired_key_events", "revoked_key_events", "hash_chain_mismatches", "deployment_streams", "key_manifest_uri", "key_manifest_sha256", "verification_report_uri", "verification_report_sha256", "root_commitments_uri", "root_commitments_sha256"], properties: {
       profile_version: { const: "0.2-T1" }, schema_version: { const: "0.2" }, conformance_status: { const: "passed" }, signature_algorithm: { const: "Ed25519" }, canonicalization: { const: "RFC8785_JCS" }, signature_scope: { const: "current_event_without_signature" }, total_events: { type: "integer", minimum: 1 }, verified_signatures: { type: "integer", minimum: 1 }, invalid_signatures: { const: 0 }, unknown_key_ids: { const: 0 }, expired_key_events: { const: 0 }, revoked_key_events: { const: 0 }, hash_chain_mismatches: { const: 0 }, deployment_streams: { type: "integer", minimum: 1 }, key_manifest_uri: uri, key_manifest_sha256: digest, verification_report_uri: uri, verification_report_sha256: digest, root_commitments_uri: uri, root_commitments_sha256: digest,
     } }, notApplicable] },
-    adjudication: { oneOf: [{ type: "object", additionalProperties: false, required: ["completed", "reviewer_count", "blinded", "agreement_rate", "decisions_uri", "decisions_sha256"], properties: {
-      completed: { type: "boolean" }, reviewer_count: { type: "integer", minimum: 1 }, blinded: { type: "boolean" }, agreement_rate: { type: "number", minimum: 0, maximum: 1 }, decisions_uri: uri, decisions_sha256: digest,
-    } }, notApplicable] },
+    adjudication: { oneOf: [endpointAdjudicationSummary, notApplicable] },
     withdrawal: { oneOf: [withdrawalSummary, notApplicable] },
-    evidence: { type: "array", minItems: 2, items: { type: "object", additionalProperties: false, required: ["role", "uri", "sha256", "public"], properties: { role: { enum: ["cohort_summary", "cohort_integrity_report", "exposure_integrity_report", "analysis_reproduction_report", "analysis_code", "human_measures_report", "learning_generalization_report", "assistance_integrity_report", "policy_evolution_report", "privacy_integrity_report", "service_continuity_report", "telemetry_authenticity_report", "incident_register", "safety_case", "security_assessment", "intervention_register", "version_history", "withdrawal_results", "simulation_report", "lab_report", "other"] }, uri, sha256: digest, public: { type: "boolean" } } } },
+    evidence: { type: "array", minItems: 2, items: { type: "object", additionalProperties: false, required: ["role", "uri", "sha256", "public"], properties: { role: { enum: ["cohort_summary", "cohort_integrity_report", "exposure_integrity_report", "analysis_reproduction_report", "analysis_code", "endpoint_adjudication_report", "human_measures_report", "learning_generalization_report", "assistance_integrity_report", "policy_evolution_report", "privacy_integrity_report", "service_continuity_report", "telemetry_authenticity_report", "incident_register", "safety_case", "security_assessment", "intervention_register", "version_history", "withdrawal_results", "simulation_report", "lab_report", "other"] }, uri, sha256: digest, public: { type: "boolean" } } } },
     privacy: { type: "object", additionalProperties: false, required: ["participant_data_included", "redaction_reviewed", "public_pack_contains_aggregate_data_only"], properties: { participant_data_included: { const: false }, redaction_reviewed: { const: true }, public_pack_contains_aggregate_data_only: { const: true } } },
     audit: { type: "object", additionalProperties: false, required: ["profile_version", "auditor", "auditor_organization", "independence_statement", "scope", "signed_at", "signature_algorithm", "canonicalization", "signature_scope", "public_key_uri", "public_key_base64url", "public_key_sha256", "credential", "manifest_sha256", "auditor_signature"], properties: {
       profile_version: { const: "0.2-V1" }, auditor: { type: "string", minLength: 1 }, auditor_organization: { type: "string", minLength: 1 }, independence_statement: { type: "string", minLength: 20 }, scope: { type: "array", minItems: 1, items: { type: "string" } }, signed_at: { type: "string", format: "date-time" }, signature_algorithm: { const: "Ed25519" }, canonicalization: { const: "RFC8785_JCS" }, signature_scope: { const: "audit_manifest_without_audit.manifest_sha256_and_audit.auditor_signature" }, public_key_uri: { type: "string", format: "uri", pattern: "^https://" }, public_key_base64url: { type: "string", pattern: "^[A-Za-z0-9_-]{43}$" }, public_key_sha256: digest, credential: auditorCredentialSchema, manifest_sha256: digest, auditor_signature: { type: "string", pattern: "^[A-Za-z0-9_-]{86}$" },
@@ -163,6 +163,7 @@ export const auditManifestSchema = {
       then: { properties: { evidence: { allOf: [
         { contains: { properties: { role: { const: "privacy_integrity_report" } }, required: ["role"] }, minContains: 1 },
         { contains: { properties: { role: { const: "service_continuity_report" } }, required: ["role"] }, minContains: 1 },
+        { contains: { properties: { role: { const: "endpoint_adjudication_report" } }, required: ["role"] }, minContains: 1 },
       ] } } },
     },
   ],
@@ -190,6 +191,7 @@ function exposureIntegrityAuditSummary(target: "WANTED_LAB" | "WANTED_WILD" | "W
   return { ...assessment.summary, status: "passed", manifest_uri: "https://example.org/wanted-exposure-integrity.json", manifest_sha256: hash("eb"), qualified_assessor: source.assessor.name, assessor_attested: source.assessor.attested };
 }
 function analysisReproductionAuditSummary() {
+  analysisReproductionTemplate.upstream_bindings.endpoint_decisions_sha256 = hash("e1");
   const assessment = assessAnalysisReproduction(analysisReproductionTemplate);
   if (!assessment.summary || assessment.status !== "passed") throw new Error("Synthetic WANTED_WILD analysis-reproduction profile must pass.");
   return { ...assessment.summary, status: "passed", manifest_uri: "https://example.org/wanted-analysis-reproduction.json", manifest_sha256: hash("aa"), ...analysisReproductionTemplate.upstream_bindings, qualified_assessor: analysisReproductionTemplate.assessor.name, assessor_attested: analysisReproductionTemplate.assessor.attested };
@@ -197,6 +199,7 @@ function analysisReproductionAuditSummary() {
 const analysisReproductionSummaryValue = analysisReproductionAuditSummary();
 function withdrawalAuditSummary(target: "WANTED_WILD" | "WANTED_10K") {
   const source = withdrawalTemplateFor(target);
+  source.upstream_bindings.endpoint_decisions_sha256 = hash("e1");
   const assessment = assessWithdrawal(source);
   if (!assessment.summary || assessment.status !== "passed") throw new Error(`Synthetic ${target} withdrawal profile must pass.`);
   return { ...assessment.summary, manifest_uri: source.evidence.withdrawal_register_uri, manifest_sha256: source.evidence.withdrawal_register_sha256, ...source.upstream_bindings, qualified_assessor: source.assessor.name, assessor_attested: source.assessor.attested };
@@ -253,6 +256,16 @@ function serviceContinuityAuditSummary(target: "WANTED_LAB" | "WANTED_WILD" | "W
   if (!assessment.summary || assessment.status !== "passed") throw new Error(`Synthetic ${target} service-continuity profile must pass.`);
   return { ...assessment.summary, manifest_uri: source.evidence.controlled_service_register_uri, manifest_sha256: source.evidence.controlled_service_register_sha256, ...source.upstream_bindings, qualified_assessor: source.assessor.name, assessor_attested: source.assessor.attested };
 }
+function endpointAdjudicationAuditSummary(target: "WANTED_LAB" | "WANTED_WILD" | "WANTED_10K") {
+  const source = endpointTemplateFor(target);
+  source.upstream_bindings.preregistration_sha256 = hash("b");
+  source.upstream_bindings.cohort_integrity_sha256 = cohortIntegrityAuditSummary(target).manifest_sha256;
+  source.upstream_bindings.exposure_integrity_sha256 = exposureIntegrityAuditSummary(target).manifest_sha256;
+  source.upstream_bindings.telemetry_authenticity_sha256 = hash("9b");
+  const assessment = assessEndpointAdjudication(source);
+  if (!assessment.summary || assessment.status !== "passed") throw new Error(`Synthetic ${target} endpoint-adjudication profile must pass.`);
+  return { ...assessment.summary, manifest_uri: source.evidence.controlled_decision_register_uri, manifest_sha256: source.evidence.controlled_decision_register_sha256, ...source.upstream_bindings, qualified_assessor: source.assessor.name, assessor_attested: source.assessor.attested };
+}
 function diagnosticsWithIntegrity(assistance: ReturnType<typeof assistanceIntegrityAuditSummary>, service: ReturnType<typeof serviceContinuityAuditSummary>) {
   return { profile_version: "0.2-D1", ...diagnosticMetrics, learning_delta: null, generalization: { ratio: null, familiar: null, novel: null }, assistance_minutes_per_100_hours: assistance.assistance_minutes_per_100_hours, autonomous_availability: service.autonomous_available_fraction, mean_time_between_human_rescue: { estimate_hours: assistance.mean_time_between_human_rescue_hours, no_event_lower_bound_hours: assistance.no_rescue_lower_bound_hours, events: assistance.rescue_events, exposure_hours: assistance.resident_hours } };
 }
@@ -260,6 +273,7 @@ const assistanceIntegritySummaryValue = assistanceIntegrityAuditSummary("WANTED_
 const policyEvolutionSummaryValue = policyEvolutionAuditSummary("WANTED_WILD");
 const privacyIntegritySummaryValue = privacyIntegrityAuditSummary("WANTED_WILD");
 const serviceContinuitySummaryValue = serviceContinuityAuditSummary("WANTED_WILD");
+const endpointAdjudicationSummaryValue = endpointAdjudicationAuditSummary("WANTED_WILD");
 
 const auditManifestTemplateBase = {
   protocol_version: "0.2",
@@ -283,7 +297,7 @@ const auditManifestTemplateBase = {
   diagnostics: diagnosticsWithIntegrity(assistanceIntegritySummaryValue, serviceContinuitySummaryValue),
   safety: { profile_version: "0.2-S1", gate_status: "passed", manifest_uri: "https://example.org/wanted-safety-case.json", manifest_sha256: hash("7"), robot_description_sha256: safetyTemplate.deployment_scope.robot_description_sha256, policy_artifact_sha256: safetyTemplate.deployment_scope.policy_artifact_sha256, ...safetySummary, incident_counts: { L0: 2841, L1: 72, L2: 9, L3: 1, L4: 0 }, qualified_assessor: safetyTemplate.assessor.name, assessor_attested: true, assessment_uri: safetyTemplate.assessor.assessment_uri, assessment_sha256: safetyTemplate.assessor.assessment_sha256, applicable_rules: safetyTemplate.applicable_requirements.rules },
   telemetry: { profile_version: "0.2-T1", schema_version: "0.2", conformance_status: "passed", signature_algorithm: "Ed25519", canonicalization: "RFC8785_JCS", signature_scope: "current_event_without_signature", total_events: 2400000, verified_signatures: 2400000, invalid_signatures: 0, unknown_key_ids: 0, expired_key_events: 0, revoked_key_events: 0, hash_chain_mismatches: 0, deployment_streams: 24, key_manifest_uri: "https://example.org/wanted-telemetry-keys.json", key_manifest_sha256: hash("9a"), verification_report_uri: "https://example.org/wanted-telemetry-authenticity.json", verification_report_sha256: hash("9b"), root_commitments_uri: "https://example.org/wanted-roots.json", root_commitments_sha256: hash("d") },
-  adjudication: { completed: true, reviewer_count: 2, blinded: true, agreement_rate: 0.958, decisions_uri: "https://example.org/wanted-adjudication.json", decisions_sha256: hash("e") },
+  adjudication: endpointAdjudicationSummaryValue,
   withdrawal: withdrawalAuditSummary("WANTED_WILD"),
   evidence: [
     { role: "simulation_report", uri: "https://example.org/wanted-preflight-report.json", sha256: hash("6"), public: true },
@@ -292,6 +306,7 @@ const auditManifestTemplateBase = {
     { role: "exposure_integrity_report", uri: "https://example.org/wanted-exposure-integrity.json", sha256: hash("eb"), public: true },
     { role: "analysis_reproduction_report", uri: "https://example.org/wanted-analysis-reproduction.json", sha256: hash("aa"), public: true },
     { role: "analysis_code", uri: "https://example.org/wanted-analysis.tar.gz", sha256: hash("1"), public: true },
+    { role: "endpoint_adjudication_report", uri: "https://example.org/wanted-endpoint-decisions.json", sha256: hash("e1"), public: true },
     { role: "human_measures_report", uri: "https://example.org/wanted-human-measures-register.json", sha256: hash("52"), public: true },
     { role: "learning_generalization_report", uri: "https://example.org/wanted-learning-trials.json", sha256: hash("b2"), public: true },
     { role: "assistance_integrity_report", uri: "https://example.org/wanted-intervention-register.json", sha256: hash("c4"), public: true },
@@ -313,9 +328,9 @@ const auditManifestTemplateBase = {
 const na = (reason: string) => ({ applicable: false as const, reason });
 const syntheticAuditSeals = {
   PREQUALIFIED: { manifest_sha256: "7802509453b9c13ecf16da6662d9b9c03d1898212fdcbceffa128e3dc823383f", auditor_signature: "UvFyPdxGVbm-wS35snc-Q7yyXO-oLZ_XLhd-dSrJjLOAFTp-RwL7Tdpdxh6YksQBVB5tG0qaZgGpA0MJS5rJAg" },
-  WANTED_LAB: { manifest_sha256: "1c1aca03da5bf1609335f87b49b05b3eec54e32087b3a1e4e75477569186db29", auditor_signature: "DWUWaVKfOR7w81QUkPYq97CZLl9kJeCr3DQiblkrvoLT7GDM4VFmBTACvnZjmmREeeW1H57HOFrBxRLcmfppBQ" },
-  WANTED_WILD: { manifest_sha256: "decf421049baabd0ec937e026fd94ced060088396554b87e35876533bc634d5b", auditor_signature: "3M4rhKJx4mIZDPxmSJ-B6-GmbbA4ffuOVV4FRO6UCczwj0yni5RrGRJpWKVWkZZU5I_pZRQKxGdbJQAW3rzAAg" },
-  WANTED_10K: { manifest_sha256: "edfc492d057e4d630407779c117efd2a5e22cd101fa7a586a5db2b3a7d817f6e", auditor_signature: "hJOVAovDGgnpKBVO5vBxIpPFLk2TxMjkC6DDa7dmtmxkdXnftLKzD7bk5TgFu6bCaMJx0CmyjXY_ubuBDmJuAA" },
+  WANTED_LAB: { manifest_sha256: "d1c197de6794e620fb21bb35034945ae7269cb90e7045cefea68709f502c042f", auditor_signature: "wniyLnAvRbkSO8FATh2H-FDLcnTZKCZM0Gtwy8DDopxlSDOt_-EMxtE_C3c8YxcMFQvPhxwYsDBJz2Myww1VDg" },
+  WANTED_WILD: { manifest_sha256: "aa48bccda53926d275856fa5f7946dd379ad92d10838c43ea036cdffe81c1da8", auditor_signature: "4jjdE8ztFDIQ7CDmR-h5czwwvd7TUpmzZ04xiSSYSPXw7PW_OLtWeO_4BXZwg-gW9WZ8iPOvV5QmM5zkb9LfCg" },
+  WANTED_10K: { manifest_sha256: "b77a6e433bd893d0501aded7b4c328056b2e4665137250cae1daa70d1fb7b890", auditor_signature: "NH-nkCRvqItFoLmGLQu_Isy_dbSEkHbrB9WEAhyyfSq35KOvsg7vH4yTJN_7Tz7eqPmIv3VOnQxF9N10hwqlDw" },
 };
 const cloneTemplate = () => JSON.parse(JSON.stringify(auditManifestTemplateBase));
 export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" | "WANTED_WILD" | "WANTED_10K") {
@@ -353,6 +368,7 @@ export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" |
     value.policy_evolution_integrity = policyEvolutionAuditSummary("WANTED_LAB");
     value.privacy_integrity = privacyIntegrityAuditSummary("WANTED_LAB");
     value.service_continuity = serviceContinuityAuditSummary("WANTED_LAB");
+    value.adjudication = endpointAdjudicationAuditSummary("WANTED_LAB");
     value.diagnostics = diagnosticsWithIntegrity(value.assistance_integrity, value.service_continuity);
     value.withdrawal = na("WANTED LAB ends before a 10,000-hour lifetime completion can enter withdrawal.");
     value.evidence = value.evidence.filter((item: { role: string }) => item.role !== "withdrawal_results");
@@ -371,6 +387,7 @@ export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" |
     value.policy_evolution_integrity = policyEvolutionAuditSummary("WANTED_10K");
     value.privacy_integrity = privacyIntegrityAuditSummary("WANTED_10K");
     value.service_continuity = serviceContinuityAuditSummary("WANTED_10K");
+    value.adjudication = endpointAdjudicationAuditSummary("WANTED_10K");
     value.diagnostics = diagnosticsWithIntegrity(value.assistance_integrity, value.service_continuity);
     value.withdrawal = withdrawalAuditSummary("WANTED_10K");
   }

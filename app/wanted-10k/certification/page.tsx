@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const levels = [
   ["01", "PREQUALIFIED", "SIMULATION", "Pass the 0.2-P1 preflight before human exposure. Field W, diagnostics, safety telemetry, and endpoint adjudication are explicitly not applicable."],
-  ["02", "WANTED LAB", "1 SITE / 100H", "Add cohort integrity, exposure-ledger integrity, neutral human measures 0.2-H1, matched learning 0.2-LG1, assistance integrity 0.2-I1, policy evolution 0.2-U1, privacy + consent integrity 0.2-PV1, service continuity 0.2-SC1, field safety, cryptographically verified telemetry 0.2-T1, endpoint adjudication, diagnostics, and a lab report. No cohort W is claimed."],
+  ["02", "WANTED LAB", "1 SITE / 100H", "Add cohort integrity, exposure-ledger integrity, endpoint adjudication 0.2-J1, neutral human measures 0.2-H1, matched learning 0.2-LG1, assistance integrity 0.2-I1, policy evolution 0.2-U1, privacy + consent integrity 0.2-PV1, service continuity 0.2-SC1, field safety, cryptographically verified telemetry 0.2-T1, diagnostics, and a lab report. No cohort W is claimed."],
   ["03", "WANTED WILD", "N>=20 / 10,000H", "Add Analysis Reproduction 0.2-A1: rebuild an identifiable 10,000-hour W, deterministic 95% cluster-bootstrap interval, robustness bounds, influence, and tail support from audited endpoint rows. This is the only ranked target."],
   ["04", "WANTED 10K", "1 HOME / 10,000H", "Complete one lifetime residence plus a passing 0.2-W1 neutral seven-day withdrawal and reacquisition test. This badge does not create or improve a cohort W."],
 ];
@@ -20,6 +20,7 @@ const rows = [
   ["COHORT INTEGRITY 0.2-E1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["EXPOSURE LEDGER 0.2-X1", "N/A", ">=100H", ">=10,000H TOTAL", "10,000H ONE HOME"],
   ["ANALYSIS REPRODUCTION 0.2-A1", "N/A", "N/A", "REQUIRED", "N/A"],
+  ["ENDPOINT ADJUDICATION 0.2-J1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["HUMAN MEASURES 0.2-H1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["LEARNING + GENERALIZATION 0.2-LG1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["ASSISTANCE INTEGRITY 0.2-I1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],

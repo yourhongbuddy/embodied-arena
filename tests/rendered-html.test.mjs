@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Eighty-six artifacts/);
+  assert.match(protocolHtml, /Ninety artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -175,6 +175,13 @@ test("publishes and reproduces complete service continuity",async()=>{
   for(const response of responses)assert.equal(response.status,200);const pageHtml=await responses[0].text();assert.match(pageHtml,/Ten thousand hours/);assert.match(pageHtml,/EVERY SECOND HAS A STATE/);assert.match(pageHtml,/INTEGRITY GATE, NOT AN UPTIME SCORE/);const [contract,schema,template,audit,certification,spec,leaderboard]=await Promise.all(responses.slice(1).map(response=>response.json()));
   assert.equal(contract.version,"0.2-SC1");assert.equal(contract.certification_effect,"field_evidence_integrity_gate");assert.equal(contract.ranking_effect,"none");assert.equal(schema.properties.protocol.properties.inclusion_rule.const,"complete_partition_of_every_resident_second");assert.equal(template.environments.length,24);assert.equal(template.claimed.resident_hours,120000);assert.equal(template.claimed.autonomous_available_fraction+.01+.001,1);
   assert.equal(audit.service_continuity.profile_version,"0.2-SC1");assert.equal(audit.service_continuity.manifest_sha256,template.evidence.controlled_service_register_sha256);assert.equal(audit.diagnostics.autonomous_availability,template.claimed.autonomous_available_fraction);assert.equal(certification.targets.WANTED_LAB.requires.includes("service_continuity_0.2-SC1"),true);assert.equal(spec.service_continuity_profile.ranking_effect,"none");assert.equal(spec.developer_resources.service_continuity_lab,"/wanted-10k/service-continuity");assert.equal(leaderboard.admission.includes("service_continuity_profile_0.2-SC1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("service_continuity_metrics"),true);
+});
+
+test("publishes and reproduces endpoint adjudication integrity",async()=>{
+  const responses=await Promise.all([request("/wanted-10k/endpoint-adjudication"),request("/wanted-10k/endpoint-adjudication.json","application/json"),request("/wanted-10k/endpoint-adjudication.schema.json","application/json"),request("/wanted-10k/endpoint-adjudication.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/certification.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json")]);
+  for(const response of responses)assert.equal(response.status,200);const pageHtml=await responses[0].text();assert.match(pageHtml,/Before survival analysis/);assert.match(pageHtml,/TWO BLINDED REVIEWS/);assert.match(pageHtml,/NO LABEL, NO SCORE/);const[contract,schema,template,audit,certification,spec,leaderboard]=await Promise.all(responses.slice(1).map(response=>response.json()));
+  assert.equal(contract.version,"0.2-J1");assert.match(contract.ranking_effect,/never_score_or_tiebreaker/);assert.equal(schema.properties.protocol.properties.minimum_independent_reviews.const,2);assert.equal(template.records.length,24);assert.equal(template.claimed.voluntary_rejections,4);assert.equal(template.claimed.administrative_completions,8);assert.equal(template.claimed.unresolved_decisions,0);
+  assert.equal(audit.adjudication.profile_version,"0.2-J1");assert.equal(audit.adjudication.manifest_sha256,template.evidence.controlled_decision_register_sha256);assert.equal(audit.analysis_reproduction.endpoint_decisions_sha256,audit.adjudication.manifest_sha256);assert.equal(certification.targets.WANTED_WILD.requires.includes("endpoint_adjudication_0.2-J1"),true);assert.equal(spec.endpoint_adjudication.version,"0.2-J1");assert.equal(spec.developer_resources.endpoint_adjudication_lab,"/wanted-10k/endpoint-adjudication");assert.equal(leaderboard.admission.includes("endpoint_adjudication_profile_0.2-J1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("endpoint_review_metrics"),true);
 });
 
 test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{

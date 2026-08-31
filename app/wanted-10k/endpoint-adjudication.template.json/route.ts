@@ -1,0 +1,2 @@
+import { ENDPOINT_TARGETS, endpointTemplateFor, type EndpointTarget } from "../endpoint-adjudication/profile";
+export async function GET(request:Request){const target=new URL(request.url).searchParams.get("target")||"WANTED_WILD";return ENDPOINT_TARGETS.includes(target as EndpointTarget)?Response.json(endpointTemplateFor(target as EndpointTarget),{headers:{"cache-control":"public, max-age=3600"}}):Response.json({error:"target must be WANTED_LAB, WANTED_WILD, or WANTED_10K"},{status:400})}
