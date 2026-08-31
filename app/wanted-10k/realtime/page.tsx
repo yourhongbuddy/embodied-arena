@@ -1,4 +1,5 @@
 import { SiteNav } from "../../components/SiteNav";
+import { RealtimeLab } from "./RealtimeLab";
 
 const protocolEvents = [
   ["01", "HUMAN_INPUT", "Speech, gesture, button, or explicit stop request enters the session."],
@@ -39,7 +40,8 @@ export default function RealtimeProtocolPage() {
         <p>HILO Realtime measures the complete human ↔ AI ↔ robot system: what people ask, what the intelligence layer infers, what the robot does, what safety permits, and how often a human must step back in.</p>
         <div className="rtActions">
           <a className="primary" href="#architecture">See the closed loop <span>↓</span></a>
-          <a className="secondary" href="#developer">Open developer example</a>
+          <a className="secondary" href="#verifier">Verify a manifest</a>
+          <a className="secondary" href="/wanted-10k/realtime.json">Open contract</a>
           <a className="secondary" href="/wanted-10k">Back to WANTED-10K</a>
         </div>
         <div className="referenceNote">
@@ -157,6 +159,8 @@ export default function RealtimeProtocolPage() {
         </div>
       </div>
     </section>
+
+    <section className="hiloVerifier" id="verifier"><div className="shell"><div className="rtSectionHead"><div><span className="kicker">07 / LOCAL VERIFIER</span><h2>Paste the evidence.<br/><em>Recompute the claim.</em></h2></div><p>The executable profile checks event order, action causality, intervention burden, first-intervention survival, R7 latency tails, independent safety authority, stop tests, tier exposure, and evidence bindings.</p></div><RealtimeLab/></div></section>
 
     <section className="rtFinal">
       <div className="shell"><span>HILO REALTIME / DRAFT 0.1</span><h2>Judge intelligence by<br/><em>the burden it removes.</em></h2><p>Publish task outcomes, human effort, intervention survival, latency tails, safety decisions, model and adapter versions, image-event policy, and the complete long-horizon exposure ledger.</p><div><a className="primary" href="/wanted-10k/assistance-integrity">Open assistance integrity <span>→</span></a><a className="secondary" href="/wanted-10k/safety">Open safety profile</a></div></div>

@@ -52,6 +52,10 @@ const kit = [
   ["PREFLIGHT MANIFEST SCHEMA", "Validate the portable digital-twin evidence object used by any simulator before human exposure.", "/wanted-10k/preflight.schema.json", "OPEN SCHEMA ↗"],
   ["PREFLIGHT TEMPLATE", "Start with a complete synthetic 0.2-P1 manifest covering all hard qualification gates.", "/wanted-10k/preflight.template.json", "DOWNLOAD JSON ↓"],
   ["REFERENCE ADAPTER", "Connect a native robot stack with six helpers while the module owns lifecycle boundaries, ordering, JCS signing bytes, hash chaining, and restart checkpoints.", "/wanted-10k/sdk", "OPEN QUICKSTART →"],
+  ["HILO REALTIME LAB", "Verify the human–realtime intelligence–robot loop, human burden, first-intervention survival, latency tails, independent safety authority, and timed stops.", "/wanted-10k/realtime", "OPEN HILO LAB →"],
+  ["HILO REALTIME CONTRACT", "Read the vendor-neutral 0.1-RT1 comparison, event, burden, survival, latency, safety, tier, and non-ranking rules.", "/wanted-10k/realtime.json", "OPEN CONTRACT ↗"],
+  ["HILO REALTIME SCHEMA", "Validate sessions, ordered event evidence, action bindings, interventions, latency samples, safety decisions, stop tests, and evidence commitments.", "/wanted-10k/realtime.schema.json", "OPEN SCHEMA ↗"],
+  ["HILO REALTIME TEMPLATE", "Start from a passing synthetic T2 reference manifest with four sessions, 100 eligible hours, and a declared GPT-Realtime-2.1 adapter.", "/wanted-10k/realtime.template.json", "DOWNLOAD JSON ↓"],
   ["PREREGISTRATION TEMPLATE", "Freeze recruitment, incentives, endpoints, safety, operations, updates, privacy, telemetry, and analysis before hour one.", "/wanted-10k/preregistration.template.json", "DOWNLOAD JSON ↓"],
   ["PREREGISTRATION SCHEMA", "Machine-check every field that prevents post-hoc rule changes or hidden operational support.", "/wanted-10k/preregistration.schema.json", "OPEN SCHEMA ↗"],
   ["ENDPOINT RULES", "Use one shared disposition vocabulary for rejection, censoring, safety termination, developer withdrawal, and consent exit.", "/wanted-10k/endpoint-rules.json", "OPEN RULES ↗"],
@@ -126,7 +130,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Seventy-four artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, registered auditor-key trust, neutral human reports, matched learning, complete assistance burden, immutable policy evolution, binding preference choices, and a seven-day absence, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Seventy-eight artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, registered auditor-key trust, neutral human reports, matched learning, complete assistance burden, immutable policy evolution, realtime closed-loop burden, binding preference choices, and a seven-day absence, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

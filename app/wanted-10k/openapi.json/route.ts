@@ -36,6 +36,9 @@ const openapi = {
   "x-wanted-exposure-ledger": "/wanted-10k/exposure-ledger.json",
   "x-wanted-telemetry-authenticity": "/wanted-10k/telemetry-authenticity.json",
   "x-wanted-key-manifest-schema": "/wanted-10k/telemetry-key-manifest.schema.json",
+  "x-hilo-realtime-contract": "/wanted-10k/realtime.json",
+  "x-hilo-realtime-schema": "/wanted-10k/realtime.schema.json",
+  "x-hilo-realtime-template": "/wanted-10k/realtime.template.json",
 };
 
 export async function GET() {

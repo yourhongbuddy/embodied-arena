@@ -38,22 +38,25 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Seventy-four artifacts/);
+  assert.match(protocolHtml, /Seventy-eight artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
 
 test("publishes the vendor-neutral HILO Realtime protocol", async () => {
-  const response = await request("/wanted-10k/realtime");
-  assert.equal(response.status, 200);
-  const html = await response.text();
+  const [response,contractResponse,schemaResponse,templateResponse] = await Promise.all([request("/wanted-10k/realtime"),request("/wanted-10k/realtime.json"),request("/wanted-10k/realtime.schema.json"),request("/wanted-10k/realtime.template.json")]);
+  assert.equal(response.status, 200);assert.equal(contractResponse.status,200);assert.equal(schemaResponse.status,200);assert.equal(templateResponse.status,200);
+  const html = await response.text(),contract=await contractResponse.json(),schema=await schemaResponse.json(),template=await templateResponse.json();
   assert.match(html, /Benchmark the loop/);
   assert.match(html, /MEAN TIME TO HUMAN INTERVENTION/);
   assert.match(html, /INDEPENDENT SAFETY KERNEL/);
   assert.match(html, /IMAGE_EVENT/);
   assert.match(html, /REFERENCE ≠ STANDARD/);
   assert.match(html, /gpt-realtime-2\.1/);
+  assert.match(html, /LOCAL CLOSED-LOOP VERIFIER/);
+  assert.equal(contract.version,"0.1-RT1");assert.equal(contract.vendor_neutral,true);
+  assert.equal(schema.properties.stop_tests.minItems,10);assert.equal(template.certification_tier,"T2");
 });
 
 test("publishes the cohort-integrity selection and independence gate", async () => {
