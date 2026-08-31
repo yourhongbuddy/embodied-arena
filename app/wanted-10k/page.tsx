@@ -96,7 +96,7 @@ export default function Wanted10K() {
       <div className="shell protocolRules">
         <article><span>01</span><b>Resident time counts reality</b><p>Charging, autonomous sleep, scheduled updates, and normal downtime stay in the denominator. Developer removal does not earn hours.</p></article>
         <article><span>02</span><b>The environment is the unit</b><p>Ranking requires N ≥ 20, Σt<sub>i</sub> ≥ 10,000, and observable support for the 10K estimand. W is never extrapolated beyond unsupported follow-up.</p></article>
-        <article><span>03</span><b>Withdrawal is behavioral</b><p>At 10,000 hours, remove the robot for seven days and report time-to-return request plus voluntary reacquisition rate.</p></article>
+        <article><span>03</span><b>Withdrawal is behavioral</b><p>At 10,000 hours, remove the robot for seven days and reproduce time-to-return request plus voluntary reacquisition under <a href="/wanted-10k/withdrawal">profile 0.2-W1</a>.</p></article>
       </div>
     </section>
 

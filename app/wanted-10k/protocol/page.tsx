@@ -74,6 +74,10 @@ const kit = [
   ["AUDIT SDK CONTRACT", "Pin the 0.2-VS1 exports, runtime boundary, trust policy, and exact distributed-source digest.", "/wanted-10k/audit-verifier-sdk.json", "OPEN CONTRACT ↗"],
   ["TRUST ROOT SCHEMA", "Validate synthetic or production registry pins, issuer key digest, minimum registry version, and maximum status age.", "/wanted-10k/auditor-trust-root.schema.json", "OPEN SCHEMA ↗"],
   ["TRUST ROOT TEMPLATE", "Inspect the bundled synthetic-only root shape before provisioning an independently authenticated production root.", "/wanted-10k/auditor-trust-root.template.json", "DOWNLOAD JSON ↓"],
+  ["WITHDRAWAL REPRODUCER", "Verify every eligible lifetime completion, exact neutral 168-hour absence, request timing, final choice, and aggregate result.", "/wanted-10k/withdrawal", "OPEN WITHDRAWAL LAB →"],
+  ["WITHDRAWAL CONTRACT", "Read the 0.2-W1 denominator, contamination controls, censor-aware median rule, evidence bindings, and hard failures.", "/wanted-10k/withdrawal.json", "OPEN CONTRACT ↗"],
+  ["WITHDRAWAL SCHEMA", "Validate the participant-level aggregate-safe register behind WANTED 10K lifetime and WANTED WILD disclosure claims.", "/wanted-10k/withdrawal.schema.json", "OPEN SCHEMA ↗"],
+  ["WITHDRAWAL TEMPLATE", "Start from a passing synthetic eight-completion, seven-day absence and reacquisition manifest.", "/wanted-10k/withdrawal.template.json", "DOWNLOAD JSON ↓"],
   ["DIAGNOSTIC PROFILE", "Compute burden, reliability, stop tails, initiative, learning, generalization, and reacquisition without creating a second ranking score.", "/wanted-10k/diagnostics", "OPEN PROFILE LAB →"],
   ["DIAGNOSTIC CONTRACT", "Freeze canonical formulas, denominators, zero-event handling, aggregation units, and anti-gaming rules.", "/wanted-10k/diagnostics.json", "OPEN CONTRACT ↗"],
   ["DIAGNOSTIC INPUT SCHEMA", "Validate the aggregate sufficient statistics used to reproduce every diagnostic result.", "/wanted-10k/diagnostic-input.schema.json", "OPEN SCHEMA ↗"],
@@ -102,7 +106,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Fifty artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, and registered auditor-key trust, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Fifty-four artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, registered auditor-key trust, and a neutral seven-day absence, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

@@ -19,7 +19,7 @@ test("all four target templates pass only their applicable gates", async () => {
 
 test("PREQUALIFIED is simulation-only and rejects fabricated field evidence", async () => {
   const manifest = auditManifestTemplates.PREQUALIFIED;
-  for (const key of ["cohort_integrity", "exposure_integrity", "analysis_reproduction", "primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.equal(manifest[key].applicable, false);
+  for (const key of ["cohort_integrity", "exposure_integrity", "analysis_reproduction", "primary", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.equal(manifest[key].applicable, false);
   const projection = (await assess(manifest)).projection;
   assert.equal(projection.rankable, false);
   assert.equal(projection.wanted_score, null);
@@ -51,10 +51,13 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
   const wild = await assess(auditManifestTemplates.WANTED_WILD);
   assert.equal(wild.projection.rankable, true);
   assert.equal(wild.projection.wanted_score, 87.5);
+  assert.equal(wild.projection.withdrawal_verified, true);
 
   const lifetime = await assess(auditManifestTemplates.WANTED_10K);
   assert.equal(lifetime.projection.rankable, false);
   assert.equal(lifetime.projection.wanted_score, null);
+  assert.equal(lifetime.projection.withdrawal_verified, true);
+  assert.equal(lifetime.projection.reacquisition_rate, 1);
 
   const incomplete = clone(auditManifestTemplates.WANTED_10K);
   incomplete.withdrawal.completed = 0;
@@ -62,7 +65,7 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
 });
 
 test("machine contracts encode target applicability and rankability", () => {
-  for (const key of ["primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.ok(auditManifestSchema.properties[key].oneOf);
+  for (const key of ["primary", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.ok(auditManifestSchema.properties[key].oneOf);
   assert.equal(auditManifestSchema.properties.telemetry.oneOf[0].properties.profile_version.const, "0.2-T1");
   assert.equal(auditManifestSchema.properties.audit.properties.credential.properties.profile_version.const, "0.2-V2");
   assert.equal(auditManifestSchema.allOf.length, 4);
@@ -71,5 +74,6 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.targets.WANTED_WILD.rankable, true);
   assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("auditor_credential_0.2-V2"), true);
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
+  assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("withdrawal_0.2-W1"), true);
   assert.equal(certificationProfile.ranking.only_target, "WANTED_WILD");
 });
