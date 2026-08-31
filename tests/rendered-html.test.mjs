@@ -535,6 +535,10 @@ test("ships an executable adapter that produces one conformant six-event chain",
   assert.equal(template.checkpoint.recovery_tested, true);
   assert.equal(template.signing.authenticity_profile, "0.2-T1");
   assert.ok(openapi.paths["/v1/deployments/{deployment_id}/tail"]);
+  assert.equal(openapi["x-wanted-evidence-profiles"].protocol_deviation_integrity.version, "0.2-DV1");
+  assert.equal(openapi["x-wanted-evidence-profiles"].protocol_deviation_integrity.schema, "/wanted-10k/protocol-deviations.schema.json");
+  assert.equal(openapi["x-wanted-certification"].target_templates, "/wanted-10k/certification-templates.json");
+  assert.equal(openapi["x-wanted-audit-verifier"].performs_network_requests, false);
   assert.equal(spec.developer_resources.reference_sdk, "/wanted-10k/wanted-sdk.mjs");
   assert.equal(spec.mandatory_events[0], "DEPLOYMENT_LIFECYCLE");
 });
