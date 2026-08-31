@@ -13,6 +13,22 @@ export type AuditSealResult = {
 
 export const emptyAuditSealResult: AuditSealResult = { status: "idle", manifestSha256: null, publicKeySha256: null, signatureVerified: false, errors: [], checks: [] };
 
+export function assertAuditIJson(value: unknown, path = "manifest") {
+  if (["undefined", "bigint", "function", "symbol"].includes(typeof value)) throw new TypeError(`${path} is not an I-JSON value`);
+  if (typeof value === "number" && !Number.isFinite(value)) throw new TypeError(`${path} contains a non-finite number`);
+  if (typeof value === "string" && /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/u.test(value)) throw new TypeError(`${path} contains an unpaired Unicode surrogate`);
+  if (Array.isArray(value)) value.forEach((item,index)=>assertAuditIJson(item,`${path}[${index}]`));
+  else if (value && typeof value === "object") {
+    if (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null) throw new TypeError(`${path} must contain plain JSON objects`);
+    for (const [key,item] of Object.entries(value)) { assertAuditIJson(key,`${path}.<key>`);assertAuditIJson(item,`${path}.${key}`); }
+  }
+}
+
+export function canonicalizeAuditJson(value: unknown) {
+  assertAuditIJson(value);
+  return canonicalize(value);
+}
+
 export const decodeBase64url = (value: string) => {
   if (!/^[A-Za-z0-9_-]+$/.test(value)) throw new Error("value is not unpadded base64url");
   const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - value.length % 4) % 4);
@@ -35,7 +51,7 @@ export function unsignedAuditManifest(manifest: Record<string, unknown>) {
 }
 
 export function auditSigningBytes(manifest: Record<string, unknown>) {
-  return new TextEncoder().encode(canonicalize(unsignedAuditManifest(manifest)));
+  return new TextEncoder().encode(canonicalizeAuditJson(unsignedAuditManifest(manifest)));
 }
 
 export async function verifyAuditSeal(manifest: Record<string, unknown>): Promise<AuditSealResult> {

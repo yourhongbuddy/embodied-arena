@@ -1,5 +1,4 @@
-import { canonicalize } from "../conformance/validator.ts";
-import { decodeBase64url, sha256Bytes, verifyAuditSeal } from "../audit-seal/profile.ts";
+import { canonicalizeAuditJson, decodeBase64url, sha256Bytes, verifyAuditSeal } from "../audit-seal/profile.ts";
 
 export const AUDITOR_CREDENTIAL_VERSION = "0.2-V2";
 export const SYNTHETIC_TRUST_ROOT = {
@@ -31,7 +30,7 @@ export function unsignedAuditorCredential(credential: Record<string, unknown>) {
 }
 
 export function auditorCredentialSigningBytes(credential: Record<string, unknown>) {
-  return new TextEncoder().encode(canonicalize(unsignedAuditorCredential(credential)));
+  return new TextEncoder().encode(canonicalizeAuditJson(unsignedAuditorCredential(credential)));
 }
 
 export async function verifyAuditorCredential(manifest: Record<string, unknown>, trustedRoots: readonly TrustedAuditorRoot[] = [SYNTHETIC_TRUST_ROOT]): Promise<AuditorCredentialResult> {
@@ -122,6 +121,26 @@ export const auditorCredentialContract = {
   verifies: ["pinned_issuer_root", "minimum_registry_version", "credential_digest", "issuer_signature", "auditor_and_key_subject", "target_authorization", "validity_and_revocation", "bounded_status_freshness", "submission_mode_boundary"],
   bundled_root: "synthetic_test_only", official_mode: "requires_separately_configured_production_registry_root",
   interpretation: "attests_that_a_pinned_registry_issuer_signed_the_auditor_key_binding_not_legal_identity_professional_competence_independence_or_evidence_truth",
+} as const;
+
+export const auditorTrustRootTemplate: TrustedAuditorRoot = SYNTHETIC_TRUST_ROOT;
+
+export const auditorTrustRootSchema = {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://embodied-arena.chrishongap.chatgpt.site/wanted-10k/auditor-trust-root.schema.json",
+  title: "WANTED Auditor Registry Trust Root",
+  type: "object",
+  additionalProperties: false,
+  required: ["registry_environment", "registry_id", "issuer_key_id", "issuer_public_key_base64url", "issuer_public_key_sha256", "minimum_registry_version", "maximum_status_age_hours"],
+  properties: {
+    registry_environment: { enum: ["synthetic_test", "production"] },
+    registry_id: { type: "string", minLength: 1 },
+    issuer_key_id: { type: "string", minLength: 1 },
+    issuer_public_key_base64url: { type: "string", pattern: "^[A-Za-z0-9_-]{43}$" },
+    issuer_public_key_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    minimum_registry_version: { type: "integer", minimum: 1 },
+    maximum_status_age_hours: { type: "number", exclusiveMinimum: 0, maximum: 168 },
+  },
 } as const;
 
 const digest = { type: "string", pattern: "^[a-f0-9]{64}$" };

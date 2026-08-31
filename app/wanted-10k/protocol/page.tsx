@@ -69,6 +69,11 @@ const kit = [
   ["AUDITOR CREDENTIAL CONTRACT", "Read the pinned-root, subject-binding, target-authorization, lifecycle, revocation, and mode-boundary rules for profile 0.2-V2.", "/wanted-10k/auditor-credential.json", "OPEN CONTRACT ↗"],
   ["AUDITOR CREDENTIAL SCHEMA", "Validate the issuer-signed credential embedded inside the sealed aggregate audit manifest.", "/wanted-10k/auditor-credential.schema.json", "OPEN SCHEMA ↗"],
   ["AUDITOR CREDENTIAL TEMPLATE", "Inspect the signed synthetic credential and pinned registry root used by the local passing audit package.", "/wanted-10k/auditor-credential.template.json", "DOWNLOAD JSON ↓"],
+  ["AUDIT VERIFIER SDK", "Integrate all 14 seal and credential checks with one zero-dependency local ESM call and explicit production trust-root injection.", "/wanted-10k/audit-sdk", "OPEN QUICKSTART →"],
+  ["AUDIT VERIFIER MODULE", "Download the portable browser-and-Node module that performs strict I-JSON canonicalization and both Ed25519 verifications.", "/wanted-10k/wanted-audit-verifier.mjs", "DOWNLOAD ESM ↓"],
+  ["AUDIT SDK CONTRACT", "Pin the 0.2-VS1 exports, runtime boundary, trust policy, and exact distributed-source digest.", "/wanted-10k/audit-verifier-sdk.json", "OPEN CONTRACT ↗"],
+  ["TRUST ROOT SCHEMA", "Validate synthetic or production registry pins, issuer key digest, minimum registry version, and maximum status age.", "/wanted-10k/auditor-trust-root.schema.json", "OPEN SCHEMA ↗"],
+  ["TRUST ROOT TEMPLATE", "Inspect the bundled synthetic-only root shape before provisioning an independently authenticated production root.", "/wanted-10k/auditor-trust-root.template.json", "DOWNLOAD JSON ↓"],
   ["DIAGNOSTIC PROFILE", "Compute burden, reliability, stop tails, initiative, learning, generalization, and reacquisition without creating a second ranking score.", "/wanted-10k/diagnostics", "OPEN PROFILE LAB →"],
   ["DIAGNOSTIC CONTRACT", "Freeze canonical formulas, denominators, zero-event handling, aggregation units, and anti-gaming rules.", "/wanted-10k/diagnostics.json", "OPEN CONTRACT ↗"],
   ["DIAGNOSTIC INPUT SCHEMA", "Validate the aggregate sufficient statistics used to reproduce every diagnostic result.", "/wanted-10k/diagnostic-input.schema.json", "OPEN SCHEMA ↗"],
@@ -81,7 +86,7 @@ export default function ProtocolPage() {
       <span className="eyebrow"><i className="liveDot"/> IMPLEMENTATION KIT · PROTOCOL 0.2</span>
       <h1>Freeze the rules.<br/><em>Then start the clock.</em></h1>
       <p>The benchmark becomes credible only when rejection, censoring, assistance, software changes, safety termination, and missing data are defined before deployment. Protocol 0.2 turns those decisions into machine-readable artifacts.</p>
-      <div className="protocolHeroActions"><a className="primary" href="/wanted-10k/sdk">Install the adapter <span>→</span></a><a className="secondary" href="/wanted-10k/preregistration.template.json">Download preregistration</a><a className="secondary" href="/wanted-10k/conformance">Validate an adapter</a><a className="secondary" href="/wanted-10k/audit">Prepare audit pack</a></div>
+      <div className="protocolHeroActions"><a className="primary" href="/wanted-10k/sdk">Install the adapter <span>→</span></a><a className="secondary" href="/wanted-10k/audit-sdk">Install audit verifier</a><a className="secondary" href="/wanted-10k/preregistration.template.json">Download preregistration</a><a className="secondary" href="/wanted-10k/conformance">Validate an adapter</a><a className="secondary" href="/wanted-10k/audit">Prepare audit pack</a></div>
       <div className="protocolRelease"><b>0.2</b><div><span>SCIENTIFIC CORRECTION</span><p>W is never extrapolated to 10,000 hours when follow-up ends earlier while estimated retention remains above zero.</p></div><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10861099/" target="_blank" rel="noreferrer">RMST BASIS ↗</a></div>
     </section>
 
@@ -97,7 +102,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Forty-five artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, and registered auditor-key trust, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Fifty artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, and registered auditor-key trust, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

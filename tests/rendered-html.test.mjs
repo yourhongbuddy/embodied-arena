@@ -38,7 +38,8 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Forty-five artifacts/);
+  assert.match(protocolHtml, /Fifty artifacts/);
+  assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
@@ -133,6 +134,35 @@ test("publishes cryptographic aggregate-audit verification", async () => {
   assert.equal(spec.auditor_credential_profile.version, "0.2-V2");
   assert.equal(spec.developer_resources.audit_seal_verifier, "/wanted-10k/audit-seal");
   assert.equal(spec.developer_resources.auditor_credential_template, "/wanted-10k/auditor-credential.template.json");
+});
+
+test("serves the portable audit-verifier SDK and trust-root contracts", async () => {
+  const [pageResponse, moduleResponse, contractResponse, rootSchemaResponse, rootTemplateResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/audit-sdk"),
+    request("/wanted-10k/wanted-audit-verifier.mjs", "text/javascript"),
+    request("/wanted-10k/audit-verifier-sdk.json", "application/json"),
+    request("/wanted-10k/auditor-trust-root.schema.json", "application/json"),
+    request("/wanted-10k/auditor-trust-root.template.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, moduleResponse, contractResponse, rootSchemaResponse, rootTemplateResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Fourteen checks/);
+  assert.match(pageHtml, /Production trust/);
+  assert.match(pageHtml, /OFFICIAL MODE/);
+  const source = await moduleResponse.text();
+  const portable = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
+  const sampleResponse = await request("/wanted-10k/audit-manifest.template.json", "application/json");
+  const result = await portable.verifyAuditPackage(await sampleResponse.json());
+  assert.equal(result.status, "pass");
+  assert.equal(result.seal.checks.length + result.credential.checks.length, 14);
+  const [contract, schema, root, spec] = await Promise.all([contractResponse.json(), rootSchemaResponse.json(), rootTemplateResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-VS1");
+  assert.equal(contract.source_sha256, createHash("sha256").update(source).digest("hex"));
+  assert.equal(schema.additionalProperties, false);
+  assert.equal(root.registry_environment, "synthetic_test");
+  assert.equal(spec.audit_verifier_sdk_profile.performs_network_requests, false);
+  assert.equal(spec.developer_resources.audit_verifier_module, "/wanted-10k/wanted-audit-verifier.mjs");
 });
 
 test("publishes the target-specific certification applicability contract", async () => {
