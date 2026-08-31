@@ -36,6 +36,7 @@ const openapi = {
   "x-wanted-evidence-profiles": {
     preregistration_integrity: { version: "0.2-PR1", contract: "/wanted-10k/preregistration-integrity.json", schema: "/wanted-10k/preregistration-integrity.schema.json", template: "/wanted-10k/preregistration-integrity.template.json", local_verifier: "/wanted-10k/preregistration-integrity" },
     protocol_deviation_integrity: { version: "0.2-DV1", contract: "/wanted-10k/protocol-deviations.json", schema: "/wanted-10k/protocol-deviations.schema.json", template: "/wanted-10k/protocol-deviations.template.json", local_verifier: "/wanted-10k/protocol-deviations" },
+    sampling_stopping_integrity: { version: "0.2-ST1", contract: "/wanted-10k/sampling-stopping.json", schema: "/wanted-10k/sampling-stopping.schema.json", template: "/wanted-10k/sampling-stopping.template.json", local_verifier: "/wanted-10k/sampling-stopping" },
     endpoint_adjudication: { version: "0.2-J1", contract: "/wanted-10k/endpoint-adjudication.json", schema: "/wanted-10k/endpoint-adjudication.schema.json", template: "/wanted-10k/endpoint-adjudication.template.json", local_verifier: "/wanted-10k/endpoint-adjudication" },
   },
   "x-wanted-certification": { contract: "/wanted-10k/certification.json", audit_schema: "/wanted-10k/audit-manifest.schema.json", target_templates: "/wanted-10k/certification-templates.json", local_readiness_verifier: "/wanted-10k/audit" },

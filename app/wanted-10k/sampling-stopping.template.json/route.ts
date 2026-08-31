@@ -1,0 +1,2 @@
+import { samplingStoppingTemplateFor, STOPPING_TARGETS, type StoppingTarget } from "../sampling-stopping/profile.ts";
+export function GET(request:Request){const target=new URL(request.url).searchParams.get("target") as StoppingTarget|null;return Response.json(samplingStoppingTemplateFor(target&&STOPPING_TARGETS.includes(target)?target:"WANTED_WILD"),{headers:{"cache-control":"public, max-age=300"}})}

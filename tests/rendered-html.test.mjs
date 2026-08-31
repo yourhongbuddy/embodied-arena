@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Ninety-eight artifacts/);
+  assert.match(protocolHtml, /One hundred two artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -249,6 +249,43 @@ test("publishes and enforces complete non-manipulative protocol-deviation handli
   assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("protocol_deviation_count"), true);
 });
 
+test("publishes and enforces prospective sampling and stopping integrity", async () => {
+  const responses = await Promise.all([
+    request("/wanted-10k/sampling-stopping"),
+    request("/wanted-10k/sampling-stopping.json", "application/json"),
+    request("/wanted-10k/sampling-stopping.schema.json", "application/json"),
+    request("/wanted-10k/sampling-stopping.template.json?target=WANTED_WILD", "application/json"),
+    request("/wanted-10k/audit-manifest.template.json", "application/json"),
+    request("/wanted-10k/certification.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+    request("/wanted-10k/leaderboard.json", "application/json"),
+    request("/wanted-10k/openapi.json", "application/json"),
+  ]);
+  for (const response of responses) assert.equal(response.status, 200);
+  const pageHtml = await responses[0].text();
+  assert.match(pageHtml, /Freeze the finish line/);
+  assert.match(pageHtml, /DETERMINISTIC CLOSURE/);
+  assert.match(pageHtml, /NO FROZEN FINISH LINE, NO CERTIFICATION CLAIM/);
+  const [contract, schema, template, audit, certification, spec, leaderboard, openapi] = await Promise.all(responses.slice(1).map(response => response.json()));
+  assert.equal(contract.version, "0.2-ST1");
+  assert.equal(contract.outcome_adaptive_enrollment_permitted, false);
+  assert.equal(schema.properties.execution.properties.primary_outcome_access_events_before_cutoff.const, 0);
+  assert.equal(schema.properties.execution.properties.result_informed_early_stops.const, 0);
+  assert.equal(template.profile_version, "0.2-ST1");
+  assert.equal(template.target_certification, "WANTED_WILD");
+  assert.equal(template.plan.planned_units, 24);
+  assert.equal(template.plan.planned_exposure_hours, 120000);
+  assert.equal(audit.sampling_stopping.profile_version, "0.2-ST1");
+  assert.equal(audit.sampling_stopping.preregistration_sha256, audit.study.preregistration_sha256);
+  assert.equal(Object.values(certification.targets).every(target => target.requires.includes("sampling_stopping_integrity_0.2-ST1")), true);
+  assert.equal(spec.sampling_stopping_integrity_profile.version, "0.2-ST1");
+  assert.equal(spec.developer_resources.sampling_stopping_integrity_lab, "/wanted-10k/sampling-stopping");
+  assert.equal(spec.certification_handoff.binds.includes("sampling_stopping_integrity_profile_0.2-ST1"), true);
+  assert.equal(leaderboard.admission.includes("sampling_stopping_integrity_profile_0.2-ST1_passes"), true);
+  assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("sampling_target_or_overshoot"), true);
+  assert.equal(openapi["x-wanted-evidence-profiles"].sampling_stopping_integrity.version, "0.2-ST1");
+});
+
 test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{
   const [pageResponse,contractResponse,schemaResponse,templateResponse,specResponse,leaderboardResponse,preregistrationResponse]=await Promise.all([request("/wanted-10k/revealed-preference"),request("/wanted-10k/revealed-preference.json","application/json"),request("/wanted-10k/revealed-preference.schema.json","application/json"),request("/wanted-10k/revealed-preference.template.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/preregistration.template.json","application/json")]);
   for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,specResponse,leaderboardResponse,preregistrationResponse])assert.equal(response.status,200);
@@ -363,7 +400,7 @@ test("publishes the target-specific certification applicability contract", async
   assert.deepEqual(Object.keys(templates.templates), ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD", "WANTED_10K"]);
   assert.equal(templates.templates.PREQUALIFIED.primary.applicable, false);
   assert.equal(templates.templates.WANTED_10K.primary.applicable, false);
-  assert.equal(schema.allOf.length, 7);
+  assert.equal(schema.allOf.length, 8);
   assert.equal(spec.certification_profile.rankable_target, "WANTED_WILD");
   assert.equal(spec.developer_resources.certification_matrix, "/wanted-10k/certification");
 });
@@ -537,6 +574,7 @@ test("ships an executable adapter that produces one conformant six-event chain",
   assert.ok(openapi.paths["/v1/deployments/{deployment_id}/tail"]);
   assert.equal(openapi["x-wanted-evidence-profiles"].protocol_deviation_integrity.version, "0.2-DV1");
   assert.equal(openapi["x-wanted-evidence-profiles"].protocol_deviation_integrity.schema, "/wanted-10k/protocol-deviations.schema.json");
+  assert.equal(openapi["x-wanted-evidence-profiles"].sampling_stopping_integrity.version, "0.2-ST1");
   assert.equal(openapi["x-wanted-certification"].target_templates, "/wanted-10k/certification-templates.json");
   assert.equal(openapi["x-wanted-audit-verifier"].performs_network_requests, false);
   assert.equal(spec.developer_resources.reference_sdk, "/wanted-10k/wanted-sdk.mjs");
@@ -634,11 +672,14 @@ test("publishes the aggregate certification audit contract", async () => {
   assert.equal(template.preregistration_integrity.original_document_sha256, template.study.preregistration_sha256);
   assert.equal(template.protocol_deviations.profile_version, "0.2-DV1");
   assert.equal(template.protocol_deviations.preregistration_sha256, template.study.preregistration_sha256);
+  assert.equal(template.sampling_stopping.profile_version, "0.2-ST1");
+  assert.equal(template.sampling_stopping.preregistration_sha256, template.study.preregistration_sha256);
   assert.equal("audit_seal_verified" in template, false);
   assert.equal(spec.certification_handoff.participant_data_permitted, false);
   assert.equal(spec.certification_handoff.binds.includes("independent_audit_seal_0.2-V1"), true);
   assert.equal(spec.certification_handoff.binds.includes("auditor_credential_0.2-V2"), true);
   assert.equal(spec.certification_handoff.binds.includes("preregistration_integrity_profile_0.2-PR1"), true);
   assert.equal(spec.certification_handoff.binds.includes("protocol_deviation_integrity_profile_0.2-DV1"), true);
+  assert.equal(spec.certification_handoff.binds.includes("sampling_stopping_integrity_profile_0.2-ST1"), true);
   assert.equal(spec.developer_resources.audit_pack, "/wanted-10k/audit");
 });

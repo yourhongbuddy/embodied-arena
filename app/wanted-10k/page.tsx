@@ -137,6 +137,7 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/preregistration.template.json">PREREGISTRATION <b>↓</b></a>
             <a className="contractLink" href="/wanted-10k/preregistration-integrity">PREREGISTRATION INTEGRITY <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/protocol-deviations">PROTOCOL DEVIATIONS <b>→</b></a>
+            <a className="contractLink" href="/wanted-10k/sampling-stopping">SAMPLING + STOPPING <b>→</b></a>
           </div>
         </div>
         <div className="codeCard">
@@ -159,6 +160,7 @@ export default function Wanted10K() {
         <div className="sectionHead wantedHead"><div><span className="kicker">04 / STUDY INTEGRITY</span><h2>Hard to game.<br/><em>Easy to audit.</em></h2></div><p>Retention only means something when participants are free to reject the robot and teams cannot hide the operational burden.</p></div>
         <div className="integrityGrid">
           <article><span>PREREGISTER</span><b>Prove the rules came first.</b><p>Profile 0.2-PR1 independently timestamps the immutable root, binds eight commitments, and preserves every outcome-blind amendment in a parent-linked chain. <a href="/wanted-10k/preregistration-integrity">Verify the history →</a></p></article>
+          <article><span>FREEZE THE FINISH LINE</span><b>Do not let results decide when the run ends.</b><p>Profile 0.2-ST1 fixes the unit target, exposure floor, calendar cutoff, and primary-outcome access boundary before activity, while preserving independent safety and privacy monitoring. <a href="/wanted-10k/sampling-stopping">Verify the closure →</a></p></article>
           <article><span>SEPARATE INCENTIVES</span><b>Never pay people to keep it.</b><p>Base compensation is fixed and independent of robot retention. Milestone choice offers use a preregistered randomized mechanism.</p></article>
           <article><span>LOG THE HIDDEN LABOR</span><b>Teleoperation is allowed, secrecy is not.</b><p>Remote guidance, recovery, maintenance, off-site debugging, and researcher contact are recorded with duration and reason.</p></article>
           <article><span>TAMPER EVIDENCE</span><b>Order every event.</b><p>Per-deployment sequence numbers, UTC timestamps, signatures, and rolling hashes make deletion, reordering, and silent backfilling detectable.</p></article>
