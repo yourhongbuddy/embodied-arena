@@ -122,6 +122,7 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/reference-score.py">SCORING REFERENCE <b>↓</b></a>
             <a className="contractLink" href="/wanted-10k/analysis-reproduction">ANALYSIS REPRODUCTION <b>→</b></a>
+            <a className="contractLink" href="/wanted-10k/human-measures">HUMAN MEASURES <b>→</b></a>
           <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
           <a className="contractLink" href="/wanted-10k/telemetry-authenticity.json">TELEMETRY AUTHENTICITY <b>↗</b></a>
           <a className="contractLink" href="/wanted-10k/audit-seal">AUDIT TRUST VERIFIER <b>→</b></a>
@@ -162,7 +163,7 @@ export default function Wanted10K() {
           <div><span>Q3 / BURDEN</span><b>How much work is it creating?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
           <div><span>Q4 / TRUST</span><b>Operate without supervision?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
         </div>
-        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score.</p>
+        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score. <a className="contractLink" href="/wanted-10k/human-measures">Open the randomized four-item profile →</a></p>
       </div>
     </section>
 

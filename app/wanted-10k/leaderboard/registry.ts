@@ -23,6 +23,11 @@ export type RegistryEntry = {
   support_at_10000: number;
   censoring_bound_width: number;
   assistance_minutes_per_100_hours: number;
+  human_measure_completion_rate: number;
+  human_keep_rate: number | null;
+  human_value_median: number | null;
+  human_burden_median: number | null;
+  human_trust_median: number | null;
   mean_time_between_human_rescue_hours: number | null;
   mean_time_between_human_rescue_lower_bound_hours: number | null;
   l4_incidents: number;
@@ -54,6 +59,10 @@ export function validateRegistryEntry(entry: RegistryEntry) {
   if (!Number.isInteger(entry.support_at_10000) || entry.support_at_10000 < 1) errors.push("At least one environment must support the 10,000-hour horizon.");
   if (!numeric(entry.censoring_bound_width) || entry.censoring_bound_width < 0 || entry.censoring_bound_width > 100) errors.push("censoring_bound_width must be within [0,100].");
   if (!numeric(entry.assistance_minutes_per_100_hours) || entry.assistance_minutes_per_100_hours < 0) errors.push("Assistance burden must be disclosed and non-negative.");
+  if (!numeric(entry.human_measure_completion_rate) || entry.human_measure_completion_rate < 0 || entry.human_measure_completion_rate > 1) errors.push("Human-measure completion rate must be disclosed within [0,1].");
+  const humanNull = entry.human_keep_rate === null && entry.human_value_median === null && entry.human_burden_median === null && entry.human_trust_median === null;
+  const humanObserved = numeric(entry.human_keep_rate) && entry.human_keep_rate >= 0 && entry.human_keep_rate <= 1 && numeric(entry.human_value_median) && entry.human_value_median >= -2 && entry.human_value_median <= 2 && numeric(entry.human_burden_median) && entry.human_burden_median >= 0 && entry.human_burden_median <= 4 && numeric(entry.human_trust_median) && entry.human_trust_median >= 0 && entry.human_trust_median <= 4;
+  if (!((entry.human_measure_completion_rate === 0 && humanNull) || (entry.human_measure_completion_rate > 0 && humanObserved))) errors.push("Human keep, value, burden, and trust summaries must be complete when any prompt was answered and null only at zero completion.");
   const mtbhrEstimate = entry.mean_time_between_human_rescue_hours;
   const mtbhrBound = entry.mean_time_between_human_rescue_lower_bound_hours;
   if (!((numeric(mtbhrEstimate) && mtbhrEstimate >= 0 && mtbhrBound === null) || (mtbhrEstimate === null && numeric(mtbhrBound) && mtbhrBound >= 0))) errors.push("MTBHR must be an estimate or a zero-event lower bound, never infinity.");
@@ -93,11 +102,11 @@ export const leaderboardEntrySchema = {
   "$comment": "Cross-field rules (CI encloses W, audit precedes publication, exactly one MTBHR representation, active-revision uniqueness) are enforced by registry profile 0.2-L1 semantic validation.",
   type: "object",
   additionalProperties: false,
-  required: ["registry_profile_version", "submission_id", "study_id", "cohort_id", "public_label", "manufacturer", "model", "hardware_version", "policy_version", "policy_artifact_sha256", "certifications", "registry_status", "wanted_score", "ci95_lower", "ci95_upper", "survival_at_10000", "independent_environments", "total_resident_hours", "support_at_10000", "censoring_bound_width", "assistance_minutes_per_100_hours", "mean_time_between_human_rescue_hours", "mean_time_between_human_rescue_lower_bound_hours", "l4_incidents", "safety_gate_status", "audit_manifest_uri", "audit_manifest_sha256", "audit_signed_at", "published_at", "supersedes_submission_id"],
+  required: ["registry_profile_version", "submission_id", "study_id", "cohort_id", "public_label", "manufacturer", "model", "hardware_version", "policy_version", "policy_artifact_sha256", "certifications", "registry_status", "wanted_score", "ci95_lower", "ci95_upper", "survival_at_10000", "independent_environments", "total_resident_hours", "support_at_10000", "censoring_bound_width", "assistance_minutes_per_100_hours", "human_measure_completion_rate", "human_keep_rate", "human_value_median", "human_burden_median", "human_trust_median", "mean_time_between_human_rescue_hours", "mean_time_between_human_rescue_lower_bound_hours", "l4_incidents", "safety_gate_status", "audit_manifest_uri", "audit_manifest_sha256", "audit_signed_at", "published_at", "supersedes_submission_id"],
   properties: {
     registry_profile_version: { const: LEADERBOARD_VERSION }, submission_id: stringSchema, study_id: stringSchema, cohort_id: stringSchema, public_label: stringSchema, manufacturer: stringSchema, model: stringSchema, hardware_version: stringSchema, policy_version: stringSchema, policy_artifact_sha256: digestSchema,
     certifications: { type: "array", minItems: 1, uniqueItems: true, items: { enum: CERTIFICATIONS } }, registry_status: { enum: ["active", "superseded", "revoked"] },
-    wanted_score: { type: "number", minimum: 0, maximum: 100 }, ci95_lower: { type: "number", minimum: 0, maximum: 100 }, ci95_upper: { type: "number", minimum: 0, maximum: 100 }, survival_at_10000: { type: "number", minimum: 0, maximum: 1 }, independent_environments: { type: "integer", minimum: 20 }, total_resident_hours: { type: "number", minimum: 10000 }, support_at_10000: { type: "integer", minimum: 1 }, censoring_bound_width: { type: "number", minimum: 0, maximum: 100 }, assistance_minutes_per_100_hours: { type: "number", minimum: 0 }, mean_time_between_human_rescue_hours: { type: ["number", "null"], minimum: 0 }, mean_time_between_human_rescue_lower_bound_hours: { type: ["number", "null"], minimum: 0 },
+    wanted_score: { type: "number", minimum: 0, maximum: 100 }, ci95_lower: { type: "number", minimum: 0, maximum: 100 }, ci95_upper: { type: "number", minimum: 0, maximum: 100 }, survival_at_10000: { type: "number", minimum: 0, maximum: 1 }, independent_environments: { type: "integer", minimum: 20 }, total_resident_hours: { type: "number", minimum: 10000 }, support_at_10000: { type: "integer", minimum: 1 }, censoring_bound_width: { type: "number", minimum: 0, maximum: 100 }, assistance_minutes_per_100_hours: { type: "number", minimum: 0 }, human_measure_completion_rate: { type: "number", minimum: 0, maximum: 1 }, human_keep_rate: { type: ["number", "null"], minimum: 0, maximum: 1 }, human_value_median: { type: ["number", "null"], minimum: -2, maximum: 2 }, human_burden_median: { type: ["number", "null"], minimum: 0, maximum: 4 }, human_trust_median: { type: ["number", "null"], minimum: 0, maximum: 4 }, mean_time_between_human_rescue_hours: { type: ["number", "null"], minimum: 0 }, mean_time_between_human_rescue_lower_bound_hours: { type: ["number", "null"], minimum: 0 },
     l4_incidents: { const: 0 }, safety_gate_status: { const: "passed" }, audit_manifest_uri: { type: "string", format: "uri", pattern: "^https://" }, audit_manifest_sha256: digestSchema, audit_signed_at: { type: "string", format: "date-time" }, published_at: { type: "string", format: "date-time" }, supersedes_submission_id: { type: ["string", "null"] },
   },
 };
@@ -115,13 +124,13 @@ export const leaderboardContract = {
     displayed_precision: 1,
     tie_rule: "equal_displayed_W_receives_equal_competition_rank_then_alphabetical_display_order",
     next_rank_after_tie: "competition_ranking_1_1_3",
-    forbidden_tiebreakers: ["confidence_interval_width", "safety_incidents", "assistance_burden", "availability", "MTBHR", "reacquisition", "certification_badges"],
+    forbidden_tiebreakers: ["confidence_interval_width", "safety_incidents", "assistance_burden", "availability", "MTBHR", "human_keep_value_burden_trust", "reacquisition", "certification_badges"],
     statistical_claim: "rank_order_is_descriptive_and_does_not_imply_pairwise_significance",
     derived_fields: ["rank", "displayed_wanted_score", "tied"],
   },
-  admission: ["audit_manifest_passes_all_six_gates", "WANTED_WILD_certification_awarded", "cohort_integrity_profile_0.2-E1_passes", "exposure_ledger_profile_0.2-X1_passes", "analysis_reproduction_profile_0.2-A1_passes", "withdrawal_profile_0.2-W1_when_lifetime_completions_exist", "telemetry_authenticity_profile_0.2-T1_passes", "independent_audit_seal_profile_0.2-V1_passes", "auditor_credential_profile_0.2-V2_passes", "horizon_identifiable", "bootstrap_valid_fraction_at_least_0.95", "preflight_profile_0.2-P1_passes", "safety_profile_0.2-S1_passes", "L4_equals_zero", "public_aggregate_evidence_pack"],
+  admission: ["audit_manifest_passes_all_six_gates", "WANTED_WILD_certification_awarded", "cohort_integrity_profile_0.2-E1_passes", "exposure_ledger_profile_0.2-X1_passes", "analysis_reproduction_profile_0.2-A1_passes", "human_measures_profile_0.2-H1_passes", "withdrawal_profile_0.2-W1_when_lifetime_completions_exist", "telemetry_authenticity_profile_0.2-T1_passes", "independent_audit_seal_profile_0.2-V1_passes", "auditor_credential_profile_0.2-V2_passes", "horizon_identifiable", "bootstrap_valid_fraction_at_least_0.95", "preflight_profile_0.2-P1_passes", "safety_profile_0.2-S1_passes", "L4_equals_zero", "public_aggregate_evidence_pack"],
   lifecycle: { entries_are_immutable: true, correction_method: "publish_new_entry_with_supersedes_submission_id", revoked_rows_remain_in_history: true, multiple_active_revisions_per_study_cohort: "reject_all_until_resolved" },
-  disclosure: ["W_and_95_percent_CI", "S_at_10000", "environment_count", "resident_hours", "support_at_10000", "censoring_bound_width", "assistance_minutes_per_100_hours", "MTBHR_or_zero_event_lower_bound", "safety_gate_and_L4_count", "robot_and_policy_versions", "audit_manifest_hash"],
+  disclosure: ["W_and_95_percent_CI", "S_at_10000", "environment_count", "resident_hours", "support_at_10000", "censoring_bound_width", "assistance_minutes_per_100_hours", "human_measure_completion_keep_value_burden_trust", "MTBHR_or_zero_event_lower_bound", "safety_gate_and_L4_count", "robot_and_policy_versions", "audit_manifest_hash"],
   certification_lanes: { PREQUALIFIED: "registry_only_not_ranked", WANTED_LAB: "registry_only_not_ranked", WANTED_WILD: "ranked_when_active", WANTED_10K: "lifetime_badge_never_a_tiebreaker" },
   entries: publicRanking.ranked,
   excluded_entries: publicRanking.excluded,

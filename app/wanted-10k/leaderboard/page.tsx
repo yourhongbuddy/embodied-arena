@@ -9,7 +9,7 @@ const requirements = [
   ["02", "REPRODUCED 10K W", "Profile 0.2-A1 must rebuild the identifiable W, deterministic 95% CI, robustness, and tail support from the bound endpoint table."],
   ["03", "TELEMETRY AUTHENTIC", "Profile 0.2-T1 must verify every Ed25519 event signature, key-validity decision, and hash-chain link."],
   ["04", "SAFETY PASSES", "L4 must equal zero. Usefulness, retention, or a lifetime badge cannot offset a failed gate."],
-  ["05", "BURDEN DISCLOSED", "Assistance, rescue interval, censoring envelope, tail support, and interventions remain beside W."],
+  ["05", "HUMAN + BURDEN DISCLOSED", "Human-measure completion, keep/value/burden/trust, assistance, rescue interval, censoring envelope, and tail support remain beside W. None changes rank."],
   ["06", "REGISTERED AUDIT TRUST", "Seal 0.2-V1 must verify the manifest signature; credential 0.2-V2 must bind that key to a pinned registry issuer, target authorization, validity window, and revocation state."],
 ];
 const lanes = [
