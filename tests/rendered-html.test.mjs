@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Sixty-two artifacts/);
+  assert.match(protocolHtml, /Sixty-six artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -108,6 +108,22 @@ test("publishes and reproduces the neutral four-item human-measures profile",asy
   assert.equal(spec.human_measures_profile.denominator,"every_due_prompt_set_including_nonresponse");
   assert.equal(spec.developer_resources.human_measures_lab,"/wanted-10k/human-measures");
   assert.equal(leaderboard.admission.includes("human_measures_profile_0.2-H1_passes"),true);
+});
+
+test("publishes and reproduces matched learning and generalization",async()=>{
+  const [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,certificationResponse,specResponse,leaderboardResponse]=await Promise.all([
+    request("/wanted-10k/learning-generalization"),request("/wanted-10k/learning-generalization.json","application/json"),request("/wanted-10k/learning-generalization.schema.json","application/json"),request("/wanted-10k/learning-generalization.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/certification.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json")
+  ]);
+  for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,certificationResponse,specResponse,leaderboardResponse]) assert.equal(response.status,200);
+  const pageHtml=await pageResponse.text();
+  assert.match(pageHtml,/Same families/);assert.match(pageHtml,/20%/);assert.match(pageHtml,/IMPROVEMENT != CAUSATION/);
+  const [contract,schema,template,audit,certification,spec,leaderboard]=await Promise.all([contractResponse.json(),schemaResponse.json(),templateResponse.json(),auditResponse.json(),certificationResponse.json(),specResponse.json(),leaderboardResponse.json()]);
+  assert.equal(contract.version,"0.2-LG1");assert.equal(contract.design.novelty_share_per_complete_window,.2);
+  assert.equal(schema.properties.protocol.properties.bootstrap_samples.const,10000);assert.equal(template.declared_due_trials,240);assert.equal(template.claimed.paired_environment_count,23);
+  assert.equal(audit.learning_generalization.profile_version,"0.2-LG1");assert.equal(audit.learning_generalization.manifest_sha256,template.evidence.controlled_trial_register_sha256);
+  assert.equal(certification.targets.WANTED_LAB.requires.includes("learning_generalization_0.2-LG1"),true);
+  assert.equal(spec.learning_generalization_profile.design.frozen_task_families,5);assert.equal(spec.developer_resources.learning_generalization_lab,"/wanted-10k/learning-generalization");
+  assert.equal(leaderboard.admission.includes("learning_generalization_profile_0.2-LG1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("learning_delta"),true);
 });
 
 test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{

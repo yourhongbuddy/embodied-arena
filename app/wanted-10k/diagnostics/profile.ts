@@ -219,5 +219,6 @@ export const diagnosticContract = {
     generalization_ratio: "novel_success_rate / familiar_success_rate; suppress when familiar rate is zero",
     reacquisition_rate: "participants_choosing_return / participants_completing_withdrawal",
   },
+  field_learning_claim_source: "profile_0.2-LG1_matched_environment_estimator; aggregate D1 learning fields are exploratory only and remain null in certification manifests",
   anti_gaming: ["freeze_denominators_and_windows_before_hour_one", "publish_missing_and_unresolved_labels", "do_not_drop_downtime_from_resident_exposure", "report_component_rates_beside_every_ratio", "never_pool_materially_incompatible_robot_versions", "do_not_rank_by_secondary_diagnostics"],
 };

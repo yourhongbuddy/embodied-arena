@@ -4,7 +4,7 @@ import { rankRegistry } from "../app/wanted-10k/leaderboard/registry.ts";
 
 const hash = prefix => `${prefix}${"0123456789abcdef".repeat(4)}`.slice(0,64);
 const entry = (submission_id, public_label, wanted_score, overrides = {}) => ({
-  registry_profile_version: "0.2-L1", submission_id, study_id: `study-${submission_id}`, cohort_id: `cohort-${submission_id}`, public_label, manufacturer: "Example Robotics", model: "H1", hardware_version: "1.0", policy_version: "1.0", policy_artifact_sha256: hash("a1"), certifications: ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD"], registry_status: "active", wanted_score, ci95_lower: Math.max(0, wanted_score - 5), ci95_upper: Math.min(100, wanted_score + 5), survival_at_10000: .6, independent_environments: 24, total_resident_hours: 120000, support_at_10000: 8, censoring_bound_width: 12.4, assistance_minutes_per_100_hours: 18.2, human_measure_completion_rate: .92, human_keep_rate: .84, human_value_median: 1, human_burden_median: 1, human_trust_median: 3, revealed_preference: { status: "not_run" }, mean_time_between_human_rescue_hours: 428.57, mean_time_between_human_rescue_lower_bound_hours: null, l4_incidents: 0, safety_gate_status: "passed", audit_manifest_uri: `https://example.org/${submission_id}.json`, audit_manifest_sha256: hash("b2"), audit_signed_at: "2026-08-28T18:00:00Z", published_at: "2026-08-28T19:00:00Z", supersedes_submission_id: null, ...overrides,
+  registry_profile_version: "0.2-L1", submission_id, study_id: `study-${submission_id}`, cohort_id: `cohort-${submission_id}`, public_label, manufacturer: "Example Robotics", model: "H1", hardware_version: "1.0", policy_version: "1.0", policy_artifact_sha256: hash("a1"), certifications: ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD"], registry_status: "active", wanted_score, ci95_lower: Math.max(0, wanted_score - 5), ci95_upper: Math.min(100, wanted_score + 5), survival_at_10000: .6, independent_environments: 24, total_resident_hours: 120000, support_at_10000: 8, censoring_bound_width: 12.4, assistance_minutes_per_100_hours: 18.2, human_measure_completion_rate: .92, human_keep_rate: .84, human_value_median: 1, human_burden_median: 1, human_trust_median: 3, learning_generalization_verified: true, learning_paired_environments: 23, learning_trial_completion_rate: .995, learning_delta_familiar: .18, learning_delta_ci95_lower: .08, learning_delta_ci95_upper: .28, late_generalization_ratio: .86, revealed_preference: { status: "not_run" }, mean_time_between_human_rescue_hours: 428.57, mean_time_between_human_rescue_lower_bound_hours: null, l4_incidents: 0, safety_gate_status: "passed", audit_manifest_uri: `https://example.org/${submission_id}.json`, audit_manifest_sha256: hash("b2"), audit_signed_at: "2026-08-28T18:00:00Z", published_at: "2026-08-28T19:00:00Z", supersedes_submission_id: null, ...overrides,
 });
 
 test("ranks by displayed W and preserves competition ties", () => {
@@ -37,4 +37,13 @@ test("requires a coherent optional revealed-preference disclosure",()=>{
   const result=rankRegistry([malformed]);
   assert.equal(result.ranked.length,0);
   assert.match(result.excluded[0].reasons.join(" "),/coherent 10K set bounds/);
+});
+
+test("requires matched learning evidence but never uses it to break W ties",()=>{
+  const malformed=entry("bad-learning","Bad learning",75,{learning_delta_ci95_lower:.4,learning_delta_familiar:.2});
+  const result=rankRegistry([malformed]);
+  assert.equal(result.ranked.length,0);
+  assert.match(result.excluded[0].reasons.join(" "),/0.2-LG1/);
+  const tie=rankRegistry([entry("slow","Alpha",80.01,{learning_delta_familiar:.1}),entry("fast","Beta",80.04,{learning_delta_familiar:.25})]);
+  assert.deepEqual(tie.ranked.map(row=>[row.public_label,row.rank]),[["Alpha",1],["Beta",1]]);
 });

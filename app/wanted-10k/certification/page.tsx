@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const levels = [
   ["01", "PREQUALIFIED", "SIMULATION", "Pass the 0.2-P1 preflight before human exposure. Field W, diagnostics, safety telemetry, and endpoint adjudication are explicitly not applicable."],
-  ["02", "WANTED LAB", "1 SITE / 100H", "Add cohort integrity, exposure-ledger integrity, neutral human measures 0.2-H1, field safety, cryptographically verified telemetry 0.2-T1, endpoint adjudication, diagnostics, and a lab report. No cohort W is claimed."],
+  ["02", "WANTED LAB", "1 SITE / 100H", "Add cohort integrity, exposure-ledger integrity, neutral human measures 0.2-H1, matched learning and generalization 0.2-LG1, field safety, cryptographically verified telemetry 0.2-T1, endpoint adjudication, diagnostics, and a lab report. No cohort W is claimed."],
   ["03", "WANTED WILD", "N>=20 / 10,000H", "Add Analysis Reproduction 0.2-A1: rebuild an identifiable 10,000-hour W, deterministic 95% cluster-bootstrap interval, robustness bounds, influence, and tail support from audited endpoint rows. This is the only ranked target."],
   ["04", "WANTED 10K", "1 HOME / 10,000H", "Complete one lifetime residence plus a passing 0.2-W1 neutral seven-day withdrawal and reacquisition test. This badge does not create or improve a cohort W."],
 ];
@@ -21,6 +21,7 @@ const rows = [
   ["EXPOSURE LEDGER 0.2-X1", "N/A", ">=100H", ">=10,000H TOTAL", "10,000H ONE HOME"],
   ["ANALYSIS REPRODUCTION 0.2-A1", "N/A", "N/A", "REQUIRED", "N/A"],
   ["HUMAN MEASURES 0.2-H1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
+  ["LEARNING + GENERALIZATION 0.2-LG1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["REVEALED PREFERENCE 0.2-RP1", "N/A", "OPTIONAL SEPARATE", "OPTIONAL SEPARATE", "OPTIONAL SEPARATE"],
   ["WITHDRAWAL INTEGRITY 0.2-W1", "N/A", "N/A", "IF 10K COMPLETERS", "REQUIRED"],
   ["FIELD SAFETY 0.2-S1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
@@ -40,7 +41,7 @@ export default function CertificationPage() {
       <span className="eyebrow"><i className="liveDot"/> CERTIFICATION APPLICABILITY - 0.2-C1</span>
       <h1>Ask only for evidence<br/><em>that can exist.</em></h1>
       <p>WANTED has four distinct evidence claims. The audit contract applies only the gates appropriate to the selected target, so simulation is not mistaken for field evidence and one extraordinary lifetime is not mistaken for a population score.</p>
-      <div className="certMatrixActions"><a className="primary" href="/wanted-10k/audit">Test a target manifest <span>-&gt;</span></a><a className="secondary" href="/wanted-10k/human-measures">Verify human measures</a><a className="secondary" href="/wanted-10k/revealed-preference">Verify preference substudy</a><a className="secondary" href="/wanted-10k/withdrawal">Verify withdrawal</a><a className="secondary" href="/wanted-10k/certification.json">Open contract</a><a className="secondary" href="/wanted-10k/certification-templates.json">Download four examples</a></div>
+      <div className="certMatrixActions"><a className="primary" href="/wanted-10k/audit">Test a target manifest <span>-&gt;</span></a><a className="secondary" href="/wanted-10k/human-measures">Verify human measures</a><a className="secondary" href="/wanted-10k/learning-generalization">Verify learning</a><a className="secondary" href="/wanted-10k/revealed-preference">Verify preference substudy</a><a className="secondary" href="/wanted-10k/withdrawal">Verify withdrawal</a><a className="secondary" href="/wanted-10k/certification.json">Open contract</a><a className="secondary" href="/wanted-10k/certification-templates.json">Download four examples</a></div>
       <div className="certMatrixProof"><div><b>4</b><span>EVIDENCE CLAIMS</span></div><div><b>1</b><span>RANKED TARGET</span></div><div><b>0</b><span>INVENTED FIELD VALUES</span></div><div><b>C1</b><span>APPLICABILITY PROFILE</span></div></div>
     </section>
 

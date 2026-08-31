@@ -9,7 +9,7 @@
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/diagnostics.test.mjs tests/scoring-robustness.test.mjs tests/preflight.test.mjs tests/leaderboard.test.mjs tests/safety.test.mjs tests/certification.test.mjs tests/cohort-integrity.test.mjs tests/exposure-ledger.test.mjs tests/analysis-reproduction.test.mjs tests/human-measures.test.mjs tests/revealed-preference.test.mjs tests/withdrawal.test.mjs tests/telemetry-authenticity.test.mjs tests/audit-seal.test.mjs tests/auditor-credential.test.mjs tests/audit-sdk.test.mjs",
+    "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/diagnostics.test.mjs tests/scoring-robustness.test.mjs tests/preflight.test.mjs tests/leaderboard.test.mjs tests/safety.test.mjs tests/certification.test.mjs tests/cohort-integrity.test.mjs tests/exposure-ledger.test.mjs tests/analysis-reproduction.test.mjs tests/human-measures.test.mjs tests/revealed-preference.test.mjs tests/learning-generalization.test.mjs tests/withdrawal.test.mjs tests/telemetry-authenticity.test.mjs tests/audit-seal.test.mjs tests/auditor-credential.test.mjs tests/audit-sdk.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
