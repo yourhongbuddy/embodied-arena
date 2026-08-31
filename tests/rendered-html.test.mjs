@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Sixty-six artifacts/);
+  assert.match(protocolHtml, /Seventy artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -124,6 +124,19 @@ test("publishes and reproduces matched learning and generalization",async()=>{
   assert.equal(certification.targets.WANTED_LAB.requires.includes("learning_generalization_0.2-LG1"),true);
   assert.equal(spec.learning_generalization_profile.design.frozen_task_families,5);assert.equal(spec.developer_resources.learning_generalization_lab,"/wanted-10k/learning-generalization");
   assert.equal(leaderboard.admission.includes("learning_generalization_profile_0.2-LG1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("learning_delta"),true);
+});
+
+test("publishes and reproduces assistance integrity from every help episode",async()=>{
+  const [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,certificationResponse,specResponse,leaderboardResponse,preregResponse]=await Promise.all([
+    request("/wanted-10k/assistance-integrity"),request("/wanted-10k/assistance-integrity.json","application/json"),request("/wanted-10k/assistance-integrity.schema.json","application/json"),request("/wanted-10k/assistance-integrity.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/certification.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/preregistration.template.json","application/json")
+  ]);
+  for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,certificationResponse,specResponse,leaderboardResponse,preregResponse]) assert.equal(response.status,200);
+  const pageHtml=await pageResponse.text();assert.match(pageHtml,/Count the help/);assert.match(pageHtml,/ANTI-GHOSTWORK/);assert.match(pageHtml,/RESIDENCE != AUTONOMY/);
+  const [contract,schema,template,audit,certification,spec,leaderboard,prereg]=await Promise.all([contractResponse.json(),schemaResponse.json(),templateResponse.json(),auditResponse.json(),certificationResponse.json(),specResponse.json(),leaderboardResponse.json(),preregResponse.json()]);
+  assert.equal(contract.version,"0.2-I1");assert.match(contract.inclusion,/every_signed/);assert.equal(schema.properties.protocol.properties.bootstrap_samples.const,10000);assert.equal(template.interventions.length,72);assert.equal(template.claimed.rescue_events,48);
+  assert.equal(audit.assistance_integrity.profile_version,"0.2-I1");assert.equal(audit.assistance_integrity.manifest_sha256,template.evidence.controlled_intervention_register_sha256);assert.equal(audit.diagnostics.assistance_minutes_per_100_hours,template.claimed.assistance_minutes_per_100_hours);
+  assert.equal(certification.targets.WANTED_LAB.requires.includes("assistance_integrity_0.2-I1"),true);assert.equal(spec.assistance_integrity_profile.uncertainty.samples,10000);assert.equal(spec.developer_resources.assistance_integrity_lab,"/wanted-10k/assistance-integrity");
+  assert.equal(leaderboard.admission.includes("assistance_integrity_profile_0.2-I1_passes"),true);assert.equal(prereg.operations.out_of_band_support_permitted,false);
 });
 
 test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{

@@ -124,6 +124,7 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/analysis-reproduction">ANALYSIS REPRODUCTION <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/human-measures">HUMAN MEASURES <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/learning-generalization">LEARNING + GENERALIZATION <b>→</b></a>
+            <a className="contractLink" href="/wanted-10k/assistance-integrity">ASSISTANCE INTEGRITY <b>→</b></a>
           <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
           <a className="contractLink" href="/wanted-10k/telemetry-authenticity.json">TELEMETRY AUTHENTICITY <b>↗</b></a>
           <a className="contractLink" href="/wanted-10k/audit-seal">AUDIT TRUST VERIFIER <b>→</b></a>
@@ -164,7 +165,7 @@ export default function Wanted10K() {
           <div><span>Q3 / BURDEN</span><b>How much work is it creating?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
           <div><span>Q4 / TRUST</span><b>Operate without supervision?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
         </div>
-        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score. Field learning claims use matched profile 0.2-LG1, not pooled task counts. <a className="contractLink" href="/wanted-10k/human-measures">Open the randomized four-item profile →</a> <a className="contractLink" href="/wanted-10k/learning-generalization">Open the matched learning profile →</a> <a className="contractLink" href="/wanted-10k/revealed-preference">Open the binding-choice profile →</a></p>
+        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score. Field learning uses matched profile 0.2-LG1; assistance and rescue frequency use the complete signed register in 0.2-I1. <a className="contractLink" href="/wanted-10k/human-measures">Open the randomized four-item profile →</a> <a className="contractLink" href="/wanted-10k/learning-generalization">Open the matched learning profile →</a> <a className="contractLink" href="/wanted-10k/assistance-integrity">Open the assistance-integrity profile →</a> <a className="contractLink" href="/wanted-10k/revealed-preference">Open the binding-choice profile →</a></p>
       </div>
     </section>
 

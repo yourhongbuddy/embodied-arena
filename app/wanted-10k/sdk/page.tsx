@@ -12,7 +12,7 @@ const events = [
   ["state", 'wanted.state("available", { autonomous_service_capable: true })'],
   ["request", 'wanted.request("privacy", { evidence_ref: "local://request/42" })'],
   ["action", 'wanted.action("put mug in dishwasher", { proactive: false })'],
-  ["intervention", 'wanted.intervention("remote_guidance", 43, "recovery")'],
+  ["intervention", 'wanted.intervention("remote_guidance", 43, "task_recovery", { person_count: 1, resolution: "robot_resumed" })'],
   ["incident", 'wanted.incident("L1", "Brief hallway obstruction")'],
 ];
 
@@ -37,7 +37,7 @@ export default function SdkPage() {
     </div></section>
 
     <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
-      <div><span className="kicker">02 / COPY, CONNECT, EMIT</span><h2>The whole<br/><em>adapter surface.</em></h2><p>The production signer is deliberately outside the SDK. This keeps private key handling inside infrastructure already approved by the robot operator.</p><div className="sdkResources"><a href="/wanted-10k/wanted-sdk.mjs">REFERENCE MODULE ↓</a><a href="/wanted-10k/audit-sdk">AUDIT VERIFIER SDK →</a><a href="/wanted-10k/deployment.schema.json">CONFIG SCHEMA ↗</a><a href="/wanted-10k/event.schema.json">EVENT SCHEMA ↗</a><a href="/wanted-10k/telemetry-key-manifest.schema.json">KEY MANIFEST ↗</a><a href="/wanted-10k/openapi.json">OPENAPI 3.1 ↗</a></div></div>
+      <div><span className="kicker">02 / COPY, CONNECT, EMIT</span><h2>The whole<br/><em>adapter surface.</em></h2><p>The production signer is deliberately outside the SDK. This keeps private key handling inside infrastructure already approved by the robot operator.</p><div className="sdkResources"><a href="/wanted-10k/wanted-sdk.mjs">REFERENCE MODULE ↓</a><a href="/wanted-10k/audit-sdk">AUDIT VERIFIER SDK →</a><a href="/wanted-10k/assistance-integrity">ASSISTANCE PROFILE →</a><a href="/wanted-10k/deployment.schema.json">CONFIG SCHEMA ↗</a><a href="/wanted-10k/event.schema.json">EVENT SCHEMA ↗</a><a href="/wanted-10k/telemetry-key-manifest.schema.json">KEY MANIFEST ↗</a><a href="/wanted-10k/openapi.json">OPENAPI 3.1 ↗</a></div></div>
       <div className="codeCard sdkCode"><header><span>QUICKSTART / JAVASCRIPT ESM</span><i>RUNNABLE</i></header><pre><code>{`import { WantedClient, createHttpSink } from "./wanted-sdk.mjs";
 
 const wanted = new WantedClient({
@@ -51,7 +51,12 @@ const wanted = new WantedClient({
 });
 
 await wanted.intervention(
-  "remote_guidance", 43, "failed_grasp_recovery"
+  "remote_guidance", 43, "task_recovery", {
+    actor_role: "operator",
+    person_count: 1,
+    resolution: "robot_resumed",
+    support_session_sha256: "…"
+  }
 );
 await durableStore.save(wanted.checkpoint());`}</code></pre><footer><span>WEB CRYPTO · RFC 8785 · SHA-256</span><span>SINGLE WRITER</span></footer></div>
     </div></section>
