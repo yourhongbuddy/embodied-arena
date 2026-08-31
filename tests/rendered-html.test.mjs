@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Seventy artifacts/);
+  assert.match(protocolHtml, /Seventy-four artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -137,6 +137,15 @@ test("publishes and reproduces assistance integrity from every help episode",asy
   assert.equal(audit.assistance_integrity.profile_version,"0.2-I1");assert.equal(audit.assistance_integrity.manifest_sha256,template.evidence.controlled_intervention_register_sha256);assert.equal(audit.diagnostics.assistance_minutes_per_100_hours,template.claimed.assistance_minutes_per_100_hours);
   assert.equal(certification.targets.WANTED_LAB.requires.includes("assistance_integrity_0.2-I1"),true);assert.equal(spec.assistance_integrity_profile.uncertainty.samples,10000);assert.equal(spec.developer_resources.assistance_integrity_lab,"/wanted-10k/assistance-integrity");
   assert.equal(leaderboard.admission.includes("assistance_integrity_profile_0.2-I1_passes"),true);assert.equal(prereg.operations.out_of_band_support_permitted,false);
+});
+test("publishes and reproduces immutable policy evolution",async()=>{
+  const responses=await Promise.all([
+    request("/wanted-10k/policy-evolution"),request("/wanted-10k/policy-evolution.json","application/json"),request("/wanted-10k/policy-evolution.schema.json","application/json"),request("/wanted-10k/policy-evolution.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/certification.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/preregistration.template.json","application/json")
+  ]);for(const response of responses)assert.equal(response.status,200);const pageHtml=await responses[0].text();assert.match(pageHtml,/Let it improve/);assert.match(pageHtml,/Frozen algorithm/);assert.match(pageHtml,/SCORE BELONGS TO A DEFINED ROBOT REVISION/);const [contract,schema,template,audit,certification,spec,leaderboard,prereg]=await Promise.all(responses.slice(1).map(response=>response.json()));
+  assert.equal(contract.version,"0.2-U1");assert.equal(contract.ranking_effect,"none");assert.equal(schema.properties.protocol.properties.max_global_rollout_lag_hours.const,24);assert.equal(template.artifacts.length,3);assert.equal(template.deployment_segments.length,72);assert.equal(template.claimed.material_update_count,0);
+  assert.equal(audit.policy_evolution_integrity.profile_version,"0.2-U1");assert.equal(audit.policy_evolution_integrity.manifest_sha256,template.evidence.controlled_policy_register_sha256);assert.equal(audit.policy_evolution_integrity.baseline_artifact_sha256,audit.robot.policy_artifact_sha256);
+  assert.equal(certification.targets.WANTED_LAB.requires.includes("policy_evolution_integrity_0.2-U1"),true);assert.equal(spec.policy_evolution_integrity_profile.rollout.global_atomic_max_hours,24);assert.equal(spec.developer_resources.policy_evolution_lab,"/wanted-10k/policy-evolution");
+  assert.equal(leaderboard.admission.includes("policy_evolution_integrity_profile_0.2-U1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("policy_update_count"),true);assert.equal(prereg.software_updates.profile_version,"0.2-U1");assert.equal(prereg.software_updates.unmatched_deployed_artifacts_permitted,false);
 });
 
 test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{

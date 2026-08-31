@@ -19,7 +19,7 @@ test("all four target templates pass only their applicable gates", async () => {
 
 test("PREQUALIFIED is simulation-only and rejects fabricated field evidence", async () => {
   const manifest = auditManifestTemplates.PREQUALIFIED;
-  for (const key of ["cohort_integrity", "exposure_integrity", "analysis_reproduction", "primary", "human_measures", "learning_generalization", "assistance_integrity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.equal(manifest[key].applicable, false);
+  for (const key of ["cohort_integrity", "exposure_integrity", "analysis_reproduction", "primary", "human_measures", "learning_generalization", "assistance_integrity", "policy_evolution_integrity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.equal(manifest[key].applicable, false);
   const projection = (await assess(manifest)).projection;
   assert.equal(projection.rankable, false);
   assert.equal(projection.wanted_score, null);
@@ -40,6 +40,7 @@ test("WANTED LAB requires field diagnostics and a lab report but never W", async
   assert.equal(result.projection.human_measures_verified, true);
   assert.equal(result.projection.learning_generalization_verified, true);
   assert.equal(result.projection.assistance_integrity_verified, true);
+  assert.equal(result.projection.policy_evolution_integrity_verified, true);
 
   const noDiagnostics = clone(manifest);
   noDiagnostics.diagnostics = { applicable: false, reason: "Field diagnostics were not supplied." };
@@ -57,6 +58,9 @@ test("WANTED LAB requires field diagnostics and a lab report but never W", async
   const noAssistance = clone(manifest);
   noAssistance.assistance_integrity = { applicable: false, reason: "Assistance integrity evidence was not supplied." };
   assert.equal((await assess(noAssistance)).gates.find(gate => gate.id === "G3").status, "fail");
+  const noPolicyEvolution = clone(manifest);
+  noPolicyEvolution.policy_evolution_integrity = { applicable: false, reason: "Policy evolution evidence was not supplied." };
+  assert.equal((await assess(noPolicyEvolution)).gates.find(gate => gate.id === "G3").status, "fail");
 });
 
 test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
@@ -69,6 +73,9 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
   assert.equal(wild.projection.learning_paired_environments, 23);
   assert.equal(wild.projection.assistance_integrity_verified, true);
   assert.equal(wild.projection.human_rescue_events, 48);
+  assert.equal(wild.projection.policy_evolution_integrity_verified, true);
+  assert.equal(wild.projection.policy_artifact_count, 3);
+  assert.equal(wild.projection.policy_material_update_count, 0);
 
   const lifetime = await assess(auditManifestTemplates.WANTED_10K);
   assert.equal(lifetime.projection.rankable, false);
@@ -82,7 +89,7 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
 });
 
 test("machine contracts encode target applicability and rankability", () => {
-  for (const key of ["primary", "human_measures", "learning_generalization", "assistance_integrity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.ok(auditManifestSchema.properties[key].oneOf);
+  for (const key of ["primary", "human_measures", "learning_generalization", "assistance_integrity", "policy_evolution_integrity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.ok(auditManifestSchema.properties[key].oneOf);
   assert.equal(auditManifestSchema.properties.telemetry.oneOf[0].properties.profile_version.const, "0.2-T1");
   assert.equal(auditManifestSchema.properties.audit.properties.credential.properties.profile_version.const, "0.2-V2");
   assert.equal(auditManifestSchema.allOf.length, 4);
@@ -95,6 +102,7 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("human_measures_0.2-H1"), true);
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("learning_generalization_0.2-LG1"), true);
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("assistance_integrity_0.2-I1"), true);
+  assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("policy_evolution_integrity_0.2-U1"), true);
   assert.equal(certificationProfile.secondary_disclosures.revealed_preference_0_2_RP1.cohort, "separate_nonranking_preference_substudy");
   assert.equal(certificationProfile.secondary_disclosures.revealed_preference_0_2_RP1.ranking_effect, "none");
   assert.equal(certificationProfile.ranking.only_target, "WANTED_WILD");

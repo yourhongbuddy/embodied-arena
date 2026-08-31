@@ -86,6 +86,10 @@ const kit = [
   ["ASSISTANCE INTEGRITY CONTRACT", "Read the 0.2-I1 inclusion, person-time, interval-union, rescue, zero-event, uncertainty, and interpretation rules.", "/wanted-10k/assistance-integrity.json", "OPEN CONTRACT ↗"],
   ["ASSISTANCE INTEGRITY SCHEMA", "Validate every field environment, intervention interval, actor, mode, reason, resolution, telemetry link, evidence binding, and claimed result.", "/wanted-10k/assistance-integrity.schema.json", "OPEN SCHEMA ↗"],
   ["ASSISTANCE INTEGRITY TEMPLATE", "Start from a passing synthetic 24-environment WANTED WILD register with 72 fully bound support episodes.", "/wanted-10k/assistance-integrity.template.json", "DOWNLOAD JSON ↓"],
+  ["POLICY EVOLUTION LAB", "Reconstruct immutable artifact lineage, prospective decisions, cohort-wide rollout, and policy-specific resident exposure.", "/wanted-10k/policy-evolution", "OPEN POLICY LAB →"],
+  ["POLICY EVOLUTION CONTRACT", "Read the 0.2-U1 learning boundary, decision-information lock, rollout limits, material-change rule, and hard failures.", "/wanted-10k/policy-evolution.json", "OPEN CONTRACT ↗"],
+  ["POLICY EVOLUTION SCHEMA", "Validate every artifact, parent digest, release manifest, change event, signed exposure boundary, and independent evidence binding.", "/wanted-10k/policy-evolution.schema.json", "OPEN SCHEMA ↗"],
+  ["POLICY EVOLUTION TEMPLATE", "Start from a passing synthetic WANTED WILD lineage with three artifacts, two cohort-wide rollouts, and 72 exact exposure segments.", "/wanted-10k/policy-evolution.template.json", "DOWNLOAD JSON ↓"],
   ["REVEALED PREFERENCE LAB", "Verify seven binding robot-versus-benefit milestones in a separate non-ranking cohort and reproduce interval-censored reservation-value bounds.", "/wanted-10k/revealed-preference", "OPEN PREFERENCE LAB →"],
   ["REVEALED PREFERENCE CONTRACT", "Read the 0.2-RP1 cohort-separation, offer randomization, choice-honoring, set-identification, and interpretation rules.", "/wanted-10k/revealed-preference.json", "OPEN CONTRACT ↗"],
   ["REVEALED PREFERENCE SCHEMA", "Validate the exposure-derived due set, controlled choice register, offer lattice, binding outcomes, and independent attestation.", "/wanted-10k/revealed-preference.schema.json", "OPEN SCHEMA ↗"],
@@ -122,7 +126,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Seventy artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, registered auditor-key trust, neutral human reports, matched learning, complete assistance burden, binding preference choices, and a seven-day absence, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Seventy-four artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, telemetry, final-manifest authenticity, registered auditor-key trust, neutral human reports, matched learning, complete assistance burden, immutable policy evolution, binding preference choices, and a seven-day absence, verify field safety, connect a robot, reproduce the score and diagnostics, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 
