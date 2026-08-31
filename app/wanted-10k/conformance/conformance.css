@@ -6,6 +6,7 @@
 .conformanceLinks a{font:700 8px "Courier New";letter-spacing:.06em;border-bottom:1px solid;padding-bottom:5px}
 .conformanceWorkspace{padding:42px 0 100px}
 .validatorGrid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+.inputStack{display:flex;flex-direction:column;gap:14px}
 .streamEditor,.validationReport{border:1px solid var(--line);border-radius:12px;background:#fafaf5;overflow:hidden}
 .streamEditor>header{min-height:67px;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;align-items:center}
 .streamEditor>header>div:first-child{display:flex;flex-direction:column;gap:6px}
@@ -14,14 +15,16 @@
 .streamEditor button,.streamEditor label{border:1px solid var(--line);background:transparent;border-radius:5px;padding:8px 10px;font:700 8px "Courier New";cursor:pointer}
 .streamEditor label input{display:none}
 .streamEditor textarea{display:block;width:100%;min-height:520px;border:0;resize:vertical;background:#fff;padding:19px;outline:0;font:10px/1.7 "Courier New";color:#253027}
-.streamEditor>footer{min-height:62px;padding:12px 16px;background:#f1f2ec;display:flex;justify-content:space-between;align-items:center;gap:15px}
-.streamEditor>footer span{font:8px "Courier New";color:#707970}.streamEditor>footer button{background:var(--ink);color:#fff;border-color:var(--ink)}
+.streamEditor>footer{min-height:62px;padding:12px 16px;background:#f1f2ec;display:flex;justify-content:space-between;align-items:center;gap:15px}.streamEditor>footer>div{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.streamEditor>footer span{font:8px "Courier New";color:#707970}.streamEditor>footer>div button:last-child{background:var(--ink);color:#fff;border-color:var(--ink)}
 .streamEditor button:disabled{opacity:.55;cursor:wait}
+.keyEditor{border:1px solid var(--line);border-radius:12px;background:#fafaf5;overflow:hidden}.keyEditor header{min-height:62px;padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:14px}.keyEditor header>div{display:flex;flex-direction:column;gap:6px}.keyEditor header span,.keyEditor header small{font:700 8px "Courier New"}.keyEditor header small{font-size:7px;color:#879087}.keyEditor label{border:1px solid var(--line);border-radius:5px;padding:8px 10px;font:700 8px "Courier New";cursor:pointer}.keyEditor input{display:none}.keyEditor textarea{display:block;width:100%;min-height:195px;border:0;resize:vertical;background:#fff;padding:16px;outline:0;font:10px/1.6 "Courier New";color:#253027}
 .validationReport{background:var(--ink);color:#fff;padding:20px;display:flex;flex-direction:column}
 .validationReport>header{min-height:50px;border-bottom:1px solid #354238;display:flex;justify-content:space-between;align-items:start;font:8px "Courier New";color:#7c887f}
 .validationReport>header b{font-size:13px;color:#fff}.validationReport.pass>header b{color:var(--lime)}.validationReport.fail>header b{color:#ff938d}
-.validationStats{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #354238;margin:20px 0}
+.validationStats{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid #354238;margin:20px 0}
 .validationStats div{min-height:83px;padding:12px;border-right:1px solid #354238;display:flex;flex-direction:column}.validationStats div:last-child{border:0}
+.validationStats div:nth-child(2){border-right:0}.validationStats div:nth-child(-n+2){border-bottom:1px solid #354238}
 .validationStats span{font:7px "Courier New";color:#768279}.validationStats b{font-size:21px;margin-top:auto;color:var(--lime)}
 .validationMessages{max-height:470px;overflow:auto;padding-right:5px}
 .validationMessages p{font-size:9px;line-height:1.55;color:#89958c;margin:0;padding:10px 0;border-bottom:1px solid #2d382f;display:flex;gap:9px}

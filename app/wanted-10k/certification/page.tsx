@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const levels = [
   ["01", "PREQUALIFIED", "SIMULATION", "Pass the 0.2-P1 preflight before human exposure. Field W, diagnostics, safety telemetry, and endpoint adjudication are explicitly not applicable."],
-  ["02", "WANTED LAB", "1 SITE / 100H", "Add cohort integrity, exposure-ledger integrity, real participants, field safety, signed telemetry, endpoint adjudication, diagnostics, and a lab report. No cohort W is claimed."],
+  ["02", "WANTED LAB", "1 SITE / 100H", "Add cohort integrity, exposure-ledger integrity, real participants, field safety, cryptographically verified telemetry 0.2-T1, endpoint adjudication, diagnostics, and a lab report. No cohort W is claimed."],
   ["03", "WANTED WILD", "N>=20 / 10,000H", "Add Analysis Reproduction 0.2-A1: rebuild an identifiable 10,000-hour W, deterministic 95% cluster-bootstrap interval, robustness bounds, influence, and tail support from audited endpoint rows. This is the only ranked target."],
   ["04", "WANTED 10K", "1 HOME / 10,000H", "Complete one lifetime residence plus a seven-day withdrawal and reacquisition test. This badge does not create or improve a cohort W."],
 ];
@@ -21,7 +21,7 @@ const rows = [
   ["EXPOSURE LEDGER 0.2-X1", "N/A", ">=100H", ">=10,000H TOTAL", "10,000H ONE HOME"],
   ["ANALYSIS REPRODUCTION 0.2-A1", "N/A", "N/A", "REQUIRED", "N/A"],
   ["FIELD SAFETY 0.2-S1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
-  ["SIGNED TELEMETRY", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
+  ["TELEMETRY AUTHENTICITY 0.2-T1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["DIAGNOSTICS 0.2-D1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["PRIMARY W + 95% CI", "N/A", "N/A", "REQUIRED", "N/A*"],
   ["WITHDRAWAL / REACQUISITION", "N/A", "N/A", "DISCLOSED", "REQUIRED"],

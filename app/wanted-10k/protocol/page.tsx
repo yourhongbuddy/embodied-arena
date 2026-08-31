@@ -55,7 +55,10 @@ const kit = [
   ["PREREGISTRATION TEMPLATE", "Freeze recruitment, incentives, endpoints, safety, operations, updates, privacy, telemetry, and analysis before hour one.", "/wanted-10k/preregistration.template.json", "DOWNLOAD JSON ↓"],
   ["PREREGISTRATION SCHEMA", "Machine-check every field that prevents post-hoc rule changes or hidden operational support.", "/wanted-10k/preregistration.schema.json", "OPEN SCHEMA ↗"],
   ["ENDPOINT RULES", "Use one shared disposition vocabulary for rejection, censoring, safety termination, developer withdrawal, and consent exit.", "/wanted-10k/endpoint-rules.json", "OPEN RULES ↗"],
-  ["ADAPTER CHECKER", "Exercise the six-event profile and verify the activation boundary plus ordered RFC 8785 / SHA-256 hash-chain continuity locally.", "/wanted-10k/conformance", "RUN CHECKER →"],
+  ["TELEMETRY AUTHENTICITY CONTRACT", "Read the 0.2-T1 Ed25519 signature scope, frozen-key validity, revocation, hash-chain, failure, and interpretation rules.", "/wanted-10k/telemetry-authenticity.json", "OPEN CONTRACT ↗"],
+  ["TELEMETRY KEY SCHEMA", "Validate the frozen Ed25519 public-key manifest used to authenticate every field event without exporting a private key.", "/wanted-10k/telemetry-key-manifest.schema.json", "OPEN SCHEMA ↗"],
+  ["TELEMETRY KEY TEMPLATE", "Start from the synthetic RFC 8032 public-key manifest used by the local passing sample.", "/wanted-10k/telemetry-key-manifest.template.json", "DOWNLOAD JSON ↓"],
+  ["SIGNED STREAM CHECKER", "Exercise the six-event profile and verify lifecycle boundaries, ordered hash-chain continuity, key validity, revocation, and every Ed25519 signature locally.", "/wanted-10k/conformance", "VERIFY STREAM →"],
   ["SCORING REFERENCE", "Reproduce Kaplan–Meier normalized RMST and refuse unsupported 10,000-hour extrapolation.", "/wanted-10k/reference-score.py", "DOWNLOAD PYTHON ↓"],
   ["SCORE LAB", "Enter an environment-level cohort, inspect support and uncertainty, and export an audit summary.", "/wanted-10k/calculator", "OPEN SCORE LAB →"],
   ["AUDIT MANIFEST SCHEMA", "Bind the public leaderboard row to versioned, hashed study, safety, telemetry, adjudication, and withdrawal evidence.", "/wanted-10k/audit-manifest.schema.json", "OPEN SCHEMA ↗"],
@@ -88,12 +91,12 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Thirty-six artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort and clock integrity, verify field safety, connect a robot, define a run, validate the adapter, independently reproduce the score and diagnostics, prepare an audit, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Thirty-nine artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort, clock, and telemetry authenticity, verify field safety, connect a robot, define a run, independently reproduce the score and diagnostics, prepare an audit, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 
     <section className="integrityChain"><div className="shell">
-      <div><span>01</span><b>PREREGISTER</b><p>Freeze decisions and sign the canonical document hash.</p></div><i>→</i><div><span>02</span><b>CONFORM</b><p>Validate every adapter and its ordered event chain.</p></div><i>→</i><div><span>03</span><b>RUN</b><p>Commit periodic roots while resident time accrues.</p></div><i>→</i><div><span>04</span><b>AUDIT</b><p>Reconcile source evidence, terminal dispositions, and score.</p></div><i>→</i><div><span>05</span><b>PUBLISH</b><p>Release W with uncertainty, burden, safety, and support.</p></div>
+      <div><span>01</span><b>PREREGISTER</b><p>Freeze decisions and the public-key manifest before hour one.</p></div><i>→</i><div><span>02</span><b>CONFORM</b><p>Verify every event signature and ordered chain link.</p></div><i>→</i><div><span>03</span><b>RUN</b><p>Commit periodic roots while resident time accrues.</p></div><i>→</i><div><span>04</span><b>AUDIT</b><p>Reconcile source evidence, terminal dispositions, and score.</p></div><i>→</i><div><span>05</span><b>PUBLISH</b><p>Release W with uncertainty, burden, safety, and support.</p></div>
     </div></section>
     <footer className="wantedFooter"><div className="shell"><div className="brand"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b> / PROTOCOL 0.2</span></div><p>The operational study package for WANTED-10K.</p><a href="/wanted-10k">BACK TO BENCHMARK →</a></div></footer>
   </main>;

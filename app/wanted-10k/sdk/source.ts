@@ -154,7 +154,7 @@ export class WantedClient {
     };
     const signed = await this.sign(new TextEncoder().encode(canonicalize(unsigned)), unsigned);
     const signature = typeof signed === "string" ? signed : base64url(signed);
-    if (!/^[A-Za-z0-9_-]{32,}$/.test(signature)) throw new TypeError("sign must return base64url text or at least 24 signature bytes");
+    if (!/^[A-Za-z0-9_-]{86}$/.test(signature)) throw new TypeError("0.2-T1 sign must return one 64-byte Ed25519 signature as unpadded base64url");
     const event = deepFreeze({ ...unsigned, signature });
     const acceptedHash = await sha256Hex(event);
     await this.sink(event);

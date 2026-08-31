@@ -63,6 +63,7 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", () => {
 
 test("machine contracts encode target applicability and rankability", () => {
   for (const key of ["primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.ok(auditManifestSchema.properties[key].oneOf);
+  assert.equal(auditManifestSchema.properties.telemetry.oneOf[0].properties.profile_version.const, "0.2-T1");
   assert.equal(auditManifestSchema.allOf.length, 4);
   assert.equal(certificationProfile.version, "0.2-C1");
   assert.deepEqual(certificationProfile.ordering.inherits.WANTED_10K, ["WANTED_LAB"]);

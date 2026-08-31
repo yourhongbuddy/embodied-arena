@@ -122,7 +122,8 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/reference-score.py">SCORING REFERENCE <b>↓</b></a>
             <a className="contractLink" href="/wanted-10k/analysis-reproduction">ANALYSIS REPRODUCTION <b>→</b></a>
-            <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
+          <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
+          <a className="contractLink" href="/wanted-10k/telemetry-authenticity.json">TELEMETRY AUTHENTICITY <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/exposure-ledger">EXPOSURE LEDGER <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/preregistration.template.json">PREREGISTRATION <b>↓</b></a>
           </div>

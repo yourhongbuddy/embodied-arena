@@ -3,7 +3,7 @@ const openapi = {
   info: {
     title: "WANTED-10K Adapter Contract",
     version: "0.2.0",
-    description: "A vendor-neutral transport profile with signed lifecycle boundaries, RFC 8785 canonicalization, per-deployment ordering, signatures, and a SHA-256 previous-event chain. Implementers expose or adapt this relative path; this website does not operate a study-ingestion service.",
+    description: "A vendor-neutral transport profile with signed lifecycle boundaries, RFC 8785 canonicalization, per-deployment ordering, Ed25519 signatures under authenticity profile 0.2-T1, and a SHA-256 previous-event chain. Implementers expose or adapt this relative path; this website does not operate a study-ingestion service.",
   },
   paths: {
     "/v1/events": {
@@ -34,6 +34,8 @@ const openapi = {
   "x-wanted-status": "contract-only",
   "x-wanted-reference-sdk": "/wanted-10k/wanted-sdk.mjs",
   "x-wanted-exposure-ledger": "/wanted-10k/exposure-ledger.json",
+  "x-wanted-telemetry-authenticity": "/wanted-10k/telemetry-authenticity.json",
+  "x-wanted-key-manifest-schema": "/wanted-10k/telemetry-key-manifest.schema.json",
 };
 
 export async function GET() {

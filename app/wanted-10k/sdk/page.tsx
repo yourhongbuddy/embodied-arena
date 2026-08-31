@@ -22,7 +22,7 @@ export default function SdkPage() {
     <section className="sdkHero shell">
       <span className="eyebrow"><i className="liveDot"/> EXECUTABLE REFERENCE ADAPTER · PROTOCOL 0.2</span>
       <h1>Robot to valid stream.<br/><em>Fifteen minutes.</em></h1>
-      <p>Keep the native controller. WANTED adds one narrow evidence layer: six event helpers, a hardware-backed signer, and a durable sink. The adapter serializes concurrent calls, assigns sequence numbers, signs RFC 8785 canonical bytes, and chains every accepted event.</p>
+      <p>Keep the native controller. WANTED adds one narrow evidence layer: six event helpers, a hardware-backed Ed25519 signer, and a durable sink. The adapter serializes concurrent calls, assigns sequence numbers, signs RFC 8785 canonical bytes, and chains every accepted event.</p>
       <div className="sdkActions"><a className="primary" href="/wanted-10k/wanted-sdk.mjs">Download SDK <span>↓</span></a><a className="secondary" href="/wanted-10k/deployment.template.json">Download config</a><a className="secondary" href="/wanted-10k/conformance">Test the stream</a></div>
       <div className="sdkPromise"><div><b>0</b><span>RUNTIME DEPENDENCIES</span></div><div><b>6</b><span>EVENT HELPERS</span></div><div><b>1</b><span>DURABLE CHAIN</span></div><div><b>0</b><span>PRIVATE KEYS EXPORTED</span></div></div>
     </section>
@@ -37,7 +37,7 @@ export default function SdkPage() {
     </div></section>
 
     <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
-      <div><span className="kicker">02 / COPY, CONNECT, EMIT</span><h2>The whole<br/><em>adapter surface.</em></h2><p>The production signer is deliberately outside the SDK. This keeps private key handling inside infrastructure already approved by the robot operator.</p><div className="sdkResources"><a href="/wanted-10k/wanted-sdk.mjs">REFERENCE MODULE ↓</a><a href="/wanted-10k/deployment.schema.json">CONFIG SCHEMA ↗</a><a href="/wanted-10k/event.schema.json">EVENT SCHEMA ↗</a><a href="/wanted-10k/openapi.json">OPENAPI 3.1 ↗</a></div></div>
+      <div><span className="kicker">02 / COPY, CONNECT, EMIT</span><h2>The whole<br/><em>adapter surface.</em></h2><p>The production signer is deliberately outside the SDK. This keeps private key handling inside infrastructure already approved by the robot operator.</p><div className="sdkResources"><a href="/wanted-10k/wanted-sdk.mjs">REFERENCE MODULE ↓</a><a href="/wanted-10k/deployment.schema.json">CONFIG SCHEMA ↗</a><a href="/wanted-10k/event.schema.json">EVENT SCHEMA ↗</a><a href="/wanted-10k/telemetry-key-manifest.schema.json">KEY MANIFEST ↗</a><a href="/wanted-10k/openapi.json">OPENAPI 3.1 ↗</a></div></div>
       <div className="codeCard sdkCode"><header><span>QUICKSTART / JAVASCRIPT ESM</span><i>RUNNABLE</i></header><pre><code>{`import { WantedClient, createHttpSink } from "./wanted-sdk.mjs";
 
 const wanted = new WantedClient({

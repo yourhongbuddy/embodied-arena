@@ -37,7 +37,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Thirty-six artifacts/);
+  assert.match(protocolHtml, /Thirty-nine artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
@@ -82,6 +82,17 @@ test("publishes the signed resident-time exposure ledger", async () => {
 });
 
 test("publishes deterministic ranked-score reproduction",async()=>{const [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,leaderboardResponse,specResponse]=await Promise.all([request("/wanted-10k/analysis-reproduction"),request("/wanted-10k/analysis-reproduction.json","application/json"),request("/wanted-10k/analysis-reproduction.schema.json","application/json"),request("/wanted-10k/analysis-reproduction.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/spec.json","application/json")]);for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,leaderboardResponse,specResponse])assert.equal(response.status,200);const pageHtml=await pageResponse.text();assert.match(pageHtml,/Do not trust W/);assert.match(pageHtml,/Same rows/);assert.match(pageHtml,/REPRODUCIBLE != REPRESENTATIVE/);const [contract,schema,template,audit,leaderboard,spec]=await Promise.all([contractResponse.json(),schemaResponse.json(),templateResponse.json(),auditResponse.json(),leaderboardResponse.json(),specResponse.json()]);assert.equal(contract.version,"0.2-A1");assert.equal(contract.bootstrap.minimum_samples,10000);assert.equal(schema.properties.bootstrap.properties.prng.const,"pcg32_xsh_rr_64_32_seeded_v1");assert.equal(template.claimed.wanted_score,87.5);assert.equal(audit.analysis_reproduction.profile_version,"0.2-A1");assert.equal(audit.primary.wanted_score,87.5);assert.equal(leaderboard.admission.includes("analysis_reproduction_profile_0.2-A1_passes"),true);assert.equal(spec.analysis_reproduction_profile.numerical_tolerance,.000001);assert.equal(spec.developer_resources.analysis_reproduction_lab,"/wanted-10k/analysis-reproduction")});
+
+test("publishes cryptographic field-telemetry verification", async () => {
+  const [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, leaderboardResponse, preregResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/conformance"), request("/wanted-10k/telemetry-authenticity.json", "application/json"), request("/wanted-10k/telemetry-key-manifest.schema.json", "application/json"), request("/wanted-10k/telemetry-key-manifest.template.json", "application/json"), request("/wanted-10k/audit-manifest.template.json", "application/json"), request("/wanted-10k/leaderboard.json", "application/json"), request("/wanted-10k/preregistration.template.json", "application/json"), request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, leaderboardResponse, preregResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Prove who signed/); assert.match(pageHtml, /FROZEN KEY MANIFEST/); assert.match(pageHtml, /TELEMETRY AUTHENTICITY/);
+  const [contract, schema, template, audit, leaderboard, prereg, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), templateResponse.json(), auditResponse.json(), leaderboardResponse.json(), preregResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-T1"); assert.equal(schema.properties.algorithm.const, "Ed25519"); assert.equal(template.keys[0].public_key_base64url.length, 43); assert.equal(audit.telemetry.profile_version, "0.2-T1"); assert.equal(audit.telemetry.verified_signatures, audit.telemetry.total_events); assert.equal(leaderboard.admission.includes("telemetry_authenticity_profile_0.2-T1_passes"), true); assert.equal(prereg.telemetry.authenticity_profile, "0.2-T1"); assert.equal(spec.telemetry_authenticity_profile.verification_unit, "every_event");
+});
 
 test("publishes the target-specific certification applicability contract", async () => {
   const [pageResponse, contractResponse, templatesResponse, schemaResponse, specResponse] = await Promise.all([
@@ -253,6 +264,8 @@ test("ships an executable adapter that produces one conformant six-event chain",
 
   const invalidGenesis = new sdk.WantedClient({ deploymentId: "dep_invalid_001", environmentId: "env_invalid_001", robotId: "robot_invalid_001", signingKeyId: "key_invalid_001", sign: async () => new Uint8Array(64).fill(3), sink: async () => undefined });
   await assert.rejects(invalidGenesis.state("available"), /sequence zero/);
+  const wrongSignatureSize = new sdk.WantedClient({ deploymentId: "dep_bad_signature_001", environmentId: "env_bad_signature_001", robotId: "robot_bad_signature_001", signingKeyId: "key_bad_signature_001", sign: async () => new Uint8Array(32), sink: async () => undefined });
+  await assert.rejects(wrongSignatureSize.lifecycle("activation", { participant_acceptance_ref: "controlled://acceptance/bad-signature", activation_record_sha256: "ab0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd" }), /64-byte Ed25519 signature/);
 
   let sinkAttempts = 0;
   const retryEvents = [];
@@ -265,6 +278,7 @@ test("ships an executable adapter that produces one conformant six-event chain",
   const [schema, template, openapi, spec] = await Promise.all([schemaResponse.json(), templateResponse.json(), openapiResponse.json(), specResponse.json()]);
   assert.equal(schema.properties.protocol_version.const, "0.2");
   assert.equal(template.checkpoint.recovery_tested, true);
+  assert.equal(template.signing.authenticity_profile, "0.2-T1");
   assert.ok(openapi.paths["/v1/deployments/{deployment_id}/tail"]);
   assert.equal(spec.developer_resources.reference_sdk, "/wanted-10k/wanted-sdk.mjs");
   assert.equal(spec.mandatory_events[0], "DEPLOYMENT_LIFECYCLE");
@@ -284,6 +298,7 @@ test("publishes internally consistent protocol 0.2 resources", async () => {
   assert.equal(eventSchema.properties.schema_version.const, "0.2");
   assert.ok(eventSchema.required.includes("signature"));
   assert.ok(eventSchema.required.includes("robot_id"));
+  assert.equal(eventSchema.properties.signature.pattern, "^[A-Za-z0-9_-]{86}$");
   assert.equal(preregSchema.properties.protocol_version.const, "0.2");
   assert.equal(template.protocol_version, "0.2");
   assert.equal(rules.protocol_version, "0.2");
@@ -303,8 +318,8 @@ test("serves the local conformance checker and corrected score lab", async () =>
   const conformance = await request("/wanted-10k/conformance");
   assert.equal(conformance.status, 200);
   const conformanceHtml = await conformance.text();
-  assert.match(conformanceHtml, /Prove the stream/);
-  assert.match(conformanceHtml, /LOCAL VALIDATOR/);
+  assert.match(conformanceHtml, /Prove who signed/);
+  assert.match(conformanceHtml, /TELEMETRY AUTHENTICITY/);
 
   const calculator = await request("/wanted-10k/calculator");
   assert.equal(calculator.status, 200);
@@ -347,6 +362,8 @@ test("publishes the aggregate certification audit contract", async () => {
   assert.equal(template.protocol_version, "0.2");
   assert.equal(template.submission_mode, "test");
   assert.equal(template.privacy.participant_data_included, false);
+  assert.equal(template.telemetry.profile_version, "0.2-T1");
+  assert.equal(template.telemetry.invalid_signatures, 0);
   assert.equal(spec.certification_handoff.participant_data_permitted, false);
   assert.equal(spec.developer_resources.audit_pack, "/wanted-10k/audit");
 });

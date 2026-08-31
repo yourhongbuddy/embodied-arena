@@ -17,7 +17,7 @@ const eventSchema = {
     payload: { type: "object" },
     previous_event_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
     signing_key_id: { type: "string", minLength: 1, maxLength: 128 },
-    signature: { type: "string", pattern: "^[A-Za-z0-9_-]{32,}$" },
+    signature: { type: "string", pattern: "^[A-Za-z0-9_-]{86}$" },
   },
   allOf: [
     { if: { properties: { sequence: { minimum: 1 } }, required: ["sequence"] }, then: { required: ["previous_event_hash"] } },
