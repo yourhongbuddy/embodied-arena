@@ -5,7 +5,7 @@ import { leaderboardContract } from "./registry";
 export const metadata: Metadata = { title: "Audited Registry — WANTED-10K", description: "The public ranking and certification registry for independently audited WANTED-10K cohorts.", alternates: { canonical: "/wanted-10k/leaderboard" } };
 
 const requirements = [
-  ["01", "WANTED WILD ONLY", "PREQUALIFIED and WANTED LAB evidence stays visible but never occupies a ranked row."],
+  ["01", "WILD + COHORT INTEGRITY", "Only WANTED WILD cohorts passing 0.2-E1 selection and independence checks can occupy a ranked row."],
   ["02", "IDENTIFIABLE 10K W", "No extrapolation: the cohort must support the complete 10,000-hour RMST estimand."],
   ["03", "UNCERTAINTY PUBLISHED", "Every point estimate travels with its clustered 95% interval and bootstrap support."],
   ["04", "SAFETY PASSES", "L4 must equal zero. Usefulness, retention, or a lifetime badge cannot offset a failed gate."],

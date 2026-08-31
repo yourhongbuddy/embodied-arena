@@ -27,8 +27,8 @@ const gates = [
 
 const levels = [
   ["01", "PREQUALIFIED", "Digital twin", "Failure injection, collision, recovery, network loss, sensing drift, and human-trajectory stress tests."],
-  ["02", "WANTED LAB", "100+ hours", "Real robot, real people, instrumented site, passed safety gates, and complete event telemetry."],
-  ["03", "WANTED WILD", "10,000+ cohort hours", "At least 20 independent environments, supported 10K estimand, passed safety gates, and independent audit."],
+  ["02", "WANTED LAB", "100+ hours", "Real robot, real people, cohort-integrity evidence, passed safety gates, and complete event telemetry."],
+  ["03", "WANTED WILD", "10,000+ cohort hours", "At least 20 profile-verified independent environments, supported 10K estimand, passed safety gates, and independent audit."],
   ["04", "WANTED 10K", "One 10,000-hour residence", "Uninterrupted lifetime run plus a seven-day withdrawal and voluntary reacquisition test."],
 ];
 

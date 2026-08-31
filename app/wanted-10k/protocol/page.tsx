@@ -18,7 +18,7 @@ const decisions = [
 ];
 
 const eligibility = [
-  ["01", "COHORT", "N ≥ 20 independent environments"],
+  ["01", "COHORT", "N ≥ 20 environments passing integrity profile 0.2-E1"],
   ["02", "EXPOSURE", "Σ resident time ≥ 10,000 hours"],
   ["03", "SUPPORT", "10K RMST is identifiable without extrapolation"],
   ["04", "UNCERTAINTY", "≥95% of environment bootstrap draws identify 10K"],
@@ -30,6 +30,10 @@ const kit = [
   ["CERTIFICATION MATRIX", "Choose the exact evidence claim before building an audit pack; only WANTED WILD produces a ranked cohort W.", "/wanted-10k/certification", "OPEN MATRIX →"],
   ["CERTIFICATION CONTRACT", "Read the inherited 0.2-C1 requirements, typed not-applicable rule, and rankability boundary for all four targets.", "/wanted-10k/certification.json", "OPEN CONTRACT ↗"],
   ["TARGET MANIFEST TEMPLATES", "Download passing synthetic audit examples for PREQUALIFIED, WANTED LAB, WANTED WILD, and WANTED 10K.", "/wanted-10k/certification-templates.json", "DOWNLOAD JSON ↓"],
+  ["COHORT INTEGRITY LAB", "Verify frozen selection, participant flow, one-to-one decision units, target thresholds, carryover controls, and evidence binding.", "/wanted-10k/cohort-integrity", "OPEN COHORT LAB →"],
+  ["COHORT INTEGRITY CONTRACT", "Read the 0.2-E1 anti-cherry-picking rules, hard failures, target-specific independence constraints, and interpretation boundary.", "/wanted-10k/cohort-integrity.json", "OPEN CONTRACT ↗"],
+  ["COHORT INTEGRITY SCHEMA", "Validate the aggregate recruitment-flow and hashed-linkage evidence manifest used by every field target.", "/wanted-10k/cohort-integrity.schema.json", "OPEN SCHEMA ↗"],
+  ["COHORT INTEGRITY TEMPLATE", "Start from a passing synthetic WANTED WILD selection and independence manifest.", "/wanted-10k/cohort-integrity.template.json", "DOWNLOAD JSON ↓"],
   ["FIELD SAFETY CASE", "Evaluate seven non-compensatory gates for scope, stop authority, protective functions, incidents, security, operations, and independent assessment.", "/wanted-10k/safety", "OPEN SAFETY LAB →"],
   ["SAFETY MANIFEST SCHEMA", "Validate the strict deployment-scoped evidence object behind every WANTED field safety decision.", "/wanted-10k/safety-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["SAFETY MANIFEST TEMPLATE", "Start from a complete synthetic 0.2-S1 case with assessed limits, incident closure, security controls, and artifact bindings.", "/wanted-10k/safety-manifest.template.json", "DOWNLOAD JSON ↓"],
@@ -76,7 +80,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Twenty-four artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, verify field safety, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Twenty-eight artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort integrity, verify field safety, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

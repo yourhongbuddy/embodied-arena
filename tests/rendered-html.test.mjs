@@ -37,9 +37,37 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Twenty-four artifacts/);
+  assert.match(protocolHtml, /Twenty-eight artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
+});
+
+test("publishes the cohort-integrity selection and independence gate", async () => {
+  const [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, leaderboardResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/cohort-integrity"),
+    request("/wanted-10k/cohort-integrity.json", "application/json"),
+    request("/wanted-10k/cohort-integrity.schema.json", "application/json"),
+    request("/wanted-10k/cohort-integrity.template.json", "application/json"),
+    request("/wanted-10k/audit-manifest.template.json", "application/json"),
+    request("/wanted-10k/leaderboard.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, leaderboardResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Count each choice/);
+  assert.match(pageHtml, /No disappearing/);
+  assert.match(pageHtml, /METHOD BASIS/);
+  assert.match(pageHtml, /CONSORT 2025/);
+  assert.match(pageHtml, /INDEPENDENCE != REPRESENTATIVENESS/);
+  const [contract, schema, template, audit, leaderboard, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), templateResponse.json(), auditResponse.json(), leaderboardResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-E1");
+  assert.equal(contract.representativeness_claim, false);
+  assert.equal(schema.properties.flow.properties.post_activation_exclusions.const, 0);
+  assert.equal(template.profile_version, "0.2-E1");
+  assert.equal(audit.cohort_integrity.profile_version, "0.2-E1");
+  assert.equal(leaderboard.admission.includes("cohort_integrity_profile_0.2-E1_passes"), true);
+  assert.equal(spec.cohort_integrity_profile.analysis_principle, "all_activated_environments_remain_in_analysis");
+  assert.equal(spec.developer_resources.cohort_integrity_lab, "/wanted-10k/cohort-integrity");
 });
 
 test("publishes the target-specific certification applicability contract", async () => {

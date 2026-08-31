@@ -19,7 +19,7 @@ test("all four target templates pass only their applicable gates", () => {
 
 test("PREQUALIFIED is simulation-only and rejects fabricated field evidence", () => {
   const manifest = auditManifestTemplates.PREQUALIFIED;
-  for (const key of ["primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.equal(manifest[key].applicable, false);
+  for (const key of ["cohort_integrity", "primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.equal(manifest[key].applicable, false);
   const projection = assess(manifest).projection;
   assert.equal(projection.rankable, false);
   assert.equal(projection.wanted_score, null);
@@ -70,4 +70,3 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
   assert.equal(certificationProfile.ranking.only_target, "WANTED_WILD");
 });
-
