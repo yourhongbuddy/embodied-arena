@@ -64,4 +64,13 @@ export const certificationProfile = {
     WANTED_LAB_changes_rank: false,
     PREQUALIFIED_changes_rank: false,
   },
+  secondary_disclosures: {
+    revealed_preference_0_2_RP1: {
+      status: "optional",
+      cohort: "separate_nonranking_preference_substudy",
+      applies_to_robot_versions_in: ["WANTED_LAB", "WANTED_WILD", "WANTED_10K"],
+      certification_gate: false,
+      ranking_effect: "none",
+    },
+  },
 } as const;

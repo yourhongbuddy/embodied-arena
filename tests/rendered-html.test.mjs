@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Fifty-eight artifacts/);
+  assert.match(protocolHtml, /Sixty-two artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -108,6 +108,18 @@ test("publishes and reproduces the neutral four-item human-measures profile",asy
   assert.equal(spec.human_measures_profile.denominator,"every_due_prompt_set_including_nonresponse");
   assert.equal(spec.developer_resources.human_measures_lab,"/wanted-10k/human-measures");
   assert.equal(leaderboard.admission.includes("human_measures_profile_0.2-H1_passes"),true);
+});
+
+test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{
+  const [pageResponse,contractResponse,schemaResponse,templateResponse,specResponse,leaderboardResponse,preregistrationResponse]=await Promise.all([request("/wanted-10k/revealed-preference"),request("/wanted-10k/revealed-preference.json","application/json"),request("/wanted-10k/revealed-preference.schema.json","application/json"),request("/wanted-10k/revealed-preference.template.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/preregistration.template.json","application/json")]);
+  for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,specResponse,leaderboardResponse,preregistrationResponse])assert.equal(response.status,200);
+  const pageHtml=await pageResponse.text();assert.match(pageHtml,/Make the choice real/);assert.match(pageHtml,/SEPARATE COHORT/);assert.match(pageHtml,/PRICE != RANK/);
+  const [contract,schema,template,spec,leaderboard,preregistration]=await Promise.all([contractResponse.json(),schemaResponse.json(),templateResponse.json(),specResponse.json(),leaderboardResponse.json(),preregistrationResponse.json()]);
+  assert.equal(contract.version,"0.2-RP1");assert.equal(contract.ranking_effect,"none");assert.match(contract.cohort_separation,/never_pooled/);
+  assert.deepEqual(schema.properties.protocol.properties.milestones.const,[100,500,1000,2500,5000,7500,10000]);assert.equal(template.claimed.milestone_profiles.length,7);assert.equal(template.declared_due_choices,56);
+  assert.equal(spec.revealed_preference_profile.identification.finite_upper_bound_is_open,true);assert.equal(spec.developer_resources.revealed_preference_lab,"/wanted-10k/revealed-preference");
+  assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("reservation_value"),true);assert.equal(leaderboard.disclosure.includes("revealed_preference_0.2-RP1_status_and_10K_interval_when_run"),true);
+  assert.equal(preregistration.participant_choice.revealed_preference_substudy.cohort_separate_from_ranked_primary,true);
 });
 
 test("publishes cryptographic field-telemetry verification", async () => {

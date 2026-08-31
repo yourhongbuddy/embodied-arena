@@ -163,7 +163,7 @@ export default function Wanted10K() {
           <div><span>Q3 / BURDEN</span><b>How much work is it creating?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
           <div><span>Q4 / TRUST</span><b>Operate without supervision?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
         </div>
-        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score. <a className="contractLink" href="/wanted-10k/human-measures">Open the randomized four-item profile →</a></p>
+        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score. <a className="contractLink" href="/wanted-10k/human-measures">Open the randomized four-item profile →</a> <a className="contractLink" href="/wanted-10k/revealed-preference">Open the binding-choice profile →</a></p>
       </div>
     </section>
 
@@ -180,7 +180,7 @@ export default function Wanted10K() {
         <div className="wantedBoard">
           <header><span>#</span><span>ROBOT / COHORT</span><span>W</span><span>95% CI</span><span>N</span><span>HOURS</span><span>S(10K)</span><span>I<sub>100</sub></span><span>MTBHR</span><span>SAFETY</span></header>
           <div className="wantedEmpty"><span>∅</span><b>NO AUDITED WANTED WILD RUNS YET</b><p>The first qualifying cohort sets the baseline. Provisional runs will remain separate from official ranking.</p></div>
-          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · DOWNTIME · INCIDENTS · WITHDRAWALS</span><a href="/wanted-10k/leaderboard">OPEN AUDITED REGISTRY →</a></footer>
+          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · DOWNTIME · INCIDENTS · WITHDRAWALS · PREFERENCE SUBSTUDY STATUS</span><a href="/wanted-10k/leaderboard">OPEN AUDITED REGISTRY →</a></footer>
         </div>
       </div>
     </section>

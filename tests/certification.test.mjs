@@ -81,5 +81,7 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
   assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("withdrawal_0.2-W1"), true);
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("human_measures_0.2-H1"), true);
+  assert.equal(certificationProfile.secondary_disclosures.revealed_preference_0_2_RP1.cohort, "separate_nonranking_preference_substudy");
+  assert.equal(certificationProfile.secondary_disclosures.revealed_preference_0_2_RP1.ranking_effect, "none");
   assert.equal(certificationProfile.ranking.only_target, "WANTED_WILD");
 });
