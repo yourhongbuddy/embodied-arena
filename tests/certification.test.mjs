@@ -103,9 +103,12 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.version, "0.2-C1");
   assert.deepEqual(certificationProfile.ordering.inherits.WANTED_10K, ["WANTED_LAB"]);
   assert.equal(certificationProfile.targets.WANTED_WILD.rankable, true);
+  assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("endpoint_adjudication_0.2-J1"), true);
   assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("auditor_credential_0.2-V2"), true);
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
+  assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("endpoint_adjudication_0.2-J1"), true);
   assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("withdrawal_0.2-W1"), true);
+  assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("endpoint_adjudication_0.2-J1"), true);
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("human_measures_0.2-H1"), true);
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("learning_generalization_0.2-LG1"), true);
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("assistance_integrity_0.2-I1"), true);

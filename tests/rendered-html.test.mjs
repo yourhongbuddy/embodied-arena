@@ -340,6 +340,8 @@ test("publishes the audited WANTED registry without invented entries", async () 
   assert.match(pageHtml, /No one has/);
   assert.match(pageHtml, /NO AUDITED WANTED WILD ENTRIES/);
   assert.match(pageHtml, /1 · 1 · 3/);
+  assert.match(pageHtml, /ADJUDICATED \+ REPRODUCED W/);
+  assert.match(pageHtml, /href="\/wanted-10k\/endpoint-adjudication"/);
   const [contract, schema, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), specResponse.json()]);
   assert.equal(contract.version, "0.2-L1");
   assert.deepEqual(contract.entries, []);
@@ -406,6 +408,8 @@ test("ships an executable adapter that produces one conformant six-event chain",
   const pageHtml = await pageResponse.text();
   assert.match(pageHtml, /Robot to valid stream/);
   assert.match(pageHtml, /REFERENCE, NOT A COLLECTOR/);
+  assert.match(pageHtml, /ENDPOINT ADJUDICATION/);
+  assert.match(pageHtml, /href="\/wanted-10k\/endpoint-adjudication"/);
 
   const source = await sdkResponse.text();
   const sdk = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
@@ -541,6 +545,8 @@ test("publishes the aggregate certification audit contract", async () => {
   assert.match(pageHtml, /One row/);
   assert.match(pageHtml, /Every claim bound/);
   assert.match(pageHtml, /CERTIFICATION HANDOFF/);
+  assert.match(pageHtml, /Adjudicate endpoints/);
+  assert.match(pageHtml, /href="\/wanted-10k\/endpoint-adjudication"/);
   const [schema, template, spec] = await Promise.all([schemaResponse.json(), templateResponse.json(), specResponse.json()]);
   assert.equal(schema.properties.protocol_version.const, "0.2");
   assert.equal(template.protocol_version, "0.2");
