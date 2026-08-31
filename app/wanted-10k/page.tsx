@@ -128,6 +128,7 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/assistance-integrity">ASSISTANCE INTEGRITY <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/policy-evolution">POLICY EVOLUTION <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/privacy-integrity">PRIVACY + CONSENT <b>→</b></a>
+            <a className="contractLink" href="/wanted-10k/service-continuity">SERVICE CONTINUITY <b>→</b></a>
           <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
           <a className="contractLink" href="/wanted-10k/telemetry-authenticity.json">TELEMETRY AUTHENTICITY <b>↗</b></a>
           <a className="contractLink" href="/wanted-10k/audit-seal">AUDIT TRUST VERIFIER <b>→</b></a>
@@ -168,7 +169,7 @@ export default function Wanted10K() {
           <div><span>Q3 / BURDEN</span><b>How much work is it creating?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
           <div><span>Q4 / TRUST</span><b>Operate without supervision?</b><small>0 TO 4 · DIAGNOSTIC</small></div>
         </div>
-        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score. Field learning uses matched profile 0.2-LG1; assistance uses the complete signed register in 0.2-I1; operator-deployed policy changes use immutable lineage in 0.2-U1; household data boundaries use privacy + consent profile 0.2-PV1. <a className="contractLink" href="/wanted-10k/human-measures">Open the randomized four-item profile →</a> <a className="contractLink" href="/wanted-10k/learning-generalization">Open the matched learning profile →</a> <a className="contractLink" href="/wanted-10k/assistance-integrity">Open the assistance-integrity profile →</a> <a className="contractLink" href="/wanted-10k/policy-evolution">Open the policy-evolution profile →</a> <a className="contractLink" href="/wanted-10k/privacy-integrity">Open the privacy-integrity profile →</a> <a className="contractLink" href="/wanted-10k/revealed-preference">Open the binding-choice profile →</a></p>
+        <p className="diagnosticNote">These probes explain retention; they never replace revealed preference or enter the WANTED Score. Field learning uses matched profile 0.2-LG1; assistance uses the complete signed register in 0.2-I1; operator-deployed policy changes use immutable lineage in 0.2-U1; household data boundaries use privacy + consent profile 0.2-PV1; uptime, downtime, repairs, and cloud dependence use the complete service clock in 0.2-SC1. <a className="contractLink" href="/wanted-10k/human-measures">Open the randomized four-item profile →</a> <a className="contractLink" href="/wanted-10k/learning-generalization">Open the matched learning profile →</a> <a className="contractLink" href="/wanted-10k/assistance-integrity">Open the assistance-integrity profile →</a> <a className="contractLink" href="/wanted-10k/policy-evolution">Open the policy-evolution profile →</a> <a className="contractLink" href="/wanted-10k/privacy-integrity">Open the privacy-integrity profile →</a> <a className="contractLink" href="/wanted-10k/service-continuity">Open the service-continuity profile →</a> <a className="contractLink" href="/wanted-10k/revealed-preference">Open the binding-choice profile →</a></p>
       </div>
     </section>
 
@@ -185,7 +186,7 @@ export default function Wanted10K() {
         <div className="wantedBoard">
           <header><span>#</span><span>ROBOT / COHORT</span><span>W</span><span>95% CI</span><span>N</span><span>HOURS</span><span>S(10K)</span><span>I<sub>100</sub></span><span>MTBHR</span><span>SAFETY</span></header>
           <div className="wantedEmpty"><span>∅</span><b>NO AUDITED WANTED WILD RUNS YET</b><p>The first qualifying cohort sets the baseline. Provisional runs will remain separate from official ranking.</p></div>
-          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · DOWNTIME · INCIDENTS · PRIVACY INTEGRITY · WITHDRAWALS · PREFERENCE SUBSTUDY STATUS</span><a href="/wanted-10k/leaderboard">OPEN AUDITED REGISTRY →</a></footer>
+          <footer><span>MANDATORY DISCLOSURE: TELEOPERATION · RESCUES · SERVICE CONTINUITY · INCIDENTS · PRIVACY INTEGRITY · WITHDRAWALS · PREFERENCE SUBSTUDY STATUS</span><a href="/wanted-10k/leaderboard">OPEN AUDITED REGISTRY →</a></footer>
         </div>
       </div>
     </section>

@@ -38,7 +38,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Eighty-two artifacts/);
+  assert.match(protocolHtml, /Eighty-six artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -170,6 +170,13 @@ test("publishes and reproduces privacy and consent integrity",async()=>{
   assert.equal(audit.privacy_integrity.profile_version,"0.2-PV1");assert.equal(audit.privacy_integrity.manifest_sha256,template.evidence.controlled_privacy_register_sha256);assert.equal(certification.targets.WANTED_LAB.requires.includes("privacy_integrity_0.2-PV1"),true);assert.equal(spec.privacy_integrity_profile.ranking_effect,"none");assert.equal(spec.developer_resources.privacy_integrity_lab,"/wanted-10k/privacy-integrity");assert.equal(leaderboard.admission.includes("privacy_integrity_profile_0.2-PV1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("privacy_metrics"),true);
 });
 
+test("publishes and reproduces complete service continuity",async()=>{
+  const responses=await Promise.all([request("/wanted-10k/service-continuity"),request("/wanted-10k/service-continuity.json","application/json"),request("/wanted-10k/service-continuity.schema.json","application/json"),request("/wanted-10k/service-continuity.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/certification.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json")]);
+  for(const response of responses)assert.equal(response.status,200);const pageHtml=await responses[0].text();assert.match(pageHtml,/Ten thousand hours/);assert.match(pageHtml,/EVERY SECOND HAS A STATE/);assert.match(pageHtml,/INTEGRITY GATE, NOT AN UPTIME SCORE/);const [contract,schema,template,audit,certification,spec,leaderboard]=await Promise.all(responses.slice(1).map(response=>response.json()));
+  assert.equal(contract.version,"0.2-SC1");assert.equal(contract.certification_effect,"field_evidence_integrity_gate");assert.equal(contract.ranking_effect,"none");assert.equal(schema.properties.protocol.properties.inclusion_rule.const,"complete_partition_of_every_resident_second");assert.equal(template.environments.length,24);assert.equal(template.claimed.resident_hours,120000);assert.equal(template.claimed.autonomous_available_fraction+.01+.001,1);
+  assert.equal(audit.service_continuity.profile_version,"0.2-SC1");assert.equal(audit.service_continuity.manifest_sha256,template.evidence.controlled_service_register_sha256);assert.equal(audit.diagnostics.autonomous_availability,template.claimed.autonomous_available_fraction);assert.equal(certification.targets.WANTED_LAB.requires.includes("service_continuity_0.2-SC1"),true);assert.equal(spec.service_continuity_profile.ranking_effect,"none");assert.equal(spec.developer_resources.service_continuity_lab,"/wanted-10k/service-continuity");assert.equal(leaderboard.admission.includes("service_continuity_profile_0.2-SC1_passes"),true);assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("service_continuity_metrics"),true);
+});
+
 test("publishes and reproduces the separate-cohort revealed-preference profile",async()=>{
   const [pageResponse,contractResponse,schemaResponse,templateResponse,specResponse,leaderboardResponse,preregistrationResponse]=await Promise.all([request("/wanted-10k/revealed-preference"),request("/wanted-10k/revealed-preference.json","application/json"),request("/wanted-10k/revealed-preference.schema.json","application/json"),request("/wanted-10k/revealed-preference.template.json","application/json"),request("/wanted-10k/spec.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/preregistration.template.json","application/json")]);
   for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,specResponse,leaderboardResponse,preregistrationResponse])assert.equal(response.status,200);
@@ -284,7 +291,7 @@ test("publishes the target-specific certification applicability contract", async
   assert.deepEqual(Object.keys(templates.templates), ["PREQUALIFIED", "WANTED_LAB", "WANTED_WILD", "WANTED_10K"]);
   assert.equal(templates.templates.PREQUALIFIED.primary.applicable, false);
   assert.equal(templates.templates.WANTED_10K.primary.applicable, false);
-  assert.equal(schema.allOf.length, 4);
+  assert.equal(schema.allOf.length, 5);
   assert.equal(spec.certification_profile.rankable_target, "WANTED_WILD");
   assert.equal(spec.developer_resources.certification_matrix, "/wanted-10k/certification");
 });

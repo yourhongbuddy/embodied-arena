@@ -1,0 +1,16 @@
+"use client";
+import { useState } from "react";
+import { assessServiceContinuity, serviceTemplate, type ServiceResult, type ServiceTarget } from "./profile";
+
+export function ServiceContinuityLab() {
+  const [text, setText] = useState(JSON.stringify(serviceTemplate, null, 2));
+  const [result, setResult] = useState<ServiceResult | null>(null);
+  const run = () => { try { setResult(assessServiceContinuity(JSON.parse(text))); } catch (error) { setResult({ status: "invalid", errors: [error instanceof Error ? error.message : "Invalid JSON"], gates: [], summary: null }); } };
+  const load = (target: ServiceTarget) => fetch(`/wanted-10k/service-continuity.template.json?target=${target}`).then(response => response.json()).then(value => { setText(JSON.stringify(value, null, 2)); setResult(null); });
+  return <div className="serviceLab">
+    <header><div><span>LOCAL · ZERO UPLOAD</span><b>SERVICE 0.2-SC1 VERIFIER</b></div><div><button onClick={() => load("WANTED_LAB")}>LAB</button><button onClick={() => load("WANTED_WILD")}>WILD</button><button onClick={() => load("WANTED_10K")}>10K</button><button className="runService" onClick={run}>VERIFY</button></div></header>
+    <div className="serviceWorkspace"><div className="serviceEditor"><label>CONTROLLED AGGREGATE MANIFEST</label><textarea aria-label="Service continuity manifest" value={text} onChange={event => setText(event.target.value)} spellCheck={false}/><footer><a href="/wanted-10k/service-continuity.schema.json">JSON SCHEMA ↗</a><span>{text.length.toLocaleString()} BYTES</span></footer></div>
+      <div className="serviceOutput">{!result ? <div className="serviceEmpty"><b>READY TO REPRODUCE</b><p>The verifier runs in this browser. Paste aggregate service evidence; never paste household identifiers or support-session content.</p></div> : <><div className={`serviceStatus ${result.status}`}><span>ASSESSMENT</span><b>{result.status.toUpperCase()}</b><small>{result.errors.join(" ") || `${result.gates.filter(gate => gate.passed).length}/${result.gates.length} integrity gates pass.`}</small></div>{result.summary && <div className="serviceMetrics"><article><span>AUTONOMOUS</span><b>{(100 * result.summary.autonomous_available_fraction).toFixed(2)}%</b><small>resident time</small></article><article><span>UNPLANNED</span><b>{result.summary.unplanned_downtime_hours.toFixed(1)}h</b><small>{result.summary.unplanned_outage_count} outages</small></article><article><span>TECHNICIAN</span><b>{result.summary.technician_minutes_per_100_hours.toFixed(2)}</b><small>min / 100h</small></article><article><span>CLOUD LOSS</span><b>{result.summary.cloud_dependency_downtime_hours.toFixed(1)}h</b><small>resident exposure</small></article></div>}<div className="serviceGates">{result.gates.map(gate => <article key={gate.id} className={gate.passed ? "pass" : "fail"}><span>{gate.id}</span><div><b>{gate.label}</b><p>{gate.detail}</p></div><i>{gate.passed ? "PASS" : "FAIL"}</i></article>)}</div></>}</div>
+    </div><aside><b>INTERPRETATION BOUNDARY</b><p>Passing proves the record is complete and reproducible. It does not certify that availability is high enough, and none of these metrics can increase W or break a tie.</p></aside>
+  </div>;
+}

@@ -50,6 +50,13 @@ const foundations = [
     limit: "A valid hash chain does not prove that every real-world event was logged or that a logged claim is true.",
     links: [["RFC 8785 — JSON Canonicalization Scheme", "https://www.rfc-editor.org/rfc/rfc8785.html"]],
   },
+  {
+    n: "07", field: "DEPENDABILITY", title: "Long life includes support and repair",
+    copy: "IEC 60300 treats dependability as the ability to perform as required when required, spanning reliability, availability, maintainability, and supportability. ISO 14224 provides a mature pattern for exchanging equipment, failure, maintenance, resource, and downtime data across operators and manufacturers.",
+    supports: "Supports the complete service-state clock, maintenance-action ledger, person-time, parts, recovery, and dependency disclosures in profile 0.2-SC1.",
+    limit: "These standards do not define a household-robot uptime threshold, validate WANTED, or make 0.2-SC1 a conformity assessment.",
+    links: [["IEC 60300-1:2024", "https://webstore.iec.ch/en/publication/66489"], ["IEC 60300-3-14:2024", "https://webstore.iec.ch/en/publication/68532"], ["ISO 14224:2016", "https://www.iso.org/standard/64076.html"]],
+  },
 ];
 
 const standards = [
@@ -64,7 +71,7 @@ export default function EvidencePage() {
   return <main className="evidencePage">
     <SiteNav />
     <section className="evidenceHero shell">
-      <span className="eyebrow"><i className="liveDot"/> RESEARCH BASIS · VERSION 0.1</span>
+      <span className="eyebrow"><i className="liveDot"/> RESEARCH BASIS · VERSION 0.2</span>
       <h1>What WANTED inherits.<br/><em>What it changes.</em></h1>
       <p>WANTED-10K combines established time-to-event statistics, human-centered task research, long-term autonomy, digital-twin testing, and robot-safety practice. This record makes the intellectual lineage—and its boundaries—auditable.</p>
       <div className="evidenceHeroActions"><a className="primary" href="#foundations">Review the evidence <span>↓</span></a><a className="secondary" href="/wanted-10k">Return to benchmark</a></div>
@@ -72,7 +79,7 @@ export default function EvidencePage() {
     </section>
 
     <section className="evidenceFoundations" id="foundations"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">01 / EVIDENCE MAP</span><h2>Six foundations.<br/><em>Six explicit limits.</em></h2></div><p>Each source informs a defined part of the protocol. None is presented as validation of the complete WANTED construct.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">01 / EVIDENCE MAP</span><h2>Seven foundations.<br/><em>Seven explicit limits.</em></h2></div><p>Each source informs a defined part of the protocol. None is presented as validation of the complete WANTED construct.</p></div>
       <div className="foundationGrid">{foundations.map((item) => <article key={item.n}>
         <header><span>{item.n}</span><small>{item.field}</small></header><h3>{item.title}</h3><p>{item.copy}</p>
         <dl><div><dt>SUPPORTS</dt><dd>{item.supports}</dd></div><div><dt>DOES NOT PROVE</dt><dd>{item.limit}</dd></div></dl>
