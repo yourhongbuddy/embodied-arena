@@ -1,10 +1,28 @@
-const source = `"""Dependency-free WANTED-10K scoring reference, version 0.2 + robustness 0.2-R1."""
+const source = `"""Dependency-free WANTED-10K scoring reference, protocol 0.2 + A1/R1."""
 from __future__ import annotations
 
 from dataclasses import dataclass
-from random import Random
-
 HORIZON = 10_000.0
+MASK_64 = (1 << 64) - 1
+
+class PCG32:
+    """Exact 0.2-A1 PCG XSH RR 64/32 stream and high-word index map."""
+    def __init__(self, seed: int, sequence: int = 54):
+        self.state = 0
+        self.increment = ((sequence << 1) | 1) & MASK_64
+        self.uint32()
+        self.state = (self.state + seed) & MASK_64
+        self.uint32()
+
+    def uint32(self) -> int:
+        previous = self.state
+        self.state = (previous * 6364136223846793005 + self.increment) & MASK_64
+        shifted = (((previous >> 18) ^ previous) >> 27) & 0xFFFFFFFF
+        rotation = (previous >> 59) & 31
+        return ((shifted >> rotation) | (shifted << ((-rotation) & 31))) & 0xFFFFFFFF
+
+    def index(self, size: int) -> int:
+        return (self.uint32() * size) >> 32
 
 @dataclass(frozen=True)
 class Environment:
@@ -47,11 +65,11 @@ def confidence_interval(
     """Environment-level nonparametric bootstrap, percentile 95% interval."""
     if len(rows) < 2:
         raise ValueError("at least two environments are required")
-    rng = Random(seed)
+    rng = PCG32(seed)
     n = len(rows)
     estimates: list[float] = []
     for _ in range(samples):
-        sample = [rows[rng.randrange(n)] for _ in range(n)]
+        sample = [rows[rng.index(n)] for _ in range(n)]
         try:
             estimates.append(wanted_score(sample))
         except ValueError:

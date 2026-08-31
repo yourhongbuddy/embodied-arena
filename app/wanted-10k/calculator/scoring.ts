@@ -1,6 +1,7 @@
 export type Outcome = "completed" | "unrelated_censor" | "rejected" | "safety_termination" | "developer_withdrawal" | "consent_privacy_withdrawal";
 export type Row = { id: number; environment: string; hours: number; outcome: Outcome };
 export const HORIZON = 10_000;
+export const BOOTSTRAP_PRNG = "pcg32_xsh_rr_64_32_seeded_v1";
 const outcomes: Outcome[] = ["completed", "unrelated_censor", "rejected", "safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"];
 
 export function validateRows(rows: Row[]) {
@@ -47,12 +48,28 @@ export function score(rows: Row[]) {
   return { ...estimate(rows), errors };
 }
 
-export function bootstrap(rows: Row[], samples = 1_000) {
+function pcg32(seed: number, sequence = 54) {
+  const one = BigInt(1);
+  const mask = (one << BigInt(64)) - one;
+  let state = BigInt(0);
+  const increment = ((BigInt(sequence) << one) | one) & mask;
+  const next = () => {
+    const previous = state;
+    state = (previous * BigInt("6364136223846793005") + increment) & mask;
+    const shifted = Number((((previous >> BigInt(18)) ^ previous) >> BigInt(27)) & BigInt("4294967295")) >>> 0;
+    const rotation = Number(previous >> BigInt(59)) & 31;
+    return ((shifted >>> rotation) | (shifted << ((-rotation) & 31))) >>> 0;
+  };
+  next(); state = (state + (BigInt(seed) & mask)) & mask; next();
+  return next;
+}
+
+export function bootstrap(rows: Row[], samples = 10_000, seed = 10_000) {
   if (rows.length < 2 || validateRows(rows).length) return { interval: null, validFraction: 0 };
-  let state = 10_000;
-  const random = () => { state = (1664525 * state + 1013904223) >>> 0; return state / 4294967296; };
+  if (!Number.isInteger(samples) || samples < 1 || !Number.isInteger(seed) || seed < 0) return { interval: null, validFraction: 0 };
+  const random = pcg32(seed);
   const estimates = Array.from({ length: samples }, () => {
-    const sample = Array.from({ length: rows.length }, () => rows[Math.floor(random() * rows.length)]);
+    const sample = Array.from({ length: rows.length }, () => rows[Number((BigInt(random()) * BigInt(rows.length)) >> BigInt(32))]);
     return estimate(sample).wanted;
   }).filter((estimate): estimate is number => estimate !== null).sort((a,b)=>a-b);
   const validFraction = estimates.length / samples;

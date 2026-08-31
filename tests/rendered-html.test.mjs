@@ -37,7 +37,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Thirty-two artifacts/);
+  assert.match(protocolHtml, /Thirty-six artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
@@ -80,6 +80,8 @@ test("publishes the signed resident-time exposure ledger", async () => {
   const [contract, schema, template, audit, leaderboard, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), templateResponse.json(), auditResponse.json(), leaderboardResponse.json(), specResponse.json()]);
   assert.equal(contract.version, "0.2-X1"); assert.equal(contract.pause_deductions_permitted, false); assert.equal(schema.properties.records.items.properties.paused_seconds_deducted.const, 0); assert.equal(template.records.length, 24); assert.equal(audit.exposure_integrity.profile_version, "0.2-X1"); assert.equal(leaderboard.admission.includes("exposure_ledger_profile_0.2-X1_passes"), true); assert.equal(spec.exposure_ledger_profile.telemetry_outage_pauses_clock, false); assert.equal(spec.developer_resources.exposure_ledger_lab, "/wanted-10k/exposure-ledger");
 });
+
+test("publishes deterministic ranked-score reproduction",async()=>{const [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,leaderboardResponse,specResponse]=await Promise.all([request("/wanted-10k/analysis-reproduction"),request("/wanted-10k/analysis-reproduction.json","application/json"),request("/wanted-10k/analysis-reproduction.schema.json","application/json"),request("/wanted-10k/analysis-reproduction.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/spec.json","application/json")]);for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,leaderboardResponse,specResponse])assert.equal(response.status,200);const pageHtml=await pageResponse.text();assert.match(pageHtml,/Do not trust W/);assert.match(pageHtml,/Same rows/);assert.match(pageHtml,/REPRODUCIBLE != REPRESENTATIVE/);const [contract,schema,template,audit,leaderboard,spec]=await Promise.all([contractResponse.json(),schemaResponse.json(),templateResponse.json(),auditResponse.json(),leaderboardResponse.json(),specResponse.json()]);assert.equal(contract.version,"0.2-A1");assert.equal(contract.bootstrap.minimum_samples,10000);assert.equal(schema.properties.bootstrap.properties.prng.const,"pcg32_xsh_rr_64_32_seeded_v1");assert.equal(template.claimed.wanted_score,87.5);assert.equal(audit.analysis_reproduction.profile_version,"0.2-A1");assert.equal(audit.primary.wanted_score,87.5);assert.equal(leaderboard.admission.includes("analysis_reproduction_profile_0.2-A1_passes"),true);assert.equal(spec.analysis_reproduction_profile.numerical_tolerance,.000001);assert.equal(spec.developer_resources.analysis_reproduction_lab,"/wanted-10k/analysis-reproduction")});
 
 test("publishes the target-specific certification applicability contract", async () => {
   const [pageResponse, contractResponse, templatesResponse, schemaResponse, specResponse] = await Promise.all([

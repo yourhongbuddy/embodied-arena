@@ -1,0 +1,1 @@
+import { analysisReproductionTemplate } from "../analysis-reproduction/profile";export async function GET(){return Response.json(analysisReproductionTemplate,{headers:{"cache-control":"public, max-age=3600"}})}

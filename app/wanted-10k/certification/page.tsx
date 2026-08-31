@@ -11,14 +11,15 @@ export const metadata: Metadata = {
 const levels = [
   ["01", "PREQUALIFIED", "SIMULATION", "Pass the 0.2-P1 preflight before human exposure. Field W, diagnostics, safety telemetry, and endpoint adjudication are explicitly not applicable."],
   ["02", "WANTED LAB", "1 SITE / 100H", "Add cohort integrity, exposure-ledger integrity, real participants, field safety, signed telemetry, endpoint adjudication, diagnostics, and a lab report. No cohort W is claimed."],
-  ["03", "WANTED WILD", "N>=20 / 10,000H", "Add an identifiable 10,000-hour W, 95% cluster-bootstrap interval, robustness profile, and tail support. This is the only ranked target."],
+  ["03", "WANTED WILD", "N>=20 / 10,000H", "Add Analysis Reproduction 0.2-A1: rebuild an identifiable 10,000-hour W, deterministic 95% cluster-bootstrap interval, robustness bounds, influence, and tail support from audited endpoint rows. This is the only ranked target."],
   ["04", "WANTED 10K", "1 HOME / 10,000H", "Complete one lifetime residence plus a seven-day withdrawal and reacquisition test. This badge does not create or improve a cohort W."],
 ];
 
 const rows = [
   ["PREFLIGHT 0.2-P1", "REQUIRED", "INHERITED", "INHERITED", "INHERITED"],
   ["COHORT INTEGRITY 0.2-E1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
-  ["REAL RESIDENT EXPOSURE", "N/A", ">=100H", ">=10,000H TOTAL", "10,000H ONE HOME"],
+  ["EXPOSURE LEDGER 0.2-X1", "N/A", ">=100H", ">=10,000H TOTAL", "10,000H ONE HOME"],
+  ["ANALYSIS REPRODUCTION 0.2-A1", "N/A", "N/A", "REQUIRED", "N/A"],
   ["FIELD SAFETY 0.2-S1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["SIGNED TELEMETRY", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
   ["DIAGNOSTICS 0.2-D1", "N/A", "REQUIRED", "REQUIRED", "REQUIRED"],
@@ -48,7 +49,7 @@ export default function CertificationPage() {
       <div className="certTable"><header><span>EVIDENCE</span><span>PREQUALIFIED</span><span>LAB</span><span>WILD</span><span>10K</span></header>{rows.map(row => <div key={row[0]}>{row.map((cell,index) => index === 0 ? <b key={cell}>{cell}</b> : <span key={`${row[0]}-${cell}-${index}`} className={cell === "REQUIRED" || cell === "YES" ? "required" : cell.startsWith("N/A") || cell === "NO" ? "na" : ""}>{cell}</span>)}</div>)}</div>
     </div></section>
 
-    <section className="certAxes"><div className="shell"><article><span>COHORT AXIS</span><h2>WANTED WILD</h2><b>Many environments. One comparable estimand.</b><p>N&gt;=20 independent environments, at least 10,000 aggregate resident hours, identifiable W, uncertainty, robustness, and public tail support.</p></article><i>!=</i><article><span>LIFETIME AXIS</span><h2>WANTED 10K</h2><b>One environment. One complete relationship.</b><p>A single residence reaches 10,000 hours and completes the withdrawal test. It earns a badge, never a ranking advantage.</p></article></div></section>
+    <section className="certAxes"><div className="shell"><article><span>COHORT AXIS</span><h2>WANTED WILD</h2><b>Many environments. One reproducible estimand.</b><p>N&gt;=20 independent environments, at least 10,000 aggregate resident hours, and 0.2-A1 reproduction of W, uncertainty, robustness, influence, and public tail support.</p></article><i>!=</i><article><span>LIFETIME AXIS</span><h2>WANTED 10K</h2><b>One environment. One complete relationship.</b><p>A single residence reaches 10,000 hours and completes the withdrawal test. It earns a badge, never a ranking advantage.</p></article></div></section>
 
     <section className="certNA"><div className="shell"><div><span className="kicker">03 / TYPED NOT APPLICABLE</span><h2>Absence with<br/><em>a reason.</em></h2><p>When the target cannot produce a field measure, the manifest carries a strict object. The checker rejects fabricated substitutes and applies the matching gate.</p></div><pre>{JSON.stringify(certificationProfile.not_applicable.encoding, null, 2)}</pre></div></section>
     <footer className="wantedFooter"><div className="shell"><div className="brand"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b> / CERTIFICATION 0.2-C1</span></div><p>Four evidence claims, each with the burden it can actually support.</p><a href="/wanted-10k">BACK TO BENCHMARK -&gt;</a></div></footer>

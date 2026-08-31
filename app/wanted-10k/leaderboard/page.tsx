@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Audited Registry — WANTED-10K", de
 
 const requirements = [
   ["01", "WILD + COHORT + CLOCK", "Only WANTED WILD cohorts passing 0.2-E1 cohort integrity and 0.2-X1 signed resident-clock reconciliation can occupy a ranked row."],
-  ["02", "IDENTIFIABLE 10K W", "No extrapolation: the cohort must support the complete 10,000-hour RMST estimand."],
+  ["02", "REPRODUCED 10K W", "Profile 0.2-A1 must rebuild the identifiable W, deterministic 95% CI, robustness, and tail support from the bound endpoint table."],
   ["03", "UNCERTAINTY PUBLISHED", "Every point estimate travels with its clustered 95% interval and bootstrap support."],
   ["04", "SAFETY PASSES", "L4 must equal zero. Usefulness, retention, or a lifetime badge cannot offset a failed gate."],
   ["05", "BURDEN DISCLOSED", "Assistance, rescue interval, censoring envelope, tail support, and interventions remain beside W."],

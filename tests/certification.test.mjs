@@ -19,7 +19,7 @@ test("all four target templates pass only their applicable gates", () => {
 
 test("PREQUALIFIED is simulation-only and rejects fabricated field evidence", () => {
   const manifest = auditManifestTemplates.PREQUALIFIED;
-  for (const key of ["cohort_integrity", "exposure_integrity", "primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.equal(manifest[key].applicable, false);
+  for (const key of ["cohort_integrity", "exposure_integrity", "analysis_reproduction", "primary", "diagnostics", "safety", "telemetry", "adjudication"]) assert.equal(manifest[key].applicable, false);
   const projection = assess(manifest).projection;
   assert.equal(projection.rankable, false);
   assert.equal(projection.wanted_score, null);
@@ -50,7 +50,7 @@ test("WANTED LAB requires field diagnostics and a lab report but never W", () =>
 test("only WANTED WILD ranks and WANTED 10K requires withdrawal", () => {
   const wild = assess(auditManifestTemplates.WANTED_WILD);
   assert.equal(wild.projection.rankable, true);
-  assert.equal(wild.projection.wanted_score, 71.4);
+  assert.equal(wild.projection.wanted_score, 87.5);
 
   const lifetime = assess(auditManifestTemplates.WANTED_10K);
   assert.equal(lifetime.projection.rankable, false);

@@ -24,7 +24,7 @@ export const certificationProfile = {
       minimum_independent_environments: 0,
       minimum_resident_hours: 0,
       requires: ["identity_and_version_binding", "frozen_preregistration", "preflight_0.2-P1", "simulation_report", "independent_audit"],
-      not_applicable: ["cohort_integrity_0.2-E1", "exposure_ledger_0.2-X1", "primary_W", "diagnostics_0.2-D1", "field_safety_0.2-S1", "field_telemetry", "endpoint_adjudication"],
+      not_applicable: ["cohort_integrity_0.2-E1", "exposure_ledger_0.2-X1", "analysis_reproduction_0.2-A1", "primary_W", "diagnostics_0.2-D1", "field_safety_0.2-S1", "field_telemetry", "endpoint_adjudication"],
       rankable: false,
     },
     WANTED_LAB: {
@@ -34,7 +34,7 @@ export const certificationProfile = {
       minimum_resident_hours: 100,
       inherits: ["PREQUALIFIED"],
       requires: ["cohort_integrity_0.2-E1", "exposure_ledger_0.2-X1", "field_safety_0.2-S1", "signed_field_telemetry", "diagnostics_0.2-D1", "endpoint_adjudication", "lab_report", "independent_audit"],
-      not_applicable: ["primary_W"],
+      not_applicable: ["analysis_reproduction_0.2-A1", "primary_W"],
       rankable: false,
     },
     WANTED_WILD: {
@@ -43,7 +43,7 @@ export const certificationProfile = {
       minimum_independent_environments: 20,
       minimum_total_resident_hours: 10000,
       inherits: ["WANTED_LAB"],
-      requires: ["identifiable_primary_W", "cluster_bootstrap_95CI", "robustness_0.2-R1", "tail_support", "independent_audit"],
+      requires: ["analysis_reproduction_0.2-A1", "identifiable_primary_W", "cluster_bootstrap_95CI", "robustness_0.2-R1", "tail_support", "independent_audit"],
       rankable: true,
     },
     WANTED_10K: {
@@ -53,7 +53,7 @@ export const certificationProfile = {
       minimum_resident_hours: 10000,
       inherits: ["WANTED_LAB"],
       requires: ["one_lifetime_completion", "seven_day_withdrawal", "reacquisition_result", "independent_audit"],
-      not_applicable: ["primary_W_unless_separately_WANTED_WILD"],
+      not_applicable: ["analysis_reproduction_0.2-A1", "primary_W_unless_separately_WANTED_WILD"],
       rankable: false,
       badge_only: true,
     },

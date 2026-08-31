@@ -49,6 +49,7 @@ export default function Wanted10K() {
           <a className="secondary" href="/wanted-10k/preflight">Preflight a policy</a>
           <a className="secondary" href="/wanted-10k/exposure-ledger">Verify resident hours</a>
           <a className="secondary" href="/wanted-10k/calculator">Calculate a cohort</a>
+          <a className="secondary" href="/wanted-10k/analysis-reproduction">Reproduce a score</a>
           <a className="secondary" href="/wanted-10k/leaderboard">Audited registry</a>
           <a className="secondary" href="/wanted-10k/evidence">Research basis</a>
         </div>
@@ -120,6 +121,7 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/event.schema.json">EVENT SCHEMA <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/reference-score.py">SCORING REFERENCE <b>↓</b></a>
+            <a className="contractLink" href="/wanted-10k/analysis-reproduction">ANALYSIS REPRODUCTION <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/exposure-ledger">EXPOSURE LEDGER <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/preregistration.template.json">PREREGISTRATION <b>↓</b></a>

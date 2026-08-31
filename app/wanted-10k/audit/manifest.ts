@@ -1,6 +1,7 @@
 import { calculateDiagnostics, diagnosticExample } from "../diagnostics/profile.ts";
 import { assessCohortIntegrity, cohortIntegrityTemplateFor } from "../cohort-integrity/profile.ts";
 import { assessExposureLedger, exposureLedgerTemplateFor } from "../exposure-ledger/profile.ts";
+import { analysisReproductionTemplate, assessAnalysisReproduction } from "../analysis-reproduction/profile.ts";
 import { assessPreflight, preflightTemplate } from "../preflight/profile.ts";
 import { assessSafety, safetyTemplate } from "../safety/profile.ts";
 
@@ -19,6 +20,9 @@ const exposureIntegritySummary = { type: "object", additionalProperties: false, 
   profile_version: { const: "0.2-X1" }, status: { const: "passed" }, target_certification: { enum: ["WANTED_LAB", "WANTED_WILD", "WANTED_10K"] }, manifest_uri: uri, manifest_sha256: digest,
   environment_count: { type: "integer", minimum: 1 }, total_resident_seconds: { type: "integer", minimum: 0 }, total_resident_hours: { type: "number", minimum: 0 }, max_environment_seconds: { type: "integer", minimum: 0, maximum: 36000000 }, missing_sequences: { const: 0 }, duplicate_sequences: { const: 0 }, backward_timestamps: { const: 0 }, boundary_mismatches: { const: 0 }, paused_seconds_deducted: { const: 0 }, continuous_clock: { const: true }, qualified_assessor: { type: "string", minLength: 1 }, assessor_attested: { const: true },
 } };
+const analysisReproductionSummary = { type: "object", additionalProperties: false, required: ["profile_version", "status", "manifest_uri", "manifest_sha256", "environment_count", "total_resident_hours", "voluntary_rejections", "unrelated_censors", "lifetime_completions", "terminal_competing_causes", "wanted_score", "ci95_lower", "ci95_upper", "survival_at_10000", "horizon_identifiable", "bootstrap_valid_fraction", "bootstrap_samples", "bootstrap_seed", "bootstrap_prng", "censoring_bound_lower", "censoring_bound_upper", "censoring_bound_width", "loo_max_absolute_shift", "loo_unidentifiable_exclusions", "support_at_10000", "early_exit_count", "cohort_integrity_sha256", "exposure_integrity_sha256", "endpoint_decisions_sha256", "analysis_code_sha256", "qualified_assessor", "assessor_attested"], properties: {
+  profile_version: { const: "0.2-A1" }, status: { const: "passed" }, manifest_uri: uri, manifest_sha256: digest, environment_count: { type: "integer", minimum: 20 }, total_resident_hours: { type: "number", minimum: 10000 }, voluntary_rejections: { type: "integer", minimum: 0 }, unrelated_censors: { type: "integer", minimum: 0 }, lifetime_completions: { type: "integer", minimum: 0 }, terminal_competing_causes: { const: 0 }, wanted_score: { type: "number", minimum: 0, maximum: 100 }, ci95_lower: { type: "number", minimum: 0, maximum: 100 }, ci95_upper: { type: "number", minimum: 0, maximum: 100 }, survival_at_10000: { type: "number", minimum: 0, maximum: 1 }, horizon_identifiable: { const: true }, bootstrap_valid_fraction: { type: "number", minimum: .95, maximum: 1 }, bootstrap_samples: { type: "integer", minimum: 10000 }, bootstrap_seed: { type: "integer", minimum: 0 }, bootstrap_prng: { const: "pcg32_xsh_rr_64_32_seeded_v1" }, censoring_bound_lower: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_upper: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_width: { type: "number", minimum: 0, maximum: 100 }, loo_max_absolute_shift: { type: ["number", "null"], minimum: 0 }, loo_unidentifiable_exclusions: { type: "integer", minimum: 0 }, support_at_10000: { type: "integer", minimum: 1 }, early_exit_count: { type: "integer", minimum: 0 }, cohort_integrity_sha256: digest, exposure_integrity_sha256: digest, endpoint_decisions_sha256: digest, analysis_code_sha256: digest, qualified_assessor: { type: "string", minLength: 1 }, assessor_attested: { const: true },
+} };
 
 export const auditManifestSchema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -26,7 +30,7 @@ export const auditManifestSchema = {
   title: "WANTED-10K Certification Audit Manifest",
   type: "object",
   additionalProperties: false,
-  required: ["protocol_version", "submission_mode", "submission", "organization", "robot", "study", "preflight", "cohort", "cohort_integrity", "exposure_integrity", "primary", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal", "evidence", "privacy", "audit"],
+  required: ["protocol_version", "submission_mode", "submission", "organization", "robot", "study", "preflight", "cohort", "cohort_integrity", "exposure_integrity", "analysis_reproduction", "primary", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal", "evidence", "privacy", "audit"],
   properties: {
     protocol_version: { const: "0.2" },
     submission_mode: { enum: ["test", "official"] },
@@ -51,8 +55,9 @@ export const auditManifestSchema = {
     } },
     cohort_integrity: { oneOf: [cohortIntegritySummary, notApplicable] },
     exposure_integrity: { oneOf: [exposureIntegritySummary, notApplicable] },
+    analysis_reproduction: { oneOf: [analysisReproductionSummary, notApplicable] },
     primary: { oneOf: [{ type: "object", additionalProperties: false, required: ["wanted_score", "ci95_lower", "ci95_upper", "survival_at_10000", "horizon_identifiable", "bootstrap_valid_fraction", "bootstrap_samples", "robustness_profile_version", "censoring_bound_lower", "censoring_bound_upper", "censoring_bound_width", "loo_max_absolute_shift", "loo_unidentifiable_exclusions", "support_at_10000", "early_exit_count"], properties: {
-      wanted_score: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_lower: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_upper: { type: ["number", "null"], minimum: 0, maximum: 100 }, survival_at_10000: { type: ["number", "null"], minimum: 0, maximum: 1 }, horizon_identifiable: { type: "boolean" }, bootstrap_valid_fraction: { type: "number", minimum: 0, maximum: 1 }, bootstrap_samples: { type: "integer", minimum: 1000 }, robustness_profile_version: { const: "0.2-R1" }, censoring_bound_lower: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_upper: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_width: { type: "number", minimum: 0, maximum: 100 }, loo_max_absolute_shift: { type: ["number", "null"], minimum: 0, maximum: 100 }, loo_unidentifiable_exclusions: { type: "integer", minimum: 0 }, support_at_10000: { type: "integer", minimum: 0 }, early_exit_count: { type: "integer", minimum: 0 },
+      wanted_score: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_lower: { type: ["number", "null"], minimum: 0, maximum: 100 }, ci95_upper: { type: ["number", "null"], minimum: 0, maximum: 100 }, survival_at_10000: { type: ["number", "null"], minimum: 0, maximum: 1 }, horizon_identifiable: { type: "boolean" }, bootstrap_valid_fraction: { type: "number", minimum: 0, maximum: 1 }, bootstrap_samples: { type: "integer", minimum: 10000 }, robustness_profile_version: { const: "0.2-R1" }, censoring_bound_lower: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_upper: { type: "number", minimum: 0, maximum: 100 }, censoring_bound_width: { type: "number", minimum: 0, maximum: 100 }, loo_max_absolute_shift: { type: ["number", "null"], minimum: 0, maximum: 100 }, loo_unidentifiable_exclusions: { type: "integer", minimum: 0 }, support_at_10000: { type: "integer", minimum: 0 }, early_exit_count: { type: "integer", minimum: 0 },
     } }, notApplicable] },
     diagnostics: { oneOf: [{ type: "object", additionalProperties: false, required: ["profile_version", "assistance_minutes_per_100_hours", "autonomous_availability", "human_burden_minutes_per_100_hours", "mean_time_between_human_rescue", "mean_time_between_failure", "self_recovery_rate", "stop_latency_ms", "privacy_stop_latency_ms", "social_error_rate", "initiative_precision", "initiative_label_coverage", "learning_delta", "generalization", "reacquisition_rate"], properties: {
       profile_version: { const: "0.2-D1" },
@@ -77,7 +82,7 @@ export const auditManifestSchema = {
     withdrawal: { type: "object", additionalProperties: false, required: ["eligible", "completed", "reacquisition_rate", "median_days_to_return_request"], properties: {
       eligible: { type: "integer", minimum: 0 }, completed: { type: "integer", minimum: 0 }, reacquisition_rate: { type: ["number", "null"], minimum: 0, maximum: 1 }, median_days_to_return_request: { type: ["number", "null"], minimum: 0, maximum: 7 },
     } },
-    evidence: { type: "array", minItems: 2, items: { type: "object", additionalProperties: false, required: ["role", "uri", "sha256", "public"], properties: { role: { enum: ["cohort_summary", "cohort_integrity_report", "exposure_integrity_report", "analysis_code", "incident_register", "safety_case", "security_assessment", "intervention_register", "version_history", "withdrawal_results", "simulation_report", "lab_report", "other"] }, uri, sha256: digest, public: { type: "boolean" } } } },
+    evidence: { type: "array", minItems: 2, items: { type: "object", additionalProperties: false, required: ["role", "uri", "sha256", "public"], properties: { role: { enum: ["cohort_summary", "cohort_integrity_report", "exposure_integrity_report", "analysis_reproduction_report", "analysis_code", "incident_register", "safety_case", "security_assessment", "intervention_register", "version_history", "withdrawal_results", "simulation_report", "lab_report", "other"] }, uri, sha256: digest, public: { type: "boolean" } } } },
     privacy: { type: "object", additionalProperties: false, required: ["participant_data_included", "redaction_reviewed", "public_pack_contains_aggregate_data_only"], properties: { participant_data_included: { const: false }, redaction_reviewed: { const: true }, public_pack_contains_aggregate_data_only: { const: true } } },
     audit: { type: "object", additionalProperties: false, required: ["auditor", "auditor_organization", "independence_statement", "scope", "signed_at", "signature_algorithm", "public_key_uri", "auditor_signature"], properties: {
       auditor: { type: "string", minLength: 1 }, auditor_organization: { type: "string", minLength: 1 }, independence_statement: { type: "string", minLength: 20 }, scope: { type: "array", minItems: 1, items: { type: "string" } }, signed_at: { type: "string", format: "date-time" }, signature_algorithm: { type: "string", minLength: 1 }, public_key_uri: uri, auditor_signature: { type: "string", pattern: "^[A-Za-z0-9_-]{32,}$" },
@@ -88,7 +93,7 @@ export const auditManifestSchema = {
       if: { properties: { submission: { properties: { target_certification: { const: "PREQUALIFIED" } }, required: ["target_certification"] } } },
       then: { properties: {
         cohort: { properties: { independent_environments: { const: 0 }, total_resident_hours: { const: 0 } } },
-        cohort_integrity: notApplicable, exposure_integrity: notApplicable, primary: notApplicable, diagnostics: notApplicable, safety: notApplicable, telemetry: notApplicable, adjudication: notApplicable,
+        cohort_integrity: notApplicable, exposure_integrity: notApplicable, analysis_reproduction: notApplicable, primary: notApplicable, diagnostics: notApplicable, safety: notApplicable, telemetry: notApplicable, adjudication: notApplicable,
         withdrawal: { properties: { eligible: { const: 0 }, completed: { const: 0 }, reacquisition_rate: { const: null }, median_days_to_return_request: { const: null } } },
         evidence: { contains: { properties: { role: { const: "simulation_report" } }, required: ["role"] }, minContains: 1 },
       } },
@@ -97,7 +102,7 @@ export const auditManifestSchema = {
       if: { properties: { submission: { properties: { target_certification: { const: "WANTED_LAB" } }, required: ["target_certification"] } } },
       then: { properties: {
         cohort: { properties: { independent_environments: { minimum: 1 }, total_resident_hours: { minimum: 100 } } },
-        cohort_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_LAB" } } }] }, exposure_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_LAB" } } }] }, primary: notApplicable, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
+        cohort_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_LAB" } } }] }, exposure_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_LAB" } } }] }, analysis_reproduction: notApplicable, primary: notApplicable, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
         evidence: { allOf: [{ contains: { properties: { role: { const: "cohort_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "exposure_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "lab_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "safety_case" } }, required: ["role"] }, minContains: 1 }] },
       } },
     },
@@ -105,15 +110,15 @@ export const auditManifestSchema = {
       if: { properties: { submission: { properties: { target_certification: { const: "WANTED_WILD" } }, required: ["target_certification"] } } },
       then: { properties: {
         cohort: { properties: { independent_environments: { minimum: 20 }, total_resident_hours: { minimum: 10000 } } },
-        cohort_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_WILD" } } }] }, exposure_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_WILD" } } }] }, primary: { not: notApplicable }, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
-        evidence: { allOf: [{ contains: { properties: { role: { const: "cohort_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "exposure_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "safety_case" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "analysis_code" } }, required: ["role"] }, minContains: 1 }] },
+        cohort_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_WILD" } } }] }, exposure_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_WILD" } } }] }, analysis_reproduction: { not: notApplicable }, primary: { not: notApplicable }, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
+        evidence: { allOf: [{ contains: { properties: { role: { const: "cohort_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "exposure_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "analysis_reproduction_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "safety_case" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "analysis_code" } }, required: ["role"] }, minContains: 1 }] },
       } },
     },
     {
       if: { properties: { submission: { properties: { target_certification: { const: "WANTED_10K" } }, required: ["target_certification"] } } },
       then: { properties: {
         cohort: { properties: { independent_environments: { minimum: 1 }, total_resident_hours: { minimum: 10000 }, lifetime_completions: { minimum: 1 } } },
-        cohort_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_10K" } } }] }, exposure_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_10K" } } }] }, primary: notApplicable, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
+        cohort_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_10K" } } }] }, exposure_integrity: { allOf: [{ not: notApplicable }, { properties: { target_certification: { const: "WANTED_10K" } } }] }, analysis_reproduction: notApplicable, primary: notApplicable, diagnostics: { not: notApplicable }, safety: { not: notApplicable }, telemetry: { not: notApplicable }, adjudication: { not: notApplicable },
         withdrawal: { properties: { eligible: { minimum: 1 }, completed: { minimum: 1 }, reacquisition_rate: { type: "number" } } },
         evidence: { allOf: [{ contains: { properties: { role: { const: "cohort_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "exposure_integrity_report" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "withdrawal_results" } }, required: ["role"] }, minContains: 1 }, { contains: { properties: { role: { const: "safety_case" } }, required: ["role"] }, minContains: 1 }] },
       } },
@@ -142,6 +147,12 @@ function exposureIntegrityAuditSummary(target: "WANTED_LAB" | "WANTED_WILD" | "W
   if (!assessment.summary || assessment.status !== "passed") throw new Error(`Synthetic ${target} exposure-ledger profile must pass.`);
   return { ...assessment.summary, status: "passed", manifest_uri: "https://example.org/wanted-exposure-integrity.json", manifest_sha256: hash("eb"), qualified_assessor: source.assessor.name, assessor_attested: source.assessor.attested };
 }
+function analysisReproductionAuditSummary() {
+  const assessment = assessAnalysisReproduction(analysisReproductionTemplate);
+  if (!assessment.summary || assessment.status !== "passed") throw new Error("Synthetic WANTED_WILD analysis-reproduction profile must pass.");
+  return { ...assessment.summary, status: "passed", manifest_uri: "https://example.org/wanted-analysis-reproduction.json", manifest_sha256: hash("aa"), ...analysisReproductionTemplate.upstream_bindings, qualified_assessor: analysisReproductionTemplate.assessor.name, assessor_attested: analysisReproductionTemplate.assessor.attested };
+}
+const analysisReproductionSummaryValue = analysisReproductionAuditSummary();
 
 export const auditManifestTemplate = {
   protocol_version: "0.2",
@@ -154,7 +165,8 @@ export const auditManifestTemplate = {
   cohort: { independent_environments: 24, total_resident_hours: 120000, lifetime_completions: 8, voluntary_rejections: 4, unrelated_censors: 12, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 },
   cohort_integrity: cohortIntegrityAuditSummary("WANTED_WILD"),
   exposure_integrity: exposureIntegrityAuditSummary("WANTED_WILD"),
-  primary: { wanted_score: 71.4, ci95_lower: 62.1, ci95_upper: 79.8, survival_at_10000: 0.61, horizon_identifiable: true, bootstrap_valid_fraction: 1, bootstrap_samples: 10000, robustness_profile_version: "0.2-R1", censoring_bound_lower: 64.2, censoring_bound_upper: 82.7, censoring_bound_width: 18.5, loo_max_absolute_shift: 3.1, loo_unidentifiable_exclusions: 0, support_at_10000: 8, early_exit_count: 12 },
+  analysis_reproduction: analysisReproductionSummaryValue,
+  primary: { wanted_score: analysisReproductionSummaryValue.wanted_score, ci95_lower: analysisReproductionSummaryValue.ci95_lower, ci95_upper: analysisReproductionSummaryValue.ci95_upper, survival_at_10000: analysisReproductionSummaryValue.survival_at_10000, horizon_identifiable: true, bootstrap_valid_fraction: analysisReproductionSummaryValue.bootstrap_valid_fraction, bootstrap_samples: analysisReproductionSummaryValue.bootstrap_samples, robustness_profile_version: "0.2-R1", censoring_bound_lower: analysisReproductionSummaryValue.censoring_bound_lower, censoring_bound_upper: analysisReproductionSummaryValue.censoring_bound_upper, censoring_bound_width: analysisReproductionSummaryValue.censoring_bound_width, loo_max_absolute_shift: analysisReproductionSummaryValue.loo_max_absolute_shift, loo_unidentifiable_exclusions: analysisReproductionSummaryValue.loo_unidentifiable_exclusions, support_at_10000: analysisReproductionSummaryValue.support_at_10000, early_exit_count: analysisReproductionSummaryValue.early_exit_count },
   diagnostics: { profile_version: "0.2-D1", ...diagnosticMetrics },
   safety: { profile_version: "0.2-S1", gate_status: "passed", manifest_uri: "https://example.org/wanted-safety-case.json", manifest_sha256: hash("7"), robot_description_sha256: safetyTemplate.deployment_scope.robot_description_sha256, policy_artifact_sha256: safetyTemplate.deployment_scope.policy_artifact_sha256, ...safetySummary, incident_counts: { L0: 2841, L1: 72, L2: 9, L3: 1, L4: 0 }, qualified_assessor: safetyTemplate.assessor.name, assessor_attested: true, assessment_uri: safetyTemplate.assessor.assessment_uri, assessment_sha256: safetyTemplate.assessor.assessment_sha256, applicable_rules: safetyTemplate.applicable_requirements.rules },
   telemetry: { schema_version: "0.2", conformance_status: "passed", total_events: 2400000, deployment_streams: 24, root_commitments_uri: "https://example.org/wanted-roots.json", root_commitments_sha256: hash("d") },
@@ -165,6 +177,7 @@ export const auditManifestTemplate = {
     { role: "cohort_summary", uri: "https://example.org/wanted-cohort.json", sha256: hash("f"), public: true },
     { role: "cohort_integrity_report", uri: "https://example.org/wanted-cohort-integrity.json", sha256: hash("ca"), public: true },
     { role: "exposure_integrity_report", uri: "https://example.org/wanted-exposure-integrity.json", sha256: hash("eb"), public: true },
+    { role: "analysis_reproduction_report", uri: "https://example.org/wanted-analysis-reproduction.json", sha256: hash("aa"), public: true },
     { role: "analysis_code", uri: "https://example.org/wanted-analysis.tar.gz", sha256: hash("1"), public: true },
     { role: "incident_register", uri: "https://example.org/wanted-incidents.json", sha256: hash("2"), public: true },
     { role: "safety_case", uri: "https://example.org/wanted-safety-case.json", sha256: hash("7"), public: true },
@@ -187,6 +200,7 @@ export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" |
     value.cohort = { independent_environments: 0, total_resident_hours: 0, lifetime_completions: 0, voluntary_rejections: 0, unrelated_censors: 0, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 };
     value.cohort_integrity = na("Cohort integrity begins with real participant screening and activation.");
     value.exposure_integrity = na("The signed resident clock begins only with real deployment activation.");
+    value.analysis_reproduction = na("Ranked primary-score reproduction applies only to a qualifying WANTED WILD cohort.");
     value.primary = na("No real-environment cohort score exists at simulation-only prequalification.");
     value.diagnostics = na("Longitudinal field diagnostics begin only after real resident exposure.");
     value.safety = na("Field safety profile 0.2-S1 begins before real resident exposure, not for simulation-only prequalification.");
@@ -199,6 +213,7 @@ export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" |
     value.cohort = { independent_environments: 1, total_resident_hours: 100, lifetime_completions: 0, voluntary_rejections: 0, unrelated_censors: 0, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 };
     value.cohort_integrity = cohortIntegrityAuditSummary("WANTED_LAB");
     value.exposure_integrity = exposureIntegrityAuditSummary("WANTED_LAB");
+    value.analysis_reproduction = na("WANTED LAB has no rankable 10,000-hour cohort W to reproduce.");
     value.telemetry.deployment_streams = 1;
     value.primary = na("WANTED LAB reports field evidence and diagnostics but no rankable 10,000-hour cohort W.");
     value.withdrawal = { eligible: 0, completed: 0, reacquisition_rate: null, median_days_to_return_request: null };
@@ -208,6 +223,7 @@ export function auditManifestTemplateFor(target: "PREQUALIFIED" | "WANTED_LAB" |
     value.cohort = { independent_environments: 1, total_resident_hours: 10000, lifetime_completions: 1, voluntary_rejections: 0, unrelated_censors: 0, safety_terminations: 0, developer_withdrawals: 0, consent_privacy_withdrawals: 0 };
     value.cohort_integrity = cohortIntegrityAuditSummary("WANTED_10K");
     value.exposure_integrity = exposureIntegrityAuditSummary("WANTED_10K");
+    value.analysis_reproduction = na("WANTED 10K is a lifetime badge, not a ranked cohort W analysis.");
     value.telemetry.deployment_streams = 1;
     value.primary = na("WANTED 10K is a one-residence lifetime badge; only a separate qualifying WANTED WILD cohort produces a ranked W.");
     value.withdrawal = { eligible: 1, completed: 1, reacquisition_rate: 1, median_days_to_return_request: 1 };

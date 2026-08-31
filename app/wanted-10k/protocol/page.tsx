@@ -38,6 +38,10 @@ const kit = [
   ["EXPOSURE LEDGER CONTRACT", "Read the 0.2-X1 clock, boundary, missing-data, reconciliation, and interpretation rules.", "/wanted-10k/exposure-ledger.json", "OPEN CONTRACT ↗"],
   ["EXPOSURE LEDGER SCHEMA", "Validate the deployment-level signed boundary and stream-reconciliation manifest for every field target.", "/wanted-10k/exposure-ledger.schema.json", "OPEN SCHEMA ↗"],
   ["EXPOSURE LEDGER TEMPLATE", "Start from a passing synthetic 24-environment, 120,000-hour WANTED WILD ledger.", "/wanted-10k/exposure-ledger.template.json", "DOWNLOAD JSON ↓"],
+  ["ANALYSIS REPRODUCER", "Rebuild W, S(10K), deterministic uncertainty, censoring bounds, influence, and tail support from the audited endpoint table.", "/wanted-10k/analysis-reproduction", "OPEN REPRODUCER →"],
+  ["ANALYSIS CONTRACT", "Read the 0.2-A1 estimator, PCG32 bootstrap, numerical tolerance, upstream bindings, and hard-failure rules.", "/wanted-10k/analysis-reproduction.json", "OPEN CONTRACT ↗"],
+  ["ANALYSIS SCHEMA", "Validate the environment-level endpoint table, claimed outputs, deterministic bootstrap parameters, and evidence bindings.", "/wanted-10k/analysis-reproduction.schema.json", "OPEN SCHEMA ↗"],
+  ["ANALYSIS TEMPLATE", "Start from a passing synthetic 24-environment claim with exact primary, uncertainty, and robustness outputs.", "/wanted-10k/analysis-reproduction.template.json", "DOWNLOAD JSON ↓"],
   ["FIELD SAFETY CASE", "Evaluate seven non-compensatory gates for scope, stop authority, protective functions, incidents, security, operations, and independent assessment.", "/wanted-10k/safety", "OPEN SAFETY LAB →"],
   ["SAFETY MANIFEST SCHEMA", "Validate the strict deployment-scoped evidence object behind every WANTED field safety decision.", "/wanted-10k/safety-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["SAFETY MANIFEST TEMPLATE", "Start from a complete synthetic 0.2-S1 case with assessed limits, incident closure, security controls, and artifact bindings.", "/wanted-10k/safety-manifest.template.json", "DOWNLOAD JSON ↓"],
@@ -84,7 +88,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Thirty-two artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort and clock integrity, verify field safety, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Thirty-six artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort and clock integrity, verify field safety, connect a robot, define a run, validate the adapter, independently reproduce the score and diagnostics, prepare an audit, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

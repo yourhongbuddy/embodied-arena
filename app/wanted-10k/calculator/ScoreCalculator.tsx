@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { bootstrap, HORIZON, robustness, score, type Outcome, type Row } from "./scoring";
+import { BOOTSTRAP_PRNG, bootstrap, HORIZON, robustness, score, type Outcome, type Row } from "./scoring";
 const exampleRows: Row[] = [
   { id: 1, environment: "ENV-001", hours: 10_000, outcome: "completed" },
   { id: 2, environment: "ENV-002", hours: 8_400, outcome: "rejected" },
@@ -13,7 +13,7 @@ const exampleRows: Row[] = [
 export function ScoreCalculator() {
   const [rows, setRows] = useState<Row[]>(exampleRows);
   const result = useMemo(() => score(rows), [rows]);
-  const bootstrapResult = useMemo(() => bootstrap(rows), [rows]);
+  const bootstrapResult = useMemo(() => bootstrap(rows,10_000,10_000), [rows]);
   const robust = useMemo(() => robustness(rows), [rows]);
   const interval = bootstrapResult.interval;
   const totalHours = rows.reduce((sum,row)=>sum + row.hours,0);
@@ -31,6 +31,7 @@ export function ScoreCalculator() {
     const payload = {
       benchmark: "WANTED-10K", schema_version: "0.2", generated_at: new Date().toISOString(),
       statistical_status: !result.identifiable ? "not_estimable_at_10000" : interval === null ? "bootstrap_support_below_95_percent" : terminalCauses ? "terminal_cause_requires_adjudication_and_rank_exclusion" : rankable ? "cohort_threshold_met" : "provisional",
+      analysis_profile_version: "0.2-A1", bootstrap: { samples: 10_000, seed: 10_000, prng: BOOTSTRAP_PRNG },
       primary: { wanted_score: result.wanted === null ? null : +result.wanted.toFixed(4), bootstrap_95_ci: interval?.map(x=>+x.toFixed(4)) ?? null, survival_at_10000: result.survival10k === null ? null : +result.survival10k.toFixed(6), horizon_identifiable: result.identifiable, bootstrap_valid_fraction: +bootstrapResult.validFraction.toFixed(4) },
       cohort: { independent_environments: rows.length, total_resident_hours: totalHours, voluntary_rejections: rejections, terminal_competing_causes: terminalCauses },
       robustness: robust,
@@ -44,7 +45,7 @@ export function ScoreCalculator() {
   return <section className="calcWorkspace shell">
     <div className="calcSummary">
       <article className="calcPrimary"><span>WANTED SCORE</span><b>{result.wanted === null ? "—" : result.wanted.toFixed(1)}</b><small>{result.identifiable ? "NORMALIZED RMST / 100" : "NO 10K EXTRAPOLATION"}</small></article>
-      <article><span>BOOTSTRAP 95% CI</span><b>{interval ? `${interval[0].toFixed(1)}–${interval[1].toFixed(1)}` : "—"}</b><small>1,000 ENVIRONMENT RESAMPLES</small></article>
+      <article><span>BOOTSTRAP 95% CI</span><b>{interval ? `${interval[0].toFixed(1)}–${interval[1].toFixed(1)}` : "—"}</b><small>10,000 DETERMINISTIC ENVIRONMENT RESAMPLES</small></article>
       <article><span>RETENTION AT 10K</span><b>{result.survival10k === null ? "—" : `${(result.survival10k*100).toFixed(1)}%`}</b><small>{result.identifiable ? "Ŝ(10,000)" : `SUPPORT ENDS AT ${result.lastObservableHours.toLocaleString()} H`}</small></article>
       <article><span>STATISTICAL STATUS</span><b className={rankable?"qualifies":"provisional"}>{statisticalStatus}</b><small>{rows.length}/20 SITES · {totalHours.toLocaleString()}/10,000 H</small></article>
     </div>
@@ -87,7 +88,7 @@ export function ScoreCalculator() {
       </div>
       <div className="sensitivityRail"><div><span>PESSIMISTIC</span><b>W {robust.bounds.lower?.toFixed(2)}</b><p>Every early non-rejection exit fails at its last observed hour.</p></div><i>≤</i><div><span>PRIMARY</span><b>W {robust.bounds.observed?.toFixed(2) ?? "—"}</b><p>Preregistered Kaplan–Meier treatment of independently censored exits.</p></div><i>≤</i><div><span>OPTIMISTIC</span><b>W {robust.bounds.upper?.toFixed(2)}</b><p>Every non-rejection exit is retained through the 10K horizon.</p></div></div>
       <div className="influenceRows"><header><span>ENVIRONMENT REMOVED</span><span>W WITHOUT ENVIRONMENT</span><span>SHIFT</span></header>{robust.influence.estimates.slice(0,5).map(item=><div key={item.environment}><b>{item.environment}</b><span>{item.estimate.toFixed(3)}</span><span className={item.shift >= 0 ? "positive" : "negative"}>{item.shift >= 0 ? "+" : ""}{item.shift.toFixed(3)}</span></div>)}</div>
-      <p>Bounds are deliberate stress scenarios, not replacement estimators. Leave-one-out influence is descriptive and must be reviewed when it exceeds the preregistered threshold.</p>
+      <p>Bounds are deliberate stress scenarios, not replacement estimators. Leave-one-out influence is descriptive and must be reviewed when it exceeds the preregistered threshold. <a href="/wanted-10k/analysis-reproduction">Reproduce an official claim →</a></p>
     </section>}
     <div className="calcCaution"><b>{!dataValid ? "COHORT DATA FAILS VALIDATION." : result.identifiable ? "STATISTICAL ELIGIBILITY IS NOT CERTIFICATION." : "10K HORIZON IS NOT IDENTIFIABLE."}</b><span>{!dataValid ? result.errors.join(" ") : result.identifiable ? "A qualifying cohort still needs complete intervention disclosure, robustness review, passed safety gates, preregistration, and independent audit." : "At least one observation must support 10,000 hours, or the Kaplan–Meier curve must reach zero before support ends. WANTED never extends the last observed survival level to manufacture unobserved hours."}</span></div>
   </section>;
