@@ -44,6 +44,7 @@ export default function Wanted10K() {
         <h1>Still wanted<br/><em>after 10,000 hours?</em></h1>
         <p>Most benchmarks ask whether a robot can complete a task. WANTED-10K asks whether people continue choosing the robot after novelty fades, hardware ages, routines change, and mistakes accumulate.</p>
         <div className="wantedActions">
+          <a className="primary" href="/wanted-10k/realtime">Open HILO Realtime <span>→</span></a>
           <a className="primary" href="/wanted-10k/protocol">Open protocol kit <span>→</span></a>
           <a className="secondary" href="/wanted-10k/sdk">Integrate a robot</a>
           <a className="secondary" href="/wanted-10k/preflight">Preflight a policy</a>

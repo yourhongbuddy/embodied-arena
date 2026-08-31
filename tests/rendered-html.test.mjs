@@ -44,6 +44,18 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
 
+test("publishes the vendor-neutral HILO Realtime protocol", async () => {
+  const response = await request("/wanted-10k/realtime");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Benchmark the loop/);
+  assert.match(html, /MEAN TIME TO HUMAN INTERVENTION/);
+  assert.match(html, /INDEPENDENT SAFETY KERNEL/);
+  assert.match(html, /IMAGE_EVENT/);
+  assert.match(html, /REFERENCE ≠ STANDARD/);
+  assert.match(html, /gpt-realtime-2\.1/);
+});
+
 test("publishes the cohort-integrity selection and independence gate", async () => {
   const [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, leaderboardResponse, specResponse] = await Promise.all([
     request("/wanted-10k/cohort-integrity"),
