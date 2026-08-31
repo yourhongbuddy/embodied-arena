@@ -1,0 +1,2 @@
+import { preregistrationTemplateFor, PREREGISTRATION_TARGETS, type PreregistrationTarget } from "../preregistration-integrity/profile";
+export async function GET(request:Request){const target=new URL(request.url).searchParams.get("target")||"WANTED_WILD";const selected=PREREGISTRATION_TARGETS.includes(target as PreregistrationTarget)?target as PreregistrationTarget:"WANTED_WILD";return Response.json(preregistrationTemplateFor(selected),{headers:{"content-disposition":"attachment; filename=wanted-preregistration-integrity.json","cache-control":"public, max-age=3600"}})}
