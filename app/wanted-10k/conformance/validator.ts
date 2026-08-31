@@ -1,4 +1,4 @@
-export const eventTypes = ["ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"] as const;
+export const eventTypes = ["DEPLOYMENT_LIFECYCLE", "ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"] as const;
 const required = ["schema_version", "event_id", "deployment_id", "environment_id", "robot_id", "sequence", "occurred_at", "type", "payload", "signing_key_id", "signature"];
 const allowed = new Set([...required, "previous_event_hash"]);
 type EventType = typeof eventTypes[number];
@@ -22,6 +22,11 @@ export async function sha256(value: unknown) {
 function payloadErrors(event: WantedEvent, line: number) {
   const errors: string[] = [];
   const payload = event.payload;
+  if (event.type === "DEPLOYMENT_LIFECYCLE") {
+    if (!["activation", "end"].includes(String(payload.phase))) errors.push(`Line ${line}: DEPLOYMENT_LIFECYCLE requires phase activation or end.`);
+    if (payload.phase === "activation" && (event.sequence !== 0 || typeof payload.participant_acceptance_ref !== "string" || !payload.participant_acceptance_ref || typeof payload.activation_record_sha256 !== "string" || !/^[a-f0-9]{64}$/.test(payload.activation_record_sha256))) errors.push(`Line ${line}: activation must be sequence zero and bind participant_acceptance_ref plus activation_record_sha256.`);
+    if (payload.phase === "end" && (!['voluntary_rejection', 'administrative_completion', 'unrelated_exit', 'safety_termination', 'developer_withdrawal', 'consent_privacy_withdrawal', 'observation_cutoff'].includes(String(payload.disposition)) || typeof payload.evidence_ref !== "string" || !payload.evidence_ref)) errors.push(`Line ${line}: end requires a recognized disposition and evidence_ref.`);
+  }
   if (event.type === "ROBOT_STATE" && !["available", "charging", "sleeping", "updating", "degraded", "awaiting_assistance", "removed"].includes(String(payload.state))) errors.push(`Line ${line}: ROBOT_STATE requires a recognized payload.state.`);
   if (event.type === "HUMAN_REQUEST") {
     if (!["task", "stop", "pause", "privacy", "delete_memory", "do_not_remember", "permanent_removal", "return_robot", "other"].includes(String(payload.request_type))) errors.push(`Line ${line}: HUMAN_REQUEST requires a recognized payload.request_type.`);
@@ -77,6 +82,7 @@ export async function validateStream(text: string): Promise<Validation> {
     if (typeof event.occurred_at !== "string" || !event.occurred_at.endsWith("Z") || Number.isNaN(Date.parse(event.occurred_at))) errors.push(`Line ${line}: occurred_at must be a valid RFC 3339 UTC timestamp ending in Z.`);
     if (!eventTypes.includes(event.type)) errors.push(`Line ${line}: unrecognized event type ${String(event.type)}.`); else seenTypes.add(event.type);
     if (!event.payload || Array.isArray(event.payload) || typeof event.payload !== "object") errors.push(`Line ${line}: payload must be an object.`); else errors.push(...payloadErrors(event, line));
+    if (index === 0 && (event.type !== "DEPLOYMENT_LIFECYCLE" || event.payload.phase !== "activation")) errors.push("Line 1: sequence zero must be a DEPLOYMENT_LIFECYCLE activation.");
     if (typeof event.signature !== "string" || !/^[A-Za-z0-9_-]{32,}$/.test(event.signature)) errors.push(`Line ${line}: signature must be base64url text of at least 32 characters.`);
     if (index === 0 && "previous_event_hash" in event) {
       if (typeof event.previous_event_hash !== "string" || !/^[a-f0-9]{64}$/.test(event.previous_event_hash)) errors.push("Line 1: supplied previous_event_hash must be 64 lowercase hexadecimal characters.");
@@ -91,7 +97,7 @@ export async function validateStream(text: string): Promise<Validation> {
     }
   }
   const missingTypes = eventTypes.filter(type => !seenTypes.has(type));
-  if (missingTypes.length) warnings.push(`Coverage sample omits ${missingTypes.join(", ")}. A production stream need not emit every type in every file, but adapter qualification exercises all five.`);
+  if (missingTypes.length) warnings.push(`Coverage sample omits ${missingTypes.join(", ")}. A production stream need not emit every type in every file, but adapter qualification exercises all six.`);
   warnings.push("Signature shape is checked locally; cryptographic signature verification requires the public key and algorithm frozen in the study preregistration.");
   return { status: errors.length ? "fail" : "pass", events: events.length, coverage: seenTypes.size, chainLinks, errors, warnings };
 }
@@ -99,6 +105,7 @@ export async function validateStream(text: string): Promise<Validation> {
 export async function sampleJsonl() {
   const base = { schema_version: "0.2", deployment_id: "dep_demo_001", environment_id: "env_demo_001", robot_id: "robot_demo_001", signing_key_id: "demo_key_01", signature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" };
   const partials = [
+    { type: "DEPLOYMENT_LIFECYCLE", payload: { phase: "activation", participant_acceptance_ref: "controlled://acceptance/1", activation_record_sha256: "ab0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd" } },
     { type: "ROBOT_STATE", payload: { state: "available", autonomous_service_capable: true } },
     { type: "HUMAN_REQUEST", payload: { request_type: "task", evidence_ref: "local://request/1" } },
     { type: "ROBOT_ACTION", payload: { intent: "bring water", proactive: false } },

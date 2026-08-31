@@ -119,7 +119,7 @@ export const leaderboardContract = {
     statistical_claim: "rank_order_is_descriptive_and_does_not_imply_pairwise_significance",
     derived_fields: ["rank", "displayed_wanted_score", "tied"],
   },
-  admission: ["audit_manifest_passes_all_six_gates", "WANTED_WILD_certification_awarded", "cohort_integrity_profile_0.2-E1_passes", "horizon_identifiable", "bootstrap_valid_fraction_at_least_0.95", "preflight_profile_0.2-P1_passes", "safety_profile_0.2-S1_passes", "L4_equals_zero", "public_aggregate_evidence_pack", "independent_auditor_signature"],
+  admission: ["audit_manifest_passes_all_six_gates", "WANTED_WILD_certification_awarded", "cohort_integrity_profile_0.2-E1_passes", "exposure_ledger_profile_0.2-X1_passes", "horizon_identifiable", "bootstrap_valid_fraction_at_least_0.95", "preflight_profile_0.2-P1_passes", "safety_profile_0.2-S1_passes", "L4_equals_zero", "public_aggregate_evidence_pack", "independent_auditor_signature"],
   lifecycle: { entries_are_immutable: true, correction_method: "publish_new_entry_with_supersedes_submission_id", revoked_rows_remain_in_history: true, multiple_active_revisions_per_study_cohort: "reject_all_until_resolved" },
   disclosure: ["W_and_95_percent_CI", "S_at_10000", "environment_count", "resident_hours", "support_at_10000", "censoring_bound_width", "assistance_minutes_per_100_hours", "MTBHR_or_zero_event_lower_bound", "safety_gate_and_L4_count", "robot_and_policy_versions", "audit_manifest_hash"],
   certification_lanes: { PREQUALIFIED: "registry_only_not_ranked", WANTED_LAB: "registry_only_not_ranked", WANTED_WILD: "ranked_when_active", WANTED_10K: "lifetime_badge_never_a_tiebreaker" },

@@ -24,7 +24,7 @@ export const certificationProfile = {
       minimum_independent_environments: 0,
       minimum_resident_hours: 0,
       requires: ["identity_and_version_binding", "frozen_preregistration", "preflight_0.2-P1", "simulation_report", "independent_audit"],
-      not_applicable: ["cohort_integrity_0.2-E1", "primary_W", "diagnostics_0.2-D1", "field_safety_0.2-S1", "field_telemetry", "endpoint_adjudication"],
+      not_applicable: ["cohort_integrity_0.2-E1", "exposure_ledger_0.2-X1", "primary_W", "diagnostics_0.2-D1", "field_safety_0.2-S1", "field_telemetry", "endpoint_adjudication"],
       rankable: false,
     },
     WANTED_LAB: {
@@ -33,7 +33,7 @@ export const certificationProfile = {
       minimum_independent_environments: 1,
       minimum_resident_hours: 100,
       inherits: ["PREQUALIFIED"],
-      requires: ["cohort_integrity_0.2-E1", "field_safety_0.2-S1", "signed_field_telemetry", "diagnostics_0.2-D1", "endpoint_adjudication", "lab_report", "independent_audit"],
+      requires: ["cohort_integrity_0.2-E1", "exposure_ledger_0.2-X1", "field_safety_0.2-S1", "signed_field_telemetry", "diagnostics_0.2-D1", "endpoint_adjudication", "lab_report", "independent_audit"],
       not_applicable: ["primary_W"],
       rankable: false,
     },

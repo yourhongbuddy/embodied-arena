@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 const events = [
+  ["lifecycle", 'wanted.lifecycle("activation", { participant_acceptance_ref: "controlled://acceptance/42", activation_record_sha256: "…" })'],
   ["state", 'wanted.state("available", { autonomous_service_capable: true })'],
   ["request", 'wanted.request("privacy", { evidence_ref: "local://request/42" })'],
   ["action", 'wanted.action("put mug in dishwasher", { proactive: false })'],
@@ -21,9 +22,9 @@ export default function SdkPage() {
     <section className="sdkHero shell">
       <span className="eyebrow"><i className="liveDot"/> EXECUTABLE REFERENCE ADAPTER · PROTOCOL 0.2</span>
       <h1>Robot to valid stream.<br/><em>Fifteen minutes.</em></h1>
-      <p>Keep the native controller. WANTED adds one narrow evidence layer: five event helpers, a hardware-backed signer, and a durable sink. The adapter serializes concurrent calls, assigns sequence numbers, signs RFC 8785 canonical bytes, and chains every accepted event.</p>
+      <p>Keep the native controller. WANTED adds one narrow evidence layer: six event helpers, a hardware-backed signer, and a durable sink. The adapter serializes concurrent calls, assigns sequence numbers, signs RFC 8785 canonical bytes, and chains every accepted event.</p>
       <div className="sdkActions"><a className="primary" href="/wanted-10k/wanted-sdk.mjs">Download SDK <span>↓</span></a><a className="secondary" href="/wanted-10k/deployment.template.json">Download config</a><a className="secondary" href="/wanted-10k/conformance">Test the stream</a></div>
-      <div className="sdkPromise"><div><b>0</b><span>RUNTIME DEPENDENCIES</span></div><div><b>5</b><span>EVENT HELPERS</span></div><div><b>1</b><span>DURABLE CHAIN</span></div><div><b>0</b><span>PRIVATE KEYS EXPORTED</span></div></div>
+      <div className="sdkPromise"><div><b>0</b><span>RUNTIME DEPENDENCIES</span></div><div><b>6</b><span>EVENT HELPERS</span></div><div><b>1</b><span>DURABLE CHAIN</span></div><div><b>0</b><span>PRIVATE KEYS EXPORTED</span></div></div>
     </section>
 
     <section className="sdkFlow"><div className="shell">
@@ -56,7 +57,7 @@ await durableStore.save(wanted.checkpoint());`}</code></pre><footer><span>WEB CR
     </div></section>
 
     <section className="sdkEvents"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / FIVE REQUIRED EVENTS</span><h2>Small API.<br/><em>Complete evidence.</em></h2></div><p>Native ROS 2 topics, simulator callbacks, task planners, and operator consoles map into the same five calls.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / SIX REQUIRED EVENTS</span><h2>Small API.<br/><em>Complete evidence.</em></h2></div><p>Native ROS 2 topics, simulator callbacks, task planners, and operator consoles map into the same six calls.</p></div>
       <div className="sdkEventRows">{events.map(([name,code],index)=><article key={name}><span>0{index+1}</span><b>{name}</b><code>{code}</code></article>)}</div>
       <div className="adapterMap"><b>COMMON MAPPINGS</b><span>ROS 2 node → helper calls</span><span>Isaac / MuJoCo callbacks → helper calls</span><span>Operator console → intervention + incident</span><span>Participant UI → request</span></div>
     </div></section>

@@ -14,7 +14,7 @@ export default function ConformancePage() {
     <section className="conformanceHero shell">
       <span className="eyebrow"><i className="liveDot"/> LOCAL VALIDATOR · PROTOCOL 0.2</span>
       <h1>Prove the stream<br/><em>before hour one.</em></h1>
-      <p>Paste or load a JSONL event stream. The checker validates the five-event adapter profile, per-deployment ordering, UTC time, and the RFC 8785 / SHA-256 previous-event chain entirely on this device.</p>
+      <p>Paste or load a JSONL event stream. The checker validates the six-event adapter profile, lifecycle boundaries, per-deployment ordering, UTC time, and the RFC 8785 / SHA-256 previous-event chain entirely on this device.</p>
       <div className="conformanceLinks"><a href="/wanted-10k/event.schema.json">EVENT SCHEMA ↗</a><a href="/wanted-10k/protocol">PROTOCOL KIT ↗</a><a href="/wanted-10k">BENCHMARK ↗</a></div>
     </section>
     <ConformanceChecker />

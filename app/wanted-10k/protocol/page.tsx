@@ -14,12 +14,12 @@ const decisions = [
   ["SAFETY TERMINATION", "Permanent removal under the safety plan", "Competing terminal cause + safety-gate review"],
   ["DEVELOPER WITHDRAWAL", "Robot or support permanently withdrawn by its developer", "Terminal cause; cohort is not rankable"],
   ["CONSENT / PRIVACY", "Data or consent withdrawal without an adjudicated rejection request", "Terminal cause reported separately"],
-  ["TEMPORARY PAUSE", "Travel, reversible pause, or short maintenance", "Not terminal; preregistered resident-clock rule applies"],
+  ["TEMPORARY PAUSE", "Travel, reversible pause, or short maintenance", "Not terminal; continuous resident time keeps accruing"],
 ];
 
 const eligibility = [
   ["01", "COHORT", "N ≥ 20 environments passing integrity profile 0.2-E1"],
-  ["02", "EXPOSURE", "Σ resident time ≥ 10,000 hours"],
+  ["02", "EXPOSURE", "Σ resident time ≥ 10,000 hours passing ledger 0.2-X1"],
   ["03", "SUPPORT", "10K RMST is identifiable without extrapolation"],
   ["04", "UNCERTAINTY", "≥95% of environment bootstrap draws identify 10K"],
   ["05", "SAFETY", "All gates pass; no verified L4 event"],
@@ -34,6 +34,10 @@ const kit = [
   ["COHORT INTEGRITY CONTRACT", "Read the 0.2-E1 anti-cherry-picking rules, hard failures, target-specific independence constraints, and interpretation boundary.", "/wanted-10k/cohort-integrity.json", "OPEN CONTRACT ↗"],
   ["COHORT INTEGRITY SCHEMA", "Validate the aggregate recruitment-flow and hashed-linkage evidence manifest used by every field target.", "/wanted-10k/cohort-integrity.schema.json", "OPEN SCHEMA ↗"],
   ["COHORT INTEGRITY TEMPLATE", "Start from a passing synthetic WANTED WILD selection and independence manifest.", "/wanted-10k/cohort-integrity.template.json", "DOWNLOAD JSON ↓"],
+  ["EXPOSURE LEDGER LAB", "Reproduce resident hours from signed lifecycle boundaries, complete event chains, and a continuous elapsed-UTC clock.", "/wanted-10k/exposure-ledger", "OPEN LEDGER LAB →"],
+  ["EXPOSURE LEDGER CONTRACT", "Read the 0.2-X1 clock, boundary, missing-data, reconciliation, and interpretation rules.", "/wanted-10k/exposure-ledger.json", "OPEN CONTRACT ↗"],
+  ["EXPOSURE LEDGER SCHEMA", "Validate the deployment-level signed boundary and stream-reconciliation manifest for every field target.", "/wanted-10k/exposure-ledger.schema.json", "OPEN SCHEMA ↗"],
+  ["EXPOSURE LEDGER TEMPLATE", "Start from a passing synthetic 24-environment, 120,000-hour WANTED WILD ledger.", "/wanted-10k/exposure-ledger.template.json", "DOWNLOAD JSON ↓"],
   ["FIELD SAFETY CASE", "Evaluate seven non-compensatory gates for scope, stop authority, protective functions, incidents, security, operations, and independent assessment.", "/wanted-10k/safety", "OPEN SAFETY LAB →"],
   ["SAFETY MANIFEST SCHEMA", "Validate the strict deployment-scoped evidence object behind every WANTED field safety decision.", "/wanted-10k/safety-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["SAFETY MANIFEST TEMPLATE", "Start from a complete synthetic 0.2-S1 case with assessed limits, incident closure, security controls, and artifact bindings.", "/wanted-10k/safety-manifest.template.json", "DOWNLOAD JSON ↓"],
@@ -43,11 +47,11 @@ const kit = [
   ["PREFLIGHT LAB", "Assess the simulator-neutral eight-family stress matrix, exact zero-event bound, deterministic replay, safe resolution, and artifact binding.", "/wanted-10k/preflight", "OPEN PREFLIGHT LAB →"],
   ["PREFLIGHT MANIFEST SCHEMA", "Validate the portable digital-twin evidence object used by any simulator before human exposure.", "/wanted-10k/preflight.schema.json", "OPEN SCHEMA ↗"],
   ["PREFLIGHT TEMPLATE", "Start with a complete synthetic 0.2-P1 manifest covering all hard qualification gates.", "/wanted-10k/preflight.template.json", "DOWNLOAD JSON ↓"],
-  ["REFERENCE ADAPTER", "Connect a native robot stack with five helpers while the module owns ordering, JCS signing bytes, hash chaining, and restart checkpoints.", "/wanted-10k/sdk", "OPEN QUICKSTART →"],
+  ["REFERENCE ADAPTER", "Connect a native robot stack with six helpers while the module owns lifecycle boundaries, ordering, JCS signing bytes, hash chaining, and restart checkpoints.", "/wanted-10k/sdk", "OPEN QUICKSTART →"],
   ["PREREGISTRATION TEMPLATE", "Freeze recruitment, incentives, endpoints, safety, operations, updates, privacy, telemetry, and analysis before hour one.", "/wanted-10k/preregistration.template.json", "DOWNLOAD JSON ↓"],
   ["PREREGISTRATION SCHEMA", "Machine-check every field that prevents post-hoc rule changes or hidden operational support.", "/wanted-10k/preregistration.schema.json", "OPEN SCHEMA ↗"],
   ["ENDPOINT RULES", "Use one shared disposition vocabulary for rejection, censoring, safety termination, developer withdrawal, and consent exit.", "/wanted-10k/endpoint-rules.json", "OPEN RULES ↗"],
-  ["ADAPTER CHECKER", "Exercise the five-event profile and verify ordered RFC 8785 / SHA-256 hash-chain continuity locally.", "/wanted-10k/conformance", "RUN CHECKER →"],
+  ["ADAPTER CHECKER", "Exercise the six-event profile and verify the activation boundary plus ordered RFC 8785 / SHA-256 hash-chain continuity locally.", "/wanted-10k/conformance", "RUN CHECKER →"],
   ["SCORING REFERENCE", "Reproduce Kaplan–Meier normalized RMST and refuse unsupported 10,000-hour extrapolation.", "/wanted-10k/reference-score.py", "DOWNLOAD PYTHON ↓"],
   ["SCORE LAB", "Enter an environment-level cohort, inspect support and uncertainty, and export an audit summary.", "/wanted-10k/calculator", "OPEN SCORE LAB →"],
   ["AUDIT MANIFEST SCHEMA", "Bind the public leaderboard row to versioned, hashed study, safety, telemetry, adjudication, and withdrawal evidence.", "/wanted-10k/audit-manifest.schema.json", "OPEN SCHEMA ↗"],
@@ -80,7 +84,7 @@ export default function ProtocolPage() {
     </div></section>
 
     <section className="kitSection" id="resources"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Twenty-eight artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort integrity, verify field safety, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">03 / DEVELOPER + STUDY KIT</span><h2>Thirty-two artifacts.<br/><em>One evidence chain.</em></h2></div><p>Everything needed to choose a certification claim, preflight a policy, prove cohort and clock integrity, verify field safety, connect a robot, define a run, validate the adapter, reproduce the score and diagnostics, prepare an independent audit, and publish an immutable registry row.</p></div>
       <div className="kitGrid">{kit.map(([title,copy,href,label],index)=><article key={title}><header><span>0{index+1}</span><small>PUBLIC RESOURCE</small></header><h3>{title}</h3><p>{copy}</p><a href={href}>{label}</a></article>)}</div>
     </div></section>
 

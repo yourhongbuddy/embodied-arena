@@ -37,7 +37,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /Twenty-eight artifacts/);
+  assert.match(protocolHtml, /Thirty-two artifacts/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
@@ -68,6 +68,17 @@ test("publishes the cohort-integrity selection and independence gate", async () 
   assert.equal(leaderboard.admission.includes("cohort_integrity_profile_0.2-E1_passes"), true);
   assert.equal(spec.cohort_integrity_profile.analysis_principle, "all_activated_environments_remain_in_analysis");
   assert.equal(spec.developer_resources.cohort_integrity_lab, "/wanted-10k/cohort-integrity");
+});
+
+test("publishes the signed resident-time exposure ledger", async () => {
+  const [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, leaderboardResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/exposure-ledger"), request("/wanted-10k/exposure-ledger.json", "application/json"), request("/wanted-10k/exposure-ledger.schema.json", "application/json"), request("/wanted-10k/exposure-ledger.template.json", "application/json"), request("/wanted-10k/audit-manifest.template.json", "application/json"), request("/wanted-10k/leaderboard.json", "application/json"), request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [pageResponse, contractResponse, schemaResponse, templateResponse, auditResponse, leaderboardResponse, specResponse]) assert.equal(response.status, 200);
+  const pageHtml = await pageResponse.text();
+  assert.match(pageHtml, /Every hour/); assert.match(pageHtml, /No outage creates/); assert.match(pageHtml, /RESIDENCE != UPTIME/);
+  const [contract, schema, template, audit, leaderboard, spec] = await Promise.all([contractResponse.json(), schemaResponse.json(), templateResponse.json(), auditResponse.json(), leaderboardResponse.json(), specResponse.json()]);
+  assert.equal(contract.version, "0.2-X1"); assert.equal(contract.pause_deductions_permitted, false); assert.equal(schema.properties.records.items.properties.paused_seconds_deducted.const, 0); assert.equal(template.records.length, 24); assert.equal(audit.exposure_integrity.profile_version, "0.2-X1"); assert.equal(leaderboard.admission.includes("exposure_ledger_profile_0.2-X1_passes"), true); assert.equal(spec.exposure_ledger_profile.telemetry_outage_pauses_clock, false); assert.equal(spec.developer_resources.exposure_ledger_lab, "/wanted-10k/exposure-ledger");
 });
 
 test("publishes the target-specific certification applicability contract", async () => {
@@ -185,7 +196,7 @@ test("publishes the non-ranking longitudinal diagnostic profile", async () => {
   assert.equal(spec.developer_resources.diagnostic_lab, "/wanted-10k/diagnostics");
 });
 
-test("ships an executable adapter that produces one conformant five-event chain", async () => {
+test("ships an executable adapter that produces one conformant six-event chain", async () => {
   const [pageResponse, sdkResponse, schemaResponse, templateResponse, openapiResponse, specResponse] = await Promise.all([
     request("/wanted-10k/sdk"),
     request("/wanted-10k/wanted-sdk.mjs", "text/javascript"),
@@ -214,32 +225,38 @@ test("ships an executable adapter that produces one conformant five-event chain"
     eventId: () => `evt_test_${String(minute).padStart(3, "0")}`,
   });
   await Promise.all([
+    wanted.lifecycle("activation", { participant_acceptance_ref: "controlled://acceptance/1", activation_record_sha256: "ab0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd" }),
     wanted.state("available", { autonomous_service_capable: true }),
     wanted.request("task", { evidence_ref: "local://request/1" }),
     wanted.action("bring water", { proactive: false }),
     wanted.intervention("remote_guidance", 18, "recovery"),
     wanted.incident("L1", "Brief hallway obstruction", { participant_requested_stop: false }),
   ]);
-  assert.deepEqual(events.map(event => event.sequence), [0, 1, 2, 3, 4]);
-  assert.deepEqual(new Set(events.map(event => event.type)), new Set(["ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"]));
+  assert.deepEqual(events.map(event => event.sequence), [0, 1, 2, 3, 4, 5]);
+  assert.deepEqual(new Set(events.map(event => event.type)), new Set(["DEPLOYMENT_LIFECYCLE", "ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"]));
   const independentCanonicalize = value => value === null || typeof value !== "object" ? JSON.stringify(value) : Array.isArray(value) ? `[${value.map(independentCanonicalize).join(",")}]` : `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${independentCanonicalize(value[key])}`).join(",")}}`;
   for (let index = 1; index < events.length; index++) {
     const expected = createHash("sha256").update(independentCanonicalize(events[index - 1])).digest("hex");
     assert.equal(events[index].previous_event_hash, expected);
   }
-  const checkpoint = { next_sequence: 5, previous_event_hash: createHash("sha256").update(independentCanonicalize(events[4])).digest("hex"), last_occurred_at: "2026-08-28T18:04:00.000Z" };
+  const checkpoint = { next_sequence: 6, previous_event_hash: createHash("sha256").update(independentCanonicalize(events[5])).digest("hex"), last_occurred_at: "2026-08-28T18:05:00.000Z" };
   assert.deepEqual(wanted.checkpoint(), checkpoint);
   const resumedEvents = [];
   const resumed = new sdk.WantedClient({ deploymentId: "dep_test_001", environmentId: "env_test_001", robotId: "robot_test_001", signingKeyId: "key_test_001", checkpoint, sign: async () => new Uint8Array(64).fill(8), sink: async event => resumedEvents.push(event), eventId: () => "evt_test_006" });
-  await resumed.state("charging", {}, "2026-08-28T18:05:00Z");
-  assert.equal(resumedEvents[0].sequence, 5);
+  await resumed.state("charging", {}, "2026-08-28T18:06:00Z");
+  assert.equal(resumedEvents[0].sequence, 6);
   assert.equal(resumedEvents[0].previous_event_hash, checkpoint.previous_event_hash);
+  await resumed.lifecycle("end", { disposition: "observation_cutoff", evidence_ref: "controlled://cutoff/1" }, "2026-08-28T18:07:00Z");
+  assert.equal(resumedEvents[1].sequence, 7);
+
+  const invalidGenesis = new sdk.WantedClient({ deploymentId: "dep_invalid_001", environmentId: "env_invalid_001", robotId: "robot_invalid_001", signingKeyId: "key_invalid_001", sign: async () => new Uint8Array(64).fill(3), sink: async () => undefined });
+  await assert.rejects(invalidGenesis.state("available"), /sequence zero/);
 
   let sinkAttempts = 0;
   const retryEvents = [];
   const retrying = new sdk.WantedClient({ deploymentId: "dep_retry_001", environmentId: "env_retry_001", robotId: "robot_retry_001", signingKeyId: "key_retry_001", sign: async () => new Uint8Array(64).fill(9), eventId: () => `evt_retry_${sinkAttempts}`, sink: async event => { sinkAttempts++; if (sinkAttempts === 1) throw new Error("offline"); retryEvents.push(event); } });
-  await assert.rejects(retrying.state("available"), /offline/);
-  await retrying.state("available");
+  await assert.rejects(retrying.lifecycle("activation", { participant_acceptance_ref: "controlled://acceptance/retry", activation_record_sha256: "ab0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd" }), /offline/);
+  await retrying.lifecycle("activation", { participant_acceptance_ref: "controlled://acceptance/retry", activation_record_sha256: "ab0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd" });
   assert.equal(retryEvents[0].sequence, 0);
   assert.equal(retrying.checkpoint().next_sequence, 1);
   await assert.rejects(retrying.action("invalid number", { score: Number.NaN }), /non-finite/);
@@ -248,6 +265,7 @@ test("ships an executable adapter that produces one conformant five-event chain"
   assert.equal(template.checkpoint.recovery_tested, true);
   assert.ok(openapi.paths["/v1/deployments/{deployment_id}/tail"]);
   assert.equal(spec.developer_resources.reference_sdk, "/wanted-10k/wanted-sdk.mjs");
+  assert.equal(spec.mandatory_events[0], "DEPLOYMENT_LIFECYCLE");
 });
 
 test("publishes internally consistent protocol 0.2 resources", async () => {

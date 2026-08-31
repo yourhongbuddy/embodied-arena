@@ -13,7 +13,7 @@ const eventSchema = {
     robot_id: { type: "string", minLength: 1, maxLength: 128 },
     sequence: { type: "integer", minimum: 0 },
     occurred_at: { type: "string", format: "date-time" },
-    type: { enum: ["ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"] },
+    type: { enum: ["DEPLOYMENT_LIFECYCLE", "ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"] },
     payload: { type: "object" },
     previous_event_hash: { type: "string", pattern: "^[a-f0-9]{64}$" },
     signing_key_id: { type: "string", minLength: 1, maxLength: 128 },
@@ -21,6 +21,9 @@ const eventSchema = {
   },
   allOf: [
     { if: { properties: { sequence: { minimum: 1 } }, required: ["sequence"] }, then: { required: ["previous_event_hash"] } },
+    { if: { properties: { type: { const: "DEPLOYMENT_LIFECYCLE" } } }, then: { properties: { payload: { type: "object", additionalProperties: true, required: ["phase"], properties: { phase: { enum: ["activation", "end"] }, participant_acceptance_ref: { type: "string" }, activation_record_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" }, disposition: { enum: ["voluntary_rejection", "administrative_completion", "unrelated_exit", "safety_termination", "developer_withdrawal", "consent_privacy_withdrawal", "observation_cutoff"] }, evidence_ref: { type: "string" } } } } } },
+    { if: { properties: { type: { const: "DEPLOYMENT_LIFECYCLE" }, payload: { properties: { phase: { const: "activation" } }, required: ["phase"] } }, required: ["type", "payload"] }, then: { properties: { sequence: { const: 0 }, payload: { required: ["participant_acceptance_ref", "activation_record_sha256"], properties: { participant_acceptance_ref: { type: "string", minLength: 1 }, activation_record_sha256: { type: "string", pattern: "^[a-f0-9]{64}$" } } } } } },
+    { if: { properties: { type: { const: "DEPLOYMENT_LIFECYCLE" }, payload: { properties: { phase: { const: "end" } }, required: ["phase"] } }, required: ["type", "payload"] }, then: { properties: { payload: { required: ["disposition", "evidence_ref"], properties: { disposition: { enum: ["voluntary_rejection", "administrative_completion", "unrelated_exit", "safety_termination", "developer_withdrawal", "consent_privacy_withdrawal", "observation_cutoff"] }, evidence_ref: { type: "string", minLength: 1 } } } } } },
     { if: { properties: { type: { const: "HUMAN_REQUEST" } } }, then: { properties: { payload: { type: "object", additionalProperties: true, required: ["request_type"], properties: { request_type: { enum: ["task", "stop", "pause", "privacy", "delete_memory", "do_not_remember", "permanent_removal", "return_robot", "other"] }, uncoerced: { type: "boolean" }, evidence_ref: { type: "string" } } } } } },
     { if: { properties: { type: { const: "HUMAN_REQUEST" }, payload: { properties: { request_type: { const: "permanent_removal" } }, required: ["request_type"] } }, required: ["type", "payload"] }, then: { properties: { payload: { required: ["uncoerced", "evidence_ref"], properties: { uncoerced: { const: true }, evidence_ref: { type: "string", minLength: 1 } } } } } },
     { if: { properties: { type: { const: "ROBOT_STATE" } } }, then: { properties: { payload: { type: "object", additionalProperties: true, required: ["state"], properties: { state: { enum: ["available", "charging", "sleeping", "updating", "degraded", "awaiting_assistance", "removed"] }, autonomous_service_capable: { type: "boolean" } } } } } },

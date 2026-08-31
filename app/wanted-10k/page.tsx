@@ -29,10 +29,10 @@ const levels = [
   ["01", "PREQUALIFIED", "Digital twin", "Failure injection, collision, recovery, network loss, sensing drift, and human-trajectory stress tests."],
   ["02", "WANTED LAB", "100+ hours", "Real robot, real people, cohort-integrity evidence, passed safety gates, and complete event telemetry."],
   ["03", "WANTED WILD", "10,000+ cohort hours", "At least 20 profile-verified independent environments, supported 10K estimand, passed safety gates, and independent audit."],
-  ["04", "WANTED 10K", "One 10,000-hour residence", "Uninterrupted lifetime run plus a seven-day withdrawal and voluntary reacquisition test."],
+  ["04", "WANTED 10K", "One 10,000-hour residence", "One continuous resident-clock lifetime run plus a seven-day withdrawal and voluntary reacquisition test."],
 ];
 
-const events = ["ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"];
+const events = ["DEPLOYMENT_LIFECYCLE", "ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"];
 
 export default function Wanted10K() {
   return <main className="wantedPage">
@@ -47,6 +47,7 @@ export default function Wanted10K() {
           <a className="primary" href="/wanted-10k/protocol">Open protocol kit <span>→</span></a>
           <a className="secondary" href="/wanted-10k/sdk">Integrate a robot</a>
           <a className="secondary" href="/wanted-10k/preflight">Preflight a policy</a>
+          <a className="secondary" href="/wanted-10k/exposure-ledger">Verify resident hours</a>
           <a className="secondary" href="/wanted-10k/calculator">Calculate a cohort</a>
           <a className="secondary" href="/wanted-10k/leaderboard">Audited registry</a>
           <a className="secondary" href="/wanted-10k/evidence">Research basis</a>
@@ -110,7 +111,7 @@ export default function Wanted10K() {
       <div className="shell integrationGrid">
         <div>
           <span className="kicker">03 / DEVELOPER INTEGRATION</span>
-          <h2>Five events.<br/><em>Any embodiment.</em></h2>
+          <h2>Six events.<br/><em>Any embodiment.</em></h2>
           <p>Keep the robot’s native control stack. WANTED only requires a signed, ordered event stream and one robot description: URDF, MJCF, or USD.</p>
           <div className="eventList">{events.map((event,i)=><div key={event}><span>0{i+1}</span><code>{event}</code></div>)}</div>
           <div className="contractLinks">
@@ -120,6 +121,7 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/reference-score.py">SCORING REFERENCE <b>↓</b></a>
             <a className="contractLink" href="/wanted-10k/conformance">CONFORMANCE CHECKER <b>→</b></a>
+            <a className="contractLink" href="/wanted-10k/exposure-ledger">EXPOSURE LEDGER <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/preregistration.template.json">PREREGISTRATION <b>↓</b></a>
           </div>
         </div>

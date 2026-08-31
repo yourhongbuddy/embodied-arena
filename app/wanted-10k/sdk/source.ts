@@ -6,6 +6,7 @@ export const wantedSdkSource = String.raw`/**
  */
 
 const EVENT_TYPES = new Set([
+  "DEPLOYMENT_LIFECYCLE",
   "ROBOT_STATE",
   "HUMAN_REQUEST",
   "ROBOT_ACTION",
@@ -67,6 +68,11 @@ function requireText(value, name) {
 
 function validatePayload(type, payload) {
   if (!payload || Array.isArray(payload) || typeof payload !== "object") throw new TypeError("payload must be an object");
+  if (type === "DEPLOYMENT_LIFECYCLE") {
+    if (!['activation', 'end'].includes(payload.phase)) throw new TypeError("DEPLOYMENT_LIFECYCLE requires phase activation or end");
+    if (payload.phase === "activation" && (!payload.participant_acceptance_ref || !/^[a-f0-9]{64}$/.test(payload.activation_record_sha256 || ""))) throw new TypeError("activation requires participant_acceptance_ref and activation_record_sha256");
+    if (payload.phase === "end" && (!['voluntary_rejection', 'administrative_completion', 'unrelated_exit', 'safety_termination', 'developer_withdrawal', 'consent_privacy_withdrawal', 'observation_cutoff'].includes(payload.disposition) || !payload.evidence_ref)) throw new TypeError("end requires a recognized disposition and evidence_ref");
+  }
   if (type === "ROBOT_STATE" && !["available", "charging", "sleeping", "updating", "degraded", "awaiting_assistance", "removed"].includes(payload.state)) throw new TypeError("invalid ROBOT_STATE payload.state");
   if (type === "HUMAN_REQUEST") {
     if (!["task", "stop", "pause", "privacy", "delete_memory", "do_not_remember", "permanent_removal", "return_robot", "other"].includes(payload.request_type)) throw new TypeError("invalid HUMAN_REQUEST payload.request_type");
@@ -126,6 +132,8 @@ export class WantedClient {
     if (!EVENT_TYPES.has(type)) throw new TypeError("unknown WANTED event type");
     const safePayload = structuredClone(payload);
     validatePayload(type, safePayload);
+    if (this.nextSequence === 0 && (type !== "DEPLOYMENT_LIFECYCLE" || safePayload.phase !== "activation")) throw new TypeError("sequence zero must be a DEPLOYMENT_LIFECYCLE activation");
+    if (type === "DEPLOYMENT_LIFECYCLE" && safePayload.phase === "activation" && this.nextSequence !== 0) throw new TypeError("activation is permitted only at sequence zero");
     const timestamp = occurredAt ?? this.now().toISOString();
     if (typeof timestamp !== "string" || !timestamp.endsWith("Z") || Number.isNaN(Date.parse(timestamp))) throw new TypeError("occurredAt must be RFC 3339 UTC ending in Z");
     if (this.lastOccurredAt && Date.parse(timestamp) < Date.parse(this.lastOccurredAt)) throw new TypeError("occurredAt cannot move backward from the accepted checkpoint");
@@ -160,6 +168,7 @@ export class WantedClient {
     return Object.freeze({ next_sequence: this.nextSequence, previous_event_hash: this.previousEventHash, last_occurred_at: this.lastOccurredAt });
   }
 
+  lifecycle(phase, details = {}, occurredAt) { return this.emit({ type: "DEPLOYMENT_LIFECYCLE", occurredAt, payload: { phase, ...details } }); }
   state(state, details = {}, occurredAt) { return this.emit({ type: "ROBOT_STATE", occurredAt, payload: { state, ...details } }); }
   request(requestType, details = {}, occurredAt) { return this.emit({ type: "HUMAN_REQUEST", occurredAt, payload: { request_type: requestType, ...details } }); }
   action(intent, details = {}, occurredAt) { return this.emit({ type: "ROBOT_ACTION", occurredAt, payload: { intent, ...details } }); }
