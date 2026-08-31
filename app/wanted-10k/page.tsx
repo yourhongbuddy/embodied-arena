@@ -136,6 +136,7 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/exposure-ledger">EXPOSURE LEDGER <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/preregistration.template.json">PREREGISTRATION <b>↓</b></a>
             <a className="contractLink" href="/wanted-10k/preregistration-integrity">PREREGISTRATION INTEGRITY <b>→</b></a>
+            <a className="contractLink" href="/wanted-10k/protocol-deviations">PROTOCOL DEVIATIONS <b>→</b></a>
           </div>
         </div>
         <div className="codeCard">

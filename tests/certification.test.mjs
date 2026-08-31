@@ -44,6 +44,7 @@ test("WANTED LAB requires field diagnostics and a lab report but never W", async
   assert.equal(result.projection.privacy_integrity_verified, true);
   assert.equal(result.projection.service_continuity_verified, true);
   assert.equal(result.projection.preregistration_integrity_verified, true);
+  assert.equal(result.projection.protocol_deviation_integrity_verified, true);
 
   const noDiagnostics = clone(manifest);
   noDiagnostics.diagnostics = { applicable: false, reason: "Field diagnostics were not supplied." };
@@ -67,6 +68,9 @@ test("WANTED LAB requires field diagnostics and a lab report but never W", async
   const noServiceContinuity = clone(manifest);
   noServiceContinuity.service_continuity = { applicable: false, reason: "Service continuity evidence was not supplied." };
   assert.equal((await assess(noServiceContinuity)).gates.find(gate => gate.id === "G3").status, "fail");
+  const suppressedDeviation = clone(manifest);
+  suppressedDeviation.protocol_deviations.suppressed_deviations = 1;
+  assert.equal((await assess(suppressedDeviation)).gates.find(gate => gate.id === "G3").status, "fail");
 });
 
 test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
@@ -86,6 +90,9 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
   assert.equal(wild.projection.service_autonomous_available_fraction > .98, true);
   assert.equal(wild.projection.preregistration_integrity_verified, true);
   assert.equal(wild.projection.preregistration_amendment_count, 2);
+  assert.equal(wild.projection.protocol_deviation_integrity_verified, true);
+  assert.equal(wild.projection.protocol_deviation_count, 2);
+  assert.equal(wild.projection.protocol_deviation_important_count, 1);
 
   const lifetime = await assess(auditManifestTemplates.WANTED_10K);
   assert.equal(lifetime.projection.rankable, false);
@@ -102,13 +109,17 @@ test("machine contracts encode target applicability and rankability", () => {
   for (const key of ["primary", "human_measures", "learning_generalization", "assistance_integrity", "policy_evolution_integrity", "privacy_integrity", "service_continuity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.ok(auditManifestSchema.properties[key].oneOf);
   assert.equal(auditManifestSchema.properties.telemetry.oneOf[0].properties.profile_version.const, "0.2-T1");
   assert.equal(auditManifestSchema.properties.audit.properties.credential.properties.profile_version.const, "0.2-V2");
-  assert.equal(auditManifestSchema.allOf.length, 6);
+  assert.equal(auditManifestSchema.allOf.length, 7);
   assert.equal(auditManifestSchema.properties.preregistration_integrity.properties.outcome_informed_amendments.const, 0);
   assert.equal(auditManifestSchema.properties.preregistration_integrity.properties.retroactive_amendments.const, 0);
+  assert.equal(auditManifestSchema.properties.protocol_deviations.properties.suppressed_deviations.const, 0);
+  assert.equal(auditManifestSchema.properties.protocol_deviations.properties.primary_analysis_exclusions.const, 0);
+  assert.equal(auditManifestSchema.properties.protocol_deviations.properties.endpoint_reclassifications.const, 0);
   assert.equal(certificationProfile.version, "0.2-C1");
   assert.deepEqual(certificationProfile.ordering.inherits.WANTED_10K, ["WANTED_LAB"]);
   assert.equal(certificationProfile.targets.WANTED_WILD.rankable, true);
   assert.equal(Object.values(certificationProfile.targets).every(target => target.requires.includes("preregistration_integrity_0.2-PR1")), true);
+  assert.equal(Object.values(certificationProfile.targets).every(target => target.requires.includes("protocol_deviation_integrity_0.2-DV1")), true);
   assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("endpoint_adjudication_0.2-J1"), true);
   assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("auditor_credential_0.2-V2"), true);
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
