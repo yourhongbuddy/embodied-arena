@@ -68,6 +68,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 9 | `digitalocean-v09` | `52544f2` | Publish normative A2 analysis conformance vectors |
 | 10 | `digitalocean-v10` | `4097257` | Add the digest-pinned executable analysis conformance runner |
 | 11 | `digitalocean-v11` | `227f4d3` | Add multi-site heterogeneity integrity profile |
+| 12 | `digitalocean-v12` | `9455b73` | Add privacy-first site version rotator |
 
 ## Release convention
 
