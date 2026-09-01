@@ -61,6 +61,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 2 | `digitalocean-v02` | `07ec6e4` | Expand robot rankings with Jetson edge platforms |
 | 3 | `digitalocean-v03` | `87a254b` | Add the read-only agent and MCP interface |
 | 4 | `digitalocean-v04` | `b2aa8c2` | Validate the standalone deployment end to end |
+| 5 | `digitalocean-v05` | `84428ff` | Clear accessibility and lint gates |
 
 ## Release convention
 
