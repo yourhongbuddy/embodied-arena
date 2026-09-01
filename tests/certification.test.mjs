@@ -19,7 +19,7 @@ test("all four target templates pass only their applicable gates", async () => {
 
 test("PREQUALIFIED is simulation-only and rejects fabricated field evidence", async () => {
   const manifest = auditManifestTemplates.PREQUALIFIED;
-  for (const key of ["cohort_integrity", "site_heterogeneity", "exposure_integrity", "analysis_reproduction", "primary", "human_measures", "learning_generalization", "assistance_integrity", "policy_evolution_integrity", "privacy_integrity", "service_continuity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.equal(manifest[key].applicable, false);
+  for (const key of ["cohort_integrity", "site_heterogeneity", "exposure_integrity", "root_envelope_integrity", "root_commitment_witness", "analysis_reproduction", "primary", "human_measures", "learning_generalization", "assistance_integrity", "policy_evolution_integrity", "privacy_integrity", "service_continuity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.equal(manifest[key].applicable, false);
   const projection = (await assess(manifest)).projection;
   assert.equal(projection.rankable, false);
   assert.equal(projection.wanted_score, null);
@@ -102,6 +102,8 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
   assert.equal(wild.projection.sampling_actual_units, 24);
   assert.equal(wild.projection.sampling_actual_exposure_hours, 120000);
   assert.equal(wild.projection.sampling_unscheduled_primary_analyses, 0);
+  assert.equal(wild.projection.root_envelope_integrity_verified, true);
+  assert.equal(wild.projection.root_envelope_count, 1000);
   assert.equal(wild.projection.root_commitment_witness_verified, true);
   assert.equal(wild.projection.root_commitment_count, 1000);
   assert.equal(wild.projection.root_witness_receipt_count, 2000);
@@ -127,7 +129,7 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
 });
 
 test("machine contracts encode target applicability and rankability", () => {
-  for (const key of ["site_heterogeneity", "primary", "human_measures", "learning_generalization", "assistance_integrity", "policy_evolution_integrity", "privacy_integrity", "service_continuity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.ok(auditManifestSchema.properties[key].oneOf);
+  for (const key of ["site_heterogeneity", "root_envelope_integrity", "primary", "human_measures", "learning_generalization", "assistance_integrity", "policy_evolution_integrity", "privacy_integrity", "service_continuity", "diagnostics", "safety", "telemetry", "adjudication", "withdrawal"]) assert.ok(auditManifestSchema.properties[key].oneOf);
   assert.equal(auditManifestSchema.properties.telemetry.oneOf[0].properties.profile_version.const, "0.2-T1");
   assert.equal(auditManifestSchema.properties.audit.properties.credential.properties.profile_version.const, "0.2-V2");
   assert.equal(auditManifestSchema.allOf.length, 8);
@@ -147,7 +149,12 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("endpoint_adjudication_0.2-J1"), true);
   assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("auditor_credential_0.2-V2"), true);
   assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("site_heterogeneity_0.2-SH1"), true);
+  assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("root_envelope_0.2-RE1"), true);
+  assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("root_envelope_0.2-RE1"), true);
+  assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("root_envelope_0.2-RE1"), true);
+  assert.equal(certificationProfile.targets.PREQUALIFIED.not_applicable.includes("root_envelope_0.2-RE1"), true);
   assert.equal(certificationProfile.ranking.site_heterogeneity_metrics_change_rank, false);
+  assert.equal(certificationProfile.ranking.root_envelope_metrics_change_rank, false);
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
   assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("endpoint_adjudication_0.2-J1"), true);
   assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("withdrawal_0.2-W1"), true);
@@ -161,4 +168,18 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.secondary_disclosures.revealed_preference_0_2_RP1.cohort, "separate_nonranking_preference_substudy");
   assert.equal(certificationProfile.secondary_disclosures.revealed_preference_0_2_RP1.ranking_effect, "none");
   assert.equal(certificationProfile.ranking.only_target, "WANTED_WILD");
+});
+
+test("requires signed root-envelope integrity for every field target", async () => {
+  for (const target of ["WANTED_LAB","WANTED_WILD","WANTED_10K"]) {
+    const missing=clone(auditManifestTemplates[target]);
+    missing.root_envelope_integrity.missing_envelopes=1;
+    assert.equal((await assess(missing)).gates.find(gate=>gate.id==="G5").status,"fail",target);
+  }
+  const drift=clone(auditManifestTemplates.WANTED_WILD);
+  drift.root_envelope_integrity.root_commitments_sha256="ab".repeat(32);
+  assert.equal((await assess(drift)).gates.find(gate=>gate.id==="G5").status,"fail");
+  const typeConfusion=clone(auditManifestTemplates.WANTED_WILD);
+  typeConfusion.root_envelope_integrity.root_count="1000";
+  assert.equal((await assess(typeConfusion)).gates.find(gate=>gate.id==="G5").status,"fail");
 });
