@@ -48,7 +48,7 @@ async function standaloneServer() {
           throw new Error(`Standalone server exited with code ${serverProcess.exitCode}.\n${output}`);
         }
         try {
-          const response = await fetch(new URL("wanted-10k", baseUrl), {
+          const response = await fetch(new URL("robots.txt", baseUrl), {
             signal: AbortSignal.timeout(1_000),
           });
           if (response.status < 500) return baseUrl;

@@ -59,9 +59,12 @@ export function MonitoringConsole() {
   }, []);
 
   useEffect(() => {
-    void run();
+    const initial = window.setTimeout(() => void run(), 0);
     const interval = window.setInterval(() => void run(), 60_000);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+    };
   }, [run]);
 
   const mcp = snapshot?.probes.find((probe) => probe.path === "/mcp");
