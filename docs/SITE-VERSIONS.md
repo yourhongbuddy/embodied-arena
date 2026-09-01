@@ -105,6 +105,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 46 | `digitalocean-v46` | `cdfeb03` | Add no-key-custody RC1 witness receipt issuance and verification |
 | 47 | `digitalocean-v47` | `f786e6b` | Bind every witnessed digest to a chained verified telemetry prefix |
 | 48 | `digitalocean-v48` | `5c97469` | Revalidate saved site versions against each persistent anonymous assignment |
+| 49 | `digitalocean-v49` | `fe6c31b` | Require signed root envelopes for field certification and ranked admission |
 
 ## Release convention
 
