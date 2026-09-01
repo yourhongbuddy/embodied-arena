@@ -1,4 +1,5 @@
-export const ROTATOR_VERSION = "0.5-R5";
+export const ROTATOR_VERSION = "0.6-R6";
+export const EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS = [2_000,10_000,30_000] as const;
 
 export const WANTED_LANDING_EXPERIMENT = {
   id: "wanted_landing_v1",
@@ -53,6 +54,7 @@ export const experimentRotatorContract = {
   version: ROTATOR_VERSION,
   privacy: { persistent_identifier: "device_local_only", transmitted_identifier: "ephemeral_session_and_exposure_token_only", IP_storage: false, fingerprinting: false, third_party_analytics: false, event_retention_days: 35, deletion_mechanism: "delete_before_each_accepted_insert" },
   assignment: { algorithm: "FNV1a_32", modulus: 10_000, stable_per_device: true, query_override: "wanted_variant", invalid_override: "ignored", pre_assignment_presentation: "neutral_noninteractive" },
+  delivery: { exposure_transport: "acknowledged_fetch_keepalive", acknowledgement: "x-analytics-status=accepted", retry_delays_ms: EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS, retry_when_online: true, session_marker_after_acknowledgement: true, session_marker_scope: "rotator_version_experiment_variant" },
   counting: { exposure: "once_per_session_per_experiment_variant", goal: "distinct_exposed_sessions_with_matching_exposure_token_primary_cta", receipt_order_dependency: false, preview_mode_included: false, operator_mode_included: false, reporting_window_days: 30 },
   inference: { conversion_interval: "wilson_score_95_percent", sample_ratio_mismatch: "pearson_chi_square_df_2", sample_ratio_alert_p_below: 0.001, winner_declaration: false },
   ingestion: { maximum_body_bytes: 8192, content_type: "application/json", experiment_id_required: true, current_rotator_version_required: true, same_variant_goal_required: true, matching_exposure_token_required: true },

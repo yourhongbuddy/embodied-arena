@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import { assignWantedVariant, experimentRotatorContract, resolveWantedAssignment, validWantedVariant, WANTED_LANDING_EXPERIMENT } from "../app/experiments/rotator.ts";
+import { assignWantedVariant, EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,experimentRotatorContract, resolveWantedAssignment, validWantedVariant, WANTED_LANDING_EXPERIMENT } from "../app/experiments/rotator.ts";
 import { summarizeExperiment,wilsonInterval } from "../app/experiments/results.ts";
 import { experimentResultsQuery } from "../app/api/experiments/route.ts";
 import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent,validExposureToken } from "../app/experiments/ingestion.ts";
+import { startAcknowledgedDelivery } from "../app/experiments/delivery.ts";
 
 test("publishes a complete deterministic allocation",()=>{
   assert.equal(WANTED_LANDING_EXPERIMENT.variants.reduce((sum,variant)=>sum+variant.weight_basis_points,0),10_000);
@@ -36,12 +37,36 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.counting.preview_mode_included,false);
   assert.equal(experimentRotatorContract.counting.operator_mode_included,false);
   assert.equal(experimentRotatorContract.counting.receipt_order_dependency,false);
+  assert.equal(experimentRotatorContract.delivery.session_marker_after_acknowledgement,true);
+  assert.equal(experimentRotatorContract.delivery.session_marker_scope,"rotator_version_experiment_variant");
+  assert.equal(experimentRotatorContract.delivery.retry_when_online,true);
+  assert.deepEqual(experimentRotatorContract.delivery.retry_delays_ms,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS);
   assert.equal(experimentRotatorContract.assignment.pre_assignment_presentation,"neutral_noninteractive");
   assert.equal(experimentRotatorContract.inference.winner_declaration,false);
   assert.equal(experimentRotatorContract.safety_boundary.presentation_only,true);
   assert.equal(experimentRotatorContract.safety_boundary.changes_score,false);
   assert.equal(experimentRotatorContract.safety_boundary.changes_certification,false);
   assert.equal(experimentRotatorContract.safety_boundary.changes_registry_rank,false);
+});
+
+test("marks an exposure sent only after acknowledged delivery",async()=>{
+  const scheduled=[],responses=[false,false,true];let acknowledged=false,marks=0;
+  const delivery=startAcknowledgedDelivery({
+    send:async()=>responses.shift()??false,
+    isAcknowledged:()=>acknowledged,
+    markAcknowledged:()=>{acknowledged=true;marks++},
+    retryDelaysMs:EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,
+    schedule:(callback,delay)=>{const handle={callback,delay};scheduled.push(handle);return handle},
+    clearSchedule:handle=>{const index=scheduled.indexOf(handle);if(index>=0)scheduled.splice(index,1)},
+  });
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(acknowledged,false);assert.equal(scheduled[0].delay,2_000);
+  scheduled.shift().callback();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(acknowledged,false);assert.equal(scheduled[0].delay,10_000);
+  scheduled.shift().callback();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(acknowledged,true);assert.equal(marks,1);assert.equal(scheduled.length,0);
+  delivery.retryNow();await new Promise(resolve=>setImmediate(resolve));assert.equal(marks,1);
+  delivery.cancel();
 });
 
 test("rejects malformed assignment seeds",()=>{assert.throws(()=>assignWantedVariant("short"),/bounded anonymous/)});
@@ -70,13 +95,13 @@ test("executes the matched-exposure query against SQLite",()=>{
   const db=new DatabaseSync(":memory:");
   db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT,event_type TEXT,path TEXT,metadata TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
   const insert=db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)");
-  const event=(session,eventType,variant,token,mode="assigned",goal,version="0.5-R5")=>insert.run(session,eventType,"/wanted-10k",JSON.stringify({experiment:"wanted_landing_v1",variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
+  const event=(session,eventType,variant,token,mode="assigned",goal,version="0.6-R6")=>insert.run(session,eventType,"/wanted-10k",JSON.stringify({experiment:"wanted_landing_v1",variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
   event("matched_session","experiment_exposure","control","11111111-1111-4111-8111-111111111111");event("matched_session","experiment_goal","control","11111111-1111-4111-8111-111111111111","assigned","primary_cta");
   event("early_goal_session","experiment_goal","proof","22222222-2222-4222-8222-222222222222","assigned","primary_cta");event("early_goal_session","experiment_exposure","proof","22222222-2222-4222-8222-222222222222");
   event("wrong_token_session","experiment_exposure","developer","33333333-3333-4333-8333-333333333333");event("wrong_token_session","experiment_goal","developer","44444444-4444-4444-8444-444444444444","assigned","primary_cta");
   event("preview_session","experiment_exposure","control","55555555-5555-4555-8555-555555555555","preview");event("preview_session","experiment_goal","control","55555555-5555-4555-8555-555555555555","preview","primary_cta");
   event("old_version","experiment_exposure","control","66666666-6666-4666-8666-666666666666","assigned",undefined,"0.4-R4");
-  const rows=db.prepare(experimentResultsQuery).all("wanted_landing_v1","0.5-R5","wanted_landing_v1","0.5-R5");
+  const rows=db.prepare(experimentResultsQuery).all("wanted_landing_v1","0.6-R6","wanted_landing_v1","0.6-R6");
   const found=new Map(rows.map(row=>[row.variant,row]));
   assert.deepEqual({...found.get("control")},{variant:"control",exposed_sessions:1,goal_sessions:1});
   assert.deepEqual({...found.get("proof")},{variant:"proof",exposed_sessions:1,goal_sessions:1});
@@ -85,11 +110,11 @@ test("executes the matched-exposure query against SQLite",()=>{
 });
 
 test("accepts only current, internal, schema-valid experiment events",()=>{
-  const exposure={experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned",rotator_version:"0.5-R5",exposure_id:"11111111-1111-4111-8111-111111111111"};
+  const exposure={experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned",rotator_version:"0.6-R6",exposure_id:"11111111-1111-4111-8111-111111111111"};
   assert.equal(validExposureToken(exposure.exposure_id),true);assert.equal(validExposureToken("1"),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,variant:"invented"}),false);
-  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.4-R4"}),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.5-R5"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,exposure_id:"invented"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/analytics",exposure),false);
   assert.equal(validExperimentEvent("experiment_goal","/wanted-10k",{...exposure,goal:"primary_cta",destination:"/wanted-10k/protocol"}),true);

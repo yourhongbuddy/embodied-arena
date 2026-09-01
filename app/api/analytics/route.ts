@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const db=await getD1();
     await db.prepare(ANALYTICS_RETENTION_QUERY).run();
     await db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)").bind(sessionId,eventType,path,JSON.stringify(safe)).run();
-    return new Response(null,{status:204});
+    return new Response(null,{status:204,headers:{"x-analytics-status":"accepted"}});
   }catch{return new Response(null,{status:204,headers:{"x-analytics-status":"unavailable"}})}
 }
 

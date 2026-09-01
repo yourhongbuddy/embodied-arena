@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { track } from "../components/AnalyticsHeartbeat";
-import { resolveWantedAssignment, ROTATOR_VERSION, WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
+import { track,trackConfirmed } from "../components/AnalyticsHeartbeat";
+import { startAcknowledgedDelivery } from "../experiments/delivery";
+import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,resolveWantedAssignment, ROTATOR_VERSION, WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
 
 const content: Record<WantedVariant, { eyebrow: string; headline: React.ReactNode; intro: string; primary: { label: string; href: string }; proof: [string,string][]; cardLabel: string }> = {
   control: {
@@ -43,7 +44,7 @@ function assignmentSeed() {
 }
 
 function exposureKey(assignment: WantedAssignment) {
-  return `ea_exposure:${assignment.experiment}:${assignment.variant}`;
+  return `ea_exposure:${assignment.experiment}:${ROTATOR_VERSION}:${assignment.variant}`;
 }
 
 const exposureTokenPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -64,8 +65,16 @@ export function WantedLandingExperience() {
   }, []);
   useEffect(()=>{
     if(assignment?.mode!=="assigned"||!exposureId.current||!shouldTrackExposure.current)return;
-    shouldTrackExposure.current=false;sessionStorage.setItem(`${exposureKey(assignment)}:sent`,"1");
-    track("experiment_exposure",location.pathname,{experiment:assignment.experiment,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current});
+    const token=exposureId.current,sentKey=`${exposureKey(assignment)}:sent`;
+    const metadata={experiment:assignment.experiment,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
+    const delivery=startAcknowledgedDelivery({
+      send:()=>trackConfirmed("experiment_exposure",location.pathname,metadata),
+      isAcknowledged:()=>sessionStorage.getItem(sentKey)==="1",
+      markAcknowledged:()=>{shouldTrackExposure.current=false;sessionStorage.setItem(sentKey,"1")},
+      retryDelaysMs:EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,
+    });
+    window.addEventListener("online",delivery.retryNow);
+    return()=>{delivery.cancel();window.removeEventListener("online",delivery.retryNow)};
   },[assignment]);
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
   const variant = content[displayAssignment.variant];
