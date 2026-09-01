@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
 import { nativeLocalStorage,persistentRandomUnit,safeSessionStorage } from "../experiments/browser-storage";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
+import { currentTrackingExclusionReason,type TrackingExclusionReason } from "../experiments/privacy-choice";
 import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
 
 function experimentUnitId(){
@@ -19,12 +20,14 @@ function assignmentLockKey(){return`ea_assignment:${WANTED_LANDING_EXPERIMENT.id
 function lockedSessionAssignment(){try{const value=JSON.parse(safeSessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignment(value)?value:null}catch{return null}}
 
 export function WantedLandingExperience() {
-  const [assignment, setAssignment] = useState<WantedAssignment|null>(null),[storageUnavailable,setStorageUnavailable]=useState(false);
+  const [assignment, setAssignment] = useState<WantedAssignment|null>(null),[exclusionReason,setExclusionReason]=useState<TrackingExclusionReason|"storage_unavailable"|null>(null);
   const exposureId=useRef<string|null>(null),unitId=useRef<string|null>(null),shouldTrackExposure=useRef(false);
   useEffect(() => {
-    const unit=experimentUnitId();
     const preview = new URLSearchParams(location.search).get("wanted_variant");
-    if(!unit){const next:WantedAssignment={experiment:WANTED_LANDING_EXPERIMENT.id,variant:validWantedVariant(preview)?preview:"control",bucket:null,mode:"preview"};const update=window.setTimeout(()=>{setStorageUnavailable(true);setAssignment(next)},0);return()=>window.clearTimeout(update)}
+    const privacyExclusion=currentTrackingExclusionReason();
+    if(privacyExclusion){const next:WantedAssignment={experiment:WANTED_LANDING_EXPERIMENT.id,variant:validWantedVariant(preview)?preview:"control",bucket:null,mode:"preview"};const update=window.setTimeout(()=>{setExclusionReason(privacyExclusion);setAssignment(next)},0);return()=>window.clearTimeout(update)}
+    const unit=experimentUnitId();
+    if(!unit){const next:WantedAssignment={experiment:WANTED_LANDING_EXPERIMENT.id,variant:validWantedVariant(preview)?preview:"control",bucket:null,mode:"preview"};const update=window.setTimeout(()=>{setExclusionReason("storage_unavailable");setAssignment(next)},0);return()=>window.clearTimeout(update)}
     const resolved = resolveWantedAssignment(unit, preview);
     const operator=safeSessionStorage.getItem("ea_experiment_operator")==="1";
     let next:WantedAssignment=operator&&resolved.mode==="assigned"?{...resolved,mode:"preview"}:resolved;
@@ -55,9 +58,9 @@ export function WantedLandingExperience() {
     if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
-  return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} data-exclusion-reason={storageUnavailable?"storage_unavailable":undefined} aria-busy={pending}>
+  return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} data-exclusion-reason={exclusionReason??undefined} aria-busy={pending}>
     {pending&&<div className="variantPending" role="status"><i/><b>WANTED-10K</b><span>Assigning a stable privacy-first site version</span></div>}
-    {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>{storageUnavailable?"STORAGE UNAVAILABLE":"PREVIEW MODE"}</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
+    {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>{exclusionReason==="storage_unavailable"?"STORAGE UNAVAILABLE":exclusionReason?"PRIVACY PREFERENCE":"PREVIEW MODE"}</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
     <div className="wantedHeroCopy" aria-hidden={pending}>
       <span className="eyebrow"><i className="liveDot"/> {variant.eyebrow}</span>
       <h1>{variant.headline[0]}<br/><em>{variant.headline[1]}</em></h1>

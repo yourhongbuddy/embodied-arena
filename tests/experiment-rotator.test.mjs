@@ -9,6 +9,7 @@ import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent
 import { startAcknowledgedDelivery } from "../app/experiments/delivery.ts";
 import { createExperimentOutbox } from "../app/experiments/outbox.ts";
 import { persistentRandomUnit,safeSessionStorage } from "../app/experiments/browser-storage.ts";
+import { ANALYTICS_OPT_OUT_STORAGE_KEY,persistAnalyticsOptOut,trackingExclusionReason } from "../app/experiments/privacy-choice.ts";
 
 function unitForVariant(variant,ordinal=0){let found=0;for(let index=1;index<100_000;index++){const unit=`00000000-0000-4000-8000-${index.toString(16).padStart(12,"0")}`;if(assignWantedVariant(unit).variant===variant&&found++===ordinal)return unit}throw new Error(`No test unit for ${variant}`)}
 
@@ -31,6 +32,20 @@ test("requires persistent storage before creating a counted browser unit",()=>{
   assert.equal(persistentRandomUnit(blocked,"unit",()=>created,valid),null);
   assert.equal(persistentRandomUnit({getItem:()=>null,setItem:()=>{},removeItem:()=>{}},"unit",()=>created,valid),null);
   safeSessionStorage.setItem("storage_test","value");assert.equal(safeSessionStorage.getItem("storage_test"),"value");safeSessionStorage.removeItem("storage_test");assert.equal(safeSessionStorage.getItem("storage_test"),null);
+});
+
+test("honors explicit browser privacy choices before experiment eligibility",()=>{
+  const values=new Map(),storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)};
+  assert.equal(trackingExclusionReason(storage,{globalPrivacyControl:false,doNotTrack:"0"}),null);
+  assert.equal(trackingExclusionReason(storage,{globalPrivacyControl:true,doNotTrack:"0"}),"global_privacy_control");
+  assert.equal(trackingExclusionReason(storage,{globalPrivacyControl:false,doNotTrack:"1"}),"do_not_track");
+  assert.equal(trackingExclusionReason(storage,{globalPrivacyControl:false,doNotTrack:"yes"}),"do_not_track");
+  assert.equal(persistAnalyticsOptOut(storage,true),true);assert.equal(storage.getItem(ANALYTICS_OPT_OUT_STORAGE_KEY),"1");
+  assert.equal(trackingExclusionReason(storage,{globalPrivacyControl:true,doNotTrack:"1"}),"site_opt_out");
+  assert.equal(persistAnalyticsOptOut(storage,false),true);assert.equal(storage.getItem(ANALYTICS_OPT_OUT_STORAGE_KEY),null);
+  const blocked={getItem:()=>{throw new Error("blocked")},setItem:()=>{},removeItem:()=>{}};
+  assert.equal(trackingExclusionReason(blocked,{globalPrivacyControl:true,doNotTrack:"0"}),"global_privacy_control");
+  assert.equal(persistAnalyticsOptOut(blocked,true),false);
 });
 
 test("freezes the complete allocation and rendered treatment identity",()=>{
@@ -67,13 +82,13 @@ test("accepts only complete assigned session locks",()=>{
 
 test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.analysis_cohort.id,EXPERIMENT_ANALYSIS_COHORT);
-  assert.equal(experimentRotatorContract.analysis_cohort.starts_at_implementation_version,"0.15-R15");
+  assert.equal(experimentRotatorContract.analysis_cohort.starts_at_implementation_version,"0.18-R18");
   assert.deepEqual(experimentRotatorContract.analysis_cohort.legacy_versions_included,[]);
   assert.equal(experimentRotatorContract.analysis_cohort.implementation_revision_changes_reset_cohort,false);
   assert.equal(experimentRotatorContract.analysis_cohort.assignment_or_treatment_change_requires_new_cohort,true);
   assert.equal(experimentRotatorContract.analysis_cohort.allocation_change_requires_new_cohort,true);
   assert.equal(experimentRotatorContract.analysis_cohort.measurement_contract_change_requires_new_cohort,true);
-  assert.deepEqual(experimentRotatorContract.analysis_cohort.previous_cohorts,[{id:"wanted_landing_v1-C1",starts_at_implementation_version:"0.14-R14",ends_at_implementation_version:"0.14-R14",current_aggregation:false,reason_closed:"treatment_fingerprint_measurement_contract_added"}]);
+  assert.deepEqual(experimentRotatorContract.analysis_cohort.previous_cohorts,[{id:"wanted_landing_v1-C1",starts_at_implementation_version:"0.14-R14",ends_at_implementation_version:"0.14-R14",current_aggregation:false,reason_closed:"treatment_fingerprint_measurement_contract_added"},{id:"wanted_landing_v1-C2",starts_at_implementation_version:"0.15-R15",ends_at_implementation_version:"0.17-R17",current_aggregation:false,reason_closed:"browser_privacy_choice_eligibility_contract_added"}]);
   assert.equal(experimentRotatorContract.privacy.persistent_identifier,"experiment_scoped_random_assignment_id");
   assert.equal(experimentRotatorContract.privacy.assignment_id_contains_user_attributes,false);
   assert.equal(experimentRotatorContract.privacy.separate_device_identifier,false);
@@ -82,6 +97,12 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.privacy.identifies_device,false);
   assert.equal(experimentRotatorContract.privacy.browser_storage_partitioning_may_create_multiple_units,true);
   assert.equal(experimentRotatorContract.privacy.unit_id_cross_experiment_linkage,false);
+  assert.equal(experimentRotatorContract.privacy.site_opt_out_control_path,"/experiments");
+  assert.equal(experimentRotatorContract.privacy.site_opt_out_storage_key,ANALYTICS_OPT_OUT_STORAGE_KEY);
+  assert.deepEqual(experimentRotatorContract.privacy.browser_privacy_signals_honored,["global_privacy_control","do_not_track"]);
+  assert.equal(experimentRotatorContract.privacy.privacy_exclusion_precedes_identifier_creation,true);
+  assert.equal(experimentRotatorContract.privacy.privacy_excluded_general_analytics_sent,false);
+  assert.equal(experimentRotatorContract.privacy.privacy_excluded_experiment_analytics_sent,false);
   assert.deepEqual(experimentRotatorContract.privacy.deletion_triggers,["accepted_insert","analytics_summary_read","experiment_results_read"]);
   assert.equal(experimentRotatorContract.privacy.IP_storage,false);
   assert.equal(experimentRotatorContract.privacy.event_retention_days,ANALYTICS_RETENTION_DAYS);
@@ -100,11 +121,15 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.counting.device_deduplication,false);
   assert.equal(experimentRotatorContract.counting.one_person_may_contribute_multiple_units,true);
   assert.equal(experimentRotatorContract.counting.shared_browser_profile_may_combine_people,true);
+  assert.equal(experimentRotatorContract.counting.privacy_excluded_units_included,false);
   assert.equal(experimentRotatorContract.counting.storage_unavailable_units_included,false);
   assert.equal(experimentRotatorContract.assignment.analysis_unit_matches_assignment_unit,true);
   assert.equal(experimentRotatorContract.assignment.server_recomputable,true);
   assert.equal(experimentRotatorContract.assignment.unit_represents,"one_first_party_browser_profile_storage_instance");
   assert.equal(experimentRotatorContract.assignment.persistence_storage,"first_party_local_storage");
+  assert.equal(experimentRotatorContract.assignment.eligibility_checked_before_identifier_creation,true);
+  assert.deepEqual(experimentRotatorContract.assignment.eligibility_exclusions,["site_opt_out","global_privacy_control","do_not_track"]);
+  assert.equal(experimentRotatorContract.assignment.privacy_exclusion_behavior,"control_or_named_preview_excluded");
   assert.equal(experimentRotatorContract.assignment.persistence_write_readback_required,true);
   assert.equal(experimentRotatorContract.assignment.storage_unavailable_behavior,"control_or_named_preview_excluded");
   assert.equal(experimentRotatorContract.assignment.stable_per_device,false);
@@ -226,7 +251,7 @@ test("executes the matched-exposure query against SQLite",()=>{
   const db=new DatabaseSync(":memory:");
   db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT,event_type TEXT,path TEXT,metadata TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
   const insert=db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)");
-  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.17-R17",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
+  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.18-R18",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
   const controlUnit=unitForVariant("control"),controlToken=exposureTokenForAssignment(controlUnit,"control");
   event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_goal",variant:"control",unit:controlUnit,goal:"primary_cta"});
   const proofUnit=unitForVariant("proof"),proofToken=exposureTokenForAssignment(proofUnit,"proof");
@@ -234,7 +259,7 @@ test("executes the matched-exposure query against SQLite",()=>{
   const developerUnit=unitForVariant("developer"),developerToken=exposureTokenForAssignment(developerUnit,"developer");
   event({session:"wrong_token_session",eventType:"experiment_exposure",variant:"developer",unit:developerUnit});event({session:"wrong_token_session",eventType:"experiment_goal",variant:"developer",unit:developerUnit,token:"44444444-4444-4444-8444-444444444444",goal:"primary_cta"});
   event({session:"preview_session",eventType:"experiment_exposure",variant:"control",unit:controlUnit,mode:"preview"});event({session:"preview_session",eventType:"experiment_goal",variant:"control",unit:controlUnit,mode:"preview",goal:"primary_cta"});
-  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.18-R18"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.18-R18",goal:"primary_cta"});
+  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.19-R19"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.19-R19",goal:"primary_cta"});
   const wrongCohortUnit=unitForVariant("control",3);event({session:"wrong_cohort",eventType:"experiment_exposure",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1"});event({session:"wrong_cohort",eventType:"experiment_goal",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1",goal:"primary_cta"});
   const wrongFingerprintUnit=unitForVariant("control",4);event({session:"wrong_fingerprint",eventType:"experiment_exposure",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000"});event({session:"wrong_fingerprint",eventType:"experiment_goal",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000",goal:"primary_cta"});
   const crossUnit=unitForVariant("control",1);event({session:"cross_variant_session_a",eventType:"experiment_exposure",variant:"control",unit:crossUnit});event({session:"cross_variant_session_a",eventType:"experiment_goal",variant:"control",unit:crossUnit,goal:"primary_cta"});event({session:"cross_variant_session_b",eventType:"experiment_exposure",variant:"developer",unit:crossUnit,token:"88888888-8888-4888-8888-888888888888"});event({session:"cross_variant_session_b",eventType:"experiment_goal",variant:"developer",unit:crossUnit,token:"88888888-8888-4888-8888-888888888888",goal:"primary_cta"});
@@ -252,7 +277,7 @@ test("executes the matched-exposure query against SQLite",()=>{
 
 test("accepts only current, internal, schema-valid experiment events",()=>{
   const unit=unitForVariant("control"),token=exposureTokenForAssignment(unit,"control");
-  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.17-R17",exposure_id:token};
+  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.18-R18",exposure_id:token};
   assert.equal(validExperimentUnitId(exposure.unit_id),true);assert.equal(validExperimentUnitId("shared-user"),false);
   assert.equal(validExposureToken(exposure.exposure_id),true);assert.equal(validExposureToken("1"),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);
