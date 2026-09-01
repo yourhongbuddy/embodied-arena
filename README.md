@@ -27,6 +27,20 @@ The benchmark treats time to permanent voluntary rejection as the primary endpoi
 See [docs/SITE-VERSIONS.md](docs/SITE-VERSIONS.md) for the complete version-to-commit index and maintenance convention.
 See [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md) for the validated GitHub and deployment sequence.
 
+### Reproduce any iteration
+
+Every indexed version is a Git tag. New releases use annotated tags; the verifier preserves `digitalocean-v09` and `digitalocean-v10` as the only frozen legacy lightweight exceptions rather than rewriting history. After cloning the repository, fetch the tag graph, select an exact release, and run the same release gate used by the current branch:
+
+```bash
+git fetch --tags
+git switch --detach digitalocean-v36
+npm ci
+npm run verify
+npm run verify:versions
+```
+
+Replace `digitalocean-v36` with any tag in `docs/SITE-VERSIONS.md`. Return to active development with `git switch digitalocean`. The version audit rejects unexpected lightweight tags, changes to either frozen legacy tag type, missing or duplicate index rows, skipped version numbers, tag-to-commit mismatches, and releases that do not descend from the preceding tag in their family.
+
 ## Local development
 
 Requires Node.js 22 or newer.
