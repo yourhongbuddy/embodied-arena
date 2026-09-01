@@ -72,6 +72,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 13 | `digitalocean-v13` | `041c92c` | Add auditable site experiment measurement |
 | 14 | `digitalocean-v14` | `ca5d20d` | Fix empty experiment dashboard rows and enforce warning-free rendering |
 | 15 | `digitalocean-v15` | `f4c6dfb` | Add bounded, schema-valid experiment analytics ingestion |
+| 16 | `digitalocean-v16` | `f5a3d7e` | Prevent pre-assignment variant flashes with a neutral state |
 
 ## Release convention
 
