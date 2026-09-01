@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { monitorAgents, monitoredPaths } from "./agents";
+import { dailyExperienceForDate } from "../daily-rotation";
+import { monitorAgents, monitoringPathsForDate } from "./agents";
 
 type Probe = { path: string; status: number; latencyMs: number; bytes: number; contentType: string; state: "healthy" | "degraded" | "down"; detail?: string };
-type Snapshot = { target: string; checkedAt: string; summary: { healthy: number; degraded: number; down: number; total: number }; probes: Probe[] };
+type Snapshot = { target: string; checkedAt: string; dailyLabel: string; dailyPath: string; summary: { healthy: number; degraded: number; down: number; total: number }; probes: Probe[] };
 
 async function probeGet(path: string): Promise<Probe> {
   const started = performance.now();
@@ -47,9 +48,10 @@ export function MonitoringConsole() {
   const run = useCallback(async () => {
     setLoading(true);
     try {
-      const probes = await Promise.all([...monitoredPaths.filter((path) => path !== "/mcp").map(probeGet), probeMcp()]);
+      const daily = dailyExperienceForDate();
+      const probes = await Promise.all([...monitoringPathsForDate().filter((path) => path !== "/mcp").map(probeGet), probeMcp()]);
       const summary = probes.reduce((result, probe) => ({ ...result, [probe.state]: result[probe.state] + 1 }), { healthy: 0, degraded: 0, down: 0, total: probes.length });
-      setSnapshot({ target: window.location.origin, checkedAt: new Date().toISOString(), summary, probes });
+      setSnapshot({ target: window.location.origin, checkedAt: new Date().toISOString(), dailyLabel: daily.label, dailyPath: daily.path, summary, probes });
       setError("");
     } catch (runError) {
       setError(runError instanceof Error ? runError.message : "Monitor unavailable");
@@ -73,6 +75,7 @@ export function MonitoringConsole() {
         <article><span>HEALTHY ROUTES</span><b>{snapshot ? `${snapshot.summary.healthy}/${snapshot.summary.total}` : "—"}</b><small>{loading ? "PROBING" : "LIVE SNAPSHOT"}</small></article>
         <article><span>INCIDENTS</span><b>{snapshot ? snapshot.summary.down + snapshot.summary.degraded : "—"}</b><small>DOWN + DEGRADED</small></article>
         <article><span>MCP CONTRACT</span><b className={mcp?.state === "healthy" ? "statusGood" : "statusPending"}>{mcp ? mcp.state.toUpperCase() : "PENDING"}</b><small>2026-07-28</small></article>
+        <article><span>DAILY EXPERIENCE</span><b className="dailyExperienceLabel">{snapshot?.dailyLabel || "PENDING"}</b><small>{snapshot?.dailyPath || "PACIFIC-TIME ROTATION"}</small></article>
         <article><span>SLOWEST PROBE</span><b>{slowest ? `${slowest.latencyMs} ms` : "—"}</b><small>{slowest?.path || "WAITING"}</small></article>
       </div>
       <div className="monitorRunbar"><div><span className={error ? "pulseError" : "pulseLive"}/><b>{error ? "BASELINE INTERRUPTED" : loading ? "RUNNING BASELINE" : "MONITORING ACTIVE"}</b><small>{snapshot ? `${snapshot.target} · ${new Date(snapshot.checkedAt).toLocaleString()}` : error || "Connecting to this deployment"}</small></div><button type="button" onClick={() => void run()} disabled={loading}>{loading ? "RUNNING…" : "RUN NOW ↗"}</button></div>
