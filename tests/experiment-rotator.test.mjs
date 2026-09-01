@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { assignWantedVariant, experimentRotatorContract, resolveWantedAssignment, validWantedVariant, WANTED_LANDING_EXPERIMENT } from "../app/experiments/rotator.ts";
+import { summarizeExperiment,wilsonInterval } from "../app/experiments/results.ts";
+import { experimentResultsQuery } from "../app/api/experiments/route.ts";
 
 test("publishes a complete deterministic allocation",()=>{
   assert.equal(WANTED_LANDING_EXPERIMENT.variants.reduce((sum,variant)=>sum+variant.weight_basis_points,0),10_000);
@@ -29,6 +32,8 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.privacy.persistent_identifier,"device_local_only");
   assert.equal(experimentRotatorContract.privacy.IP_storage,false);
   assert.equal(experimentRotatorContract.counting.preview_mode_included,false);
+  assert.equal(experimentRotatorContract.counting.operator_mode_included,false);
+  assert.equal(experimentRotatorContract.inference.winner_declaration,false);
   assert.equal(experimentRotatorContract.safety_boundary.presentation_only,true);
   assert.equal(experimentRotatorContract.safety_boundary.changes_score,false);
   assert.equal(experimentRotatorContract.safety_boundary.changes_certification,false);
@@ -36,3 +41,39 @@ test("freezes a privacy-first presentation-only boundary",()=>{
 });
 
 test("rejects malformed assignment seeds",()=>{assert.throws(()=>assignWantedVariant("short"),/bounded anonymous/)});
+
+test("reports bounded Wilson intervals without inventing empty-sample precision",()=>{
+  assert.equal(wilsonInterval(0,0),null);
+  const interval=wilsonInterval(50,100);assert.ok(interval);assert.equal(Math.abs(interval.low-.4038)<.001,true);assert.equal(Math.abs(interval.high-.5962)<.001,true);
+  assert.deepEqual(wilsonInterval(101,100),null);
+});
+
+test("detects gross allocation drift",()=>{
+  const balanced=summarizeExperiment([{variant:"control",exposed_sessions:34,goal_sessions:10},{variant:"proof",exposed_sessions:33,goal_sessions:8},{variant:"developer",exposed_sessions:33,goal_sessions:9}]);
+  assert.equal(balanced.sample_ratio_mismatch.status,"pass");assert.equal(balanced.total_exposed_sessions,100);assert.equal(balanced.variants[0].conversion_interval_95!==null,true);
+  const drifted=summarizeExperiment([{variant:"control",exposed_sessions:98,goal_sessions:10},{variant:"proof",exposed_sessions:1,goal_sessions:0},{variant:"developer",exposed_sessions:1,goal_sessions:0}]);
+  assert.equal(drifted.sample_ratio_mismatch.status,"alert");
+});
+
+test("attributes only later same-session same-variant goals to an exposure",()=>{
+  assert.match(experimentResultsQuery,/g\.session_id=e\.session_id AND g\.id>e\.exposure_id/);
+  assert.match(experimentResultsQuery,/json_extract\(g\.metadata,'\$\.variant'\)=e\.variant/);
+  assert.match(experimentResultsQuery,/json_extract\(g\.metadata,'\$\.goal'\)='primary_cta'/);
+});
+
+test("executes the matched-exposure query against SQLite",()=>{
+  const db=new DatabaseSync(":memory:");
+  db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT,event_type TEXT,path TEXT,metadata TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
+  const insert=db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)");
+  const event=(session,eventType,variant,mode="assigned",goal)=>insert.run(session,eventType,"/wanted-10k",JSON.stringify({experiment:"wanted_landing_v1",variant,assignment_mode:mode,...goal&&{goal}}));
+  event("matched_session","experiment_exposure","control");event("matched_session","experiment_goal","control","assigned","primary_cta");
+  event("early_goal_session","experiment_goal","proof","assigned","primary_cta");event("early_goal_session","experiment_exposure","proof");
+  event("wrong_variant_session","experiment_exposure","developer");event("wrong_variant_session","experiment_goal","control","assigned","primary_cta");
+  event("preview_session","experiment_exposure","control","preview");event("preview_session","experiment_goal","control","preview","primary_cta");
+  const rows=db.prepare(experimentResultsQuery).all("wanted_landing_v1","wanted_landing_v1");
+  const found=new Map(rows.map(row=>[row.variant,row]));
+  assert.deepEqual({...found.get("control")},{variant:"control",exposed_sessions:1,goal_sessions:1});
+  assert.deepEqual({...found.get("proof")},{variant:"proof",exposed_sessions:1,goal_sessions:0});
+  assert.deepEqual({...found.get("developer")},{variant:"developer",exposed_sessions:1,goal_sessions:0});
+  db.close();
+});

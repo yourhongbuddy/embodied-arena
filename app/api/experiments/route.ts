@@ -1,22 +1,36 @@
-import { getD1 } from "../../../db/d1";
-import { WANTED_LANDING_EXPERIMENT } from "../../experiments/rotator";
+import { getD1 } from "../../../db/d1.ts";
+import { WANTED_LANDING_EXPERIMENT } from "../../experiments/rotator.ts";
+import { summarizeExperiment,type RawExperimentRow } from "../../experiments/results.ts";
 
-const emptyRows = () => WANTED_LANDING_EXPERIMENT.variants.map(variant=>({variant:variant.id,label:variant.label,weight_basis_points:variant.weight_basis_points,exposed_sessions:0,goal_sessions:0,conversion_rate:null}));
+export const experimentResultsQuery=`WITH exposures AS (
+  SELECT session_id,json_extract(metadata,'$.variant') variant,MIN(id) exposure_id
+  FROM analytics_events
+  WHERE created_at >= datetime('now','-30 days')
+    AND event_type='experiment_exposure'
+    AND json_extract(metadata,'$.experiment')=?
+    AND json_extract(metadata,'$.assignment_mode')='assigned'
+  GROUP BY session_id,json_extract(metadata,'$.variant')
+), matched AS (
+  SELECT e.variant,e.session_id,EXISTS(
+    SELECT 1 FROM analytics_events g
+    WHERE g.session_id=e.session_id AND g.id>e.exposure_id
+      AND g.created_at >= datetime('now','-30 days')
+      AND g.event_type='experiment_goal'
+      AND json_extract(g.metadata,'$.experiment')=?
+      AND json_extract(g.metadata,'$.variant')=e.variant
+      AND json_extract(g.metadata,'$.assignment_mode')='assigned'
+      AND json_extract(g.metadata,'$.goal')='primary_cta'
+  ) converted FROM exposures e
+)
+SELECT variant,COUNT(*) exposed_sessions,SUM(converted) goal_sessions
+FROM matched GROUP BY variant`;
+
+const emptySummary=()=>summarizeExperiment([]);
 
 export async function GET() {
   try {
     const db=await getD1();
-    const result=await db.prepare(`SELECT json_extract(metadata,'$.variant') variant,
-      COUNT(DISTINCT CASE WHEN event_type='experiment_exposure' THEN session_id END) exposed_sessions,
-      COUNT(DISTINCT CASE WHEN event_type='experiment_goal' AND json_extract(metadata,'$.goal')='primary_cta' THEN session_id END) goal_sessions
-      FROM analytics_events
-      WHERE created_at >= datetime('now','-30 days')
-        AND json_extract(metadata,'$.experiment')=?
-        AND json_extract(metadata,'$.assignment_mode')='assigned'
-        AND event_type IN ('experiment_exposure','experiment_goal')
-      GROUP BY json_extract(metadata,'$.variant')`).bind(WANTED_LANDING_EXPERIMENT.id).all<{variant:string;exposed_sessions:number;goal_sessions:number}>();
-    const found=new Map(result.results.map(row=>[row.variant,row]));
-    const variants=WANTED_LANDING_EXPERIMENT.variants.map(variant=>{const row=found.get(variant.id);const exposed=Number(row?.exposed_sessions||0),goals=Number(row?.goal_sessions||0);return{variant:variant.id,label:variant.label,weight_basis_points:variant.weight_basis_points,exposed_sessions:exposed,goal_sessions:goals,conversion_rate:exposed?goals/exposed:null}});
-    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,variants},{headers:{"cache-control":"no-store"}});
-  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,variants:emptyRows()},{headers:{"cache-control":"no-store"}}); }
+    const result=await db.prepare(experimentResultsQuery).bind(WANTED_LANDING_EXPERIMENT.id,WANTED_LANDING_EXPERIMENT.id).all<RawExperimentRow>();
+    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,...summarizeExperiment(result.results)},{headers:{"cache-control":"no-store"}});
+  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,...emptySummary()},{headers:{"cache-control":"no-store"}}); }
 }

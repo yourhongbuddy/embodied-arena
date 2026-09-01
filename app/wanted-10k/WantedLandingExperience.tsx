@@ -50,7 +50,8 @@ export function WantedLandingExperience() {
   const [assignment, setAssignment] = useState<WantedAssignment|null>(null);
   useEffect(() => {
     const preview = new URLSearchParams(location.search).get("wanted_variant");
-    const next = resolveWantedAssignment(assignmentSeed(), preview);
+    const resolved = resolveWantedAssignment(assignmentSeed(), preview);
+    const next = sessionStorage.getItem("ea_experiment_operator")==="1"&&resolved.mode==="assigned"?{...resolved,mode:"preview" as const}:resolved;
     const update=window.setTimeout(()=>setAssignment(next),0);
     if (next.mode === "assigned" && !sessionStorage.getItem(exposureKey(next))) {
       sessionStorage.setItem(exposureKey(next), "1");
