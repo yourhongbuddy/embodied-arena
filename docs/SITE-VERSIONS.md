@@ -115,6 +115,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 56 | `digitalocean-v56` | `ff218c0` | Restrict version-delivery diagnostics to matured first-receipt browser-unit cohorts |
 | 57 | `digitalocean-v57` | `80122a6` | Add marginal Wilson uncertainty intervals to matured version-delivery diagnostics |
 | 58 | `digitalocean-v58` | `b977773` | Quantify delivery-rate differences versus control with familywise uncertainty intervals |
+| 59 | `digitalocean-v59` | `361f244` | Bind all rotator results to one exact inclusive server-UTC analysis window and begin cohort C7 |
 
 ## Release convention
 
