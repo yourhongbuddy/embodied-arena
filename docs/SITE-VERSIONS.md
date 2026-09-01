@@ -81,6 +81,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 22 | `digitalocean-v22` | `5727d46` | Add read-only GitHub CI and executable release-tag integrity checks |
 | 23 | `digitalocean-v23` | `04ec0aa` | Add reproducible App Platform specifications and deployment checks |
 | 24 | `digitalocean-v24` | `d705018` | Enforce one exposure token per counted experiment session |
+| 25 | `digitalocean-v25` | `905ceb4` | Align experiment assignment, telemetry, and analysis to one anonymous unit |
 
 ## Release convention
 
