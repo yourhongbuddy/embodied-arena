@@ -109,6 +109,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 50 | `digitalocean-v50` | `571bf72` | Verify root envelopes across complete certification batches and witness collections |
 | 51 | `digitalocean-v51` | `5f26594` | Publish normative root-envelope batch conformance vectors and CI runner |
 | 52 | `digitalocean-v52` | `e9f26db` | Bind experiment cohorts to exact normalized rendered-site source manifests |
+| 53 | `digitalocean-v53` | `8d174b6` | Require short-lived same-session server receipts for counted experiment traffic |
 
 ## Release convention
 
