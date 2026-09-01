@@ -88,6 +88,8 @@ export default function Wanted10K() {
             <a className="contractLink" href="/wanted-10k/sdk">ADAPTER QUICKSTART <b>→</b></a>
             <a className="contractLink" href="/wanted-10k/spec.json">BENCHMARK CONTRACT <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/event.schema.json">EVENT SCHEMA <b>↗</b></a>
+            <a className="contractLink" href="/wanted-10k/wanted-telemetry-verifier.mjs">TELEMETRY VERIFIER <b>↓</b></a>
+            <a className="contractLink" href="/wanted-10k/telemetry-verifier-sdk.json">VERIFIER CONTRACT <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/openapi.json">OPENAPI 3.1 <b>↗</b></a>
             <a className="contractLink" href="/wanted-10k/reference-score.py">SCORING REFERENCE <b>↓</b></a>
             <a className="contractLink" href="/wanted-10k/analysis-reproduction">ANALYSIS REPRODUCTION <b>→</b></a>

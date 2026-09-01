@@ -17,6 +17,8 @@ Embodied Arena is a vendor-neutral robot intelligence benchmark, HILO Realtime P
 - Benchmark specification: /wanted-10k/spec.json
 - Normative analysis conformance vectors: /wanted-10k/analysis-conformance-vectors.json
 - Zero-dependency analysis conformance runner: /wanted-10k/wanted-analysis-conformance.mjs
+- Zero-dependency local telemetry verifier: /wanted-10k/wanted-telemetry-verifier.mjs
+- Telemetry verifier contract and source digest: /wanted-10k/telemetry-verifier-sdk.json
 - Site heterogeneity and dominance verifier: /wanted-10k/site-heterogeneity
 
 ## Interpretation rules

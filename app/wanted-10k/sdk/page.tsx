@@ -3,7 +3,7 @@ import { SiteNav } from "../../components/SiteNav";
 
 export const metadata: Metadata = {
   title: "Adapter Quickstart — WANTED-10K",
-  description: "Connect any robot to the WANTED-10K event protocol with the executable reference adapter.",
+  description: "Connect any robot to WANTED-10K, emit signed events, and verify the complete telemetry chain locally.",
   alternates: { canonical: "/wanted-10k/sdk" },
 };
 
@@ -22,8 +22,8 @@ export default function SdkPage() {
     <section className="sdkHero shell">
       <span className="eyebrow"><i className="liveDot"/> EXECUTABLE REFERENCE ADAPTER · PROTOCOL 0.2</span>
       <h1>Robot to valid stream.<br/><em>Fifteen minutes.</em></h1>
-      <p>Keep the native controller. WANTED adds one narrow evidence layer: six event helpers, a hardware-backed Ed25519 signer, and a durable sink. The adapter serializes concurrent calls, assigns sequence numbers, signs RFC 8785 canonical bytes, and chains every accepted event.</p>
-      <div className="sdkActions"><a className="primary" href="/wanted-10k/wanted-sdk.mjs">Download SDK <span>↓</span></a><a className="secondary" href="/wanted-10k/deployment.template.json">Download config</a><a className="secondary" href="/wanted-10k/conformance">Test the stream</a></div>
+      <p>Keep the native controller. WANTED adds one narrow evidence layer: six event helpers, a hardware-backed Ed25519 signer, a durable sink, and a local verifier. The adapter orders and signs each event; the independent verifier rejects structural drift, broken chains, invalid signatures, and ineligible keys before evidence leaves your infrastructure.</p>
+      <div className="sdkActions"><a className="primary" href="/wanted-10k/wanted-sdk.mjs">Download adapter <span>↓</span></a><a className="secondary" href="/wanted-10k/wanted-telemetry-verifier.mjs">Download verifier</a><a className="secondary" href="/wanted-10k/deployment.template.json">Download config</a><a className="secondary" href="/wanted-10k/conformance">Test in browser</a></div>
       <div className="sdkPromise"><div><b>0</b><span>RUNTIME DEPENDENCIES</span></div><div><b>6</b><span>EVENT HELPERS</span></div><div><b>1</b><span>DURABLE CHAIN</span></div><div><b>0</b><span>PRIVATE KEYS EXPORTED</span></div></div>
     </section>
 
@@ -37,7 +37,7 @@ export default function SdkPage() {
     </div></section>
 
     <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
-      <div><span className="kicker">02 / COPY, CONNECT, EMIT</span><h2>The whole<br/><em>adapter surface.</em></h2><p>The production signer is deliberately outside the SDK. This keeps private key handling inside infrastructure already approved by the robot operator.</p><div className="sdkResources"><a href="/wanted-10k/wanted-sdk.mjs">REFERENCE MODULE ↓</a><a href="/wanted-10k/audit-sdk">AUDIT VERIFIER SDK →</a><a href="/wanted-10k/wanted-analysis-conformance.mjs">ANALYSIS CONFORMANCE RUNNER ↓</a><a href="/wanted-10k/site-heterogeneity">SITE HETEROGENEITY →</a><a href="/wanted-10k/realtime">HILO REALTIME →</a><a href="/wanted-10k/preregistration-integrity">PREREGISTRATION INTEGRITY →</a><a href="/wanted-10k/protocol-deviations">PROTOCOL DEVIATIONS →</a><a href="/wanted-10k/sampling-stopping">SAMPLING + STOPPING →</a><a href="/wanted-10k/endpoint-adjudication">ENDPOINT ADJUDICATION →</a><a href="/wanted-10k/assistance-integrity">ASSISTANCE PROFILE →</a><a href="/wanted-10k/policy-evolution">POLICY EVOLUTION →</a><a href="/wanted-10k/privacy-integrity">PRIVACY + CONSENT →</a><a href="/wanted-10k/service-continuity">SERVICE CONTINUITY →</a><a href="/wanted-10k/deployment.schema.json">CONFIG SCHEMA ↗</a><a href="/wanted-10k/event.schema.json">EVENT SCHEMA ↗</a><a href="/wanted-10k/telemetry-key-manifest.schema.json">KEY MANIFEST ↗</a><a href="/wanted-10k/openapi.json">OPENAPI 3.1 ↗</a></div></div>
+      <div><span className="kicker">02 / COPY, CONNECT, VERIFY</span><h2>The whole<br/><em>evidence surface.</em></h2><p>The production signer stays outside the adapter and the verifier performs no network requests. Private keys and raw event evidence remain inside infrastructure approved by the robot operator.</p><div className="sdkResources"><a href="/wanted-10k/wanted-sdk.mjs">REFERENCE ADAPTER ↓</a><a href="/wanted-10k/wanted-telemetry-verifier.mjs">TELEMETRY VERIFIER ↓</a><a href="/wanted-10k/telemetry-verifier-sdk.json">VERIFIER CONTRACT ↗</a><a href="/wanted-10k/audit-sdk">AUDIT VERIFIER SDK →</a><a href="/wanted-10k/wanted-analysis-conformance.mjs">ANALYSIS CONFORMANCE RUNNER ↓</a><a href="/wanted-10k/site-heterogeneity">SITE HETEROGENEITY →</a><a href="/wanted-10k/realtime">HILO REALTIME →</a><a href="/wanted-10k/preregistration-integrity">PREREGISTRATION INTEGRITY →</a><a href="/wanted-10k/protocol-deviations">PROTOCOL DEVIATIONS →</a><a href="/wanted-10k/sampling-stopping">SAMPLING + STOPPING →</a><a href="/wanted-10k/endpoint-adjudication">ENDPOINT ADJUDICATION →</a><a href="/wanted-10k/assistance-integrity">ASSISTANCE PROFILE →</a><a href="/wanted-10k/policy-evolution">POLICY EVOLUTION →</a><a href="/wanted-10k/privacy-integrity">PRIVACY + CONSENT →</a><a href="/wanted-10k/service-continuity">SERVICE CONTINUITY →</a><a href="/wanted-10k/deployment.schema.json">CONFIG SCHEMA ↗</a><a href="/wanted-10k/event.schema.json">EVENT SCHEMA ↗</a><a href="/wanted-10k/telemetry-key-manifest.schema.json">KEY MANIFEST ↗</a><a href="/wanted-10k/openapi.json">OPENAPI 3.1 ↗</a></div></div>
       <div className="codeCard sdkCode"><header><span>QUICKSTART / JAVASCRIPT ESM</span><i>RUNNABLE</i></header><pre><code>{`import { WantedClient, createHttpSink } from "./wanted-sdk.mjs";
 
 const wanted = new WantedClient({
@@ -61,16 +61,33 @@ await wanted.intervention(
 await durableStore.save(wanted.checkpoint());`}</code></pre><footer><span>WEB CRYPTO · RFC 8785 · SHA-256</span><span>SINGLE WRITER</span></footer></div>
     </div></section>
 
+    <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
+      <div><span className="kicker">03 / VERIFY BEFORE HANDOFF</span><h2>Fail locally.<br/><em>Before the audit does.</em></h2><p>Run the independent module against exported JSONL and the frozen public-key manifest. It verifies every signature, previous-event digest, sequence, timestamp, key-validity boundary, and required payload without uploading raw study evidence.</p><div className="sdkResources"><a href="/wanted-10k/wanted-telemetry-verifier.mjs">DOWNLOAD VERIFIER ↓</a><a href="/wanted-10k/telemetry-verifier-sdk.json">SOURCE DIGEST + CONTRACT ↗</a><a href="/wanted-10k/telemetry-key-manifest.template.json">KEY MANIFEST TEMPLATE ↓</a></div></div>
+      <div className="codeCard sdkCode"><header><span>CI CHECK / JAVASCRIPT ESM</span><i>LOCAL ONLY</i></header><pre><code>{`import { readFile } from "node:fs/promises";
+import { verifyTelemetryJsonl } from
+  "./wanted-telemetry-verifier.mjs";
+
+const report = await verifyTelemetryJsonl(
+  await readFile("events.jsonl", "utf8"),
+  await readFile("telemetry-key-manifest.json", "utf8")
+);
+
+if (report.status !== "pass") {
+  console.error(report.errors.join("\\n"));
+  process.exitCode = 1;
+}`}</code></pre><footer><span>NO NETWORK · NO RAW EVENT UPLOAD</span><span>0.2-TS1</span></footer></div>
+    </div></section>
+
     <section className="sdkEvents"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">03 / SIX REQUIRED EVENTS</span><h2>Small API.<br/><em>Complete evidence.</em></h2></div><p>Native ROS 2 topics, simulator callbacks, task planners, and operator consoles map into the same six calls.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">04 / SIX REQUIRED EVENTS</span><h2>Small API.<br/><em>Complete evidence.</em></h2></div><p>Native ROS 2 topics, simulator callbacks, task planners, and operator consoles map into the same six calls.</p></div>
       <div className="sdkEventRows">{events.map(([name,code],index)=><article key={name}><span>0{index+1}</span><b>{name}</b><code>{code}</code></article>)}</div>
       <div className="adapterMap"><b>COMMON MAPPINGS</b><span>ROS 2 node → helper calls</span><span>Isaac / MuJoCo callbacks → helper calls</span><span>Operator console → intervention + incident</span><span>Participant UI → request</span></div>
     </div></section>
 
     <section className="restartSection"><div className="shell">
-      <div className="sectionHead wantedHead"><div><span className="kicker">04 / 10,000-HOUR CONTINUITY</span><h2>Restarts happen.<br/><em>Evidence must survive.</em></h2></div><p>A benchmark this long cannot depend on process memory. Persist the checkpoint after every accepted event and test crash recovery before human exposure.</p></div>
+      <div className="sectionHead wantedHead"><div><span className="kicker">05 / 10,000-HOUR CONTINUITY</span><h2>Restarts happen.<br/><em>Evidence must survive.</em></h2></div><p>A benchmark this long cannot depend on process memory. Persist the checkpoint after every accepted event and test crash recovery before human exposure.</p></div>
       <div className="restartRules"><article><b>ONE WRITER</b><p>Only one process may issue the next sequence for a deployment. Fail over with a lease or fencing token.</p></article><article><b>ACCEPT, THEN ADVANCE</b><p>The SDK advances sequence and chain state only after the sink acknowledges the event.</p></article><article><b>DURABLE CHECKPOINT</b><p>Store next_sequence, previous_event_hash, and last_occurred_at before another event can be emitted.</p></article><article><b>RECONCILE RESTARTS</b><p>After a crash, recover the collector’s accepted tail before emitting. Event IDs make retries idempotent.</p></article></div>
-      <aside className="sdkBoundary"><b>REFERENCE, NOT A COLLECTOR</b><p>Embodied Arena publishes the transport contract and executable adapter. Each study operates its own approved event sink, key custody, access controls, retention policy, and participant-protection process.</p><a href="/wanted-10k/protocol">OPEN FULL PROTOCOL →</a></aside>
+      <aside className="sdkBoundary"><b>REFERENCE, NOT A COLLECTOR</b><p>Embodied Arena publishes the transport contract, executable adapter, and independent local verifier. Each study operates its own approved event sink, key custody, access controls, retention policy, and participant-protection process.</p><a href="/wanted-10k/telemetry-verifier-sdk.json">OPEN VERIFIER CONTRACT →</a></aside>
     </div></section>
     <footer className="wantedFooter"><div className="shell"><div className="brand"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b> / ADAPTER KIT</span></div><p>The shortest path from a robot-native stack to auditable WANTED evidence.</p><a href="/wanted-10k">BACK TO BENCHMARK →</a></div></footer>
   </main>;

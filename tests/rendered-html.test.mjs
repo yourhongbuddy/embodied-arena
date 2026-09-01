@@ -626,6 +626,8 @@ test("ships an executable adapter that produces one conformant six-event chain",
   assert.match(pageHtml, /ENDPOINT ADJUDICATION/);
   assert.match(pageHtml, /href="\/wanted-10k\/endpoint-adjudication"/);
   assert.match(pageHtml, /href="\/wanted-10k\/preregistration-integrity"/);
+  assert.match(pageHtml, /href="\/wanted-10k\/wanted-telemetry-verifier\.mjs"/);
+  assert.match(pageHtml, /TELEMETRY VERIFIER/);
 
   const source = await sdkResponse.text();
   const sdk = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
@@ -689,7 +691,11 @@ test("ships an executable adapter that produces one conformant six-event chain",
   assert.equal(openapi["x-wanted-evidence-profiles"].sampling_stopping_integrity.version, "0.2-ST1");
   assert.equal(openapi["x-wanted-certification"].target_templates, "/wanted-10k/certification-templates.json");
   assert.equal(openapi["x-wanted-audit-verifier"].performs_network_requests, false);
+  assert.equal(openapi["x-wanted-telemetry-verifier"].version, "0.2-TS1");
+  assert.equal(openapi["x-wanted-telemetry-verifier"].performs_network_requests, false);
   assert.equal(spec.developer_resources.reference_sdk, "/wanted-10k/wanted-sdk.mjs");
+  assert.equal(spec.developer_resources.telemetry_verifier_module, "/wanted-10k/wanted-telemetry-verifier.mjs");
+  assert.equal(spec.telemetry_verifier_sdk_profile.version, "0.2-TS1");
   assert.equal(spec.mandatory_events[0], "DEPLOYMENT_LIFECYCLE");
 });
 

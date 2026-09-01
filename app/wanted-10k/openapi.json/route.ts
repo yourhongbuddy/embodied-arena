@@ -45,6 +45,7 @@ const openapi = {
   "x-wanted-analysis-conformance": { profile: "0.2-AC4", runner_version: "0.2-ACS4", module: "/wanted-10k/wanted-analysis-conformance.mjs", contract: "/wanted-10k/analysis-conformance-sdk.json", vectors: "/wanted-10k/analysis-conformance-vectors.json", vector_pack_sha256: "64e0071ba4d0b843825dd57dca6636a25ddfa1af60d510a6f47bf8c04a29b277", ranking_effect: "none" },
   "x-wanted-exposure-ledger": "/wanted-10k/exposure-ledger.json",
   "x-wanted-telemetry-authenticity": "/wanted-10k/telemetry-authenticity.json",
+  "x-wanted-telemetry-verifier": { version: "0.2-TS1", module: "/wanted-10k/wanted-telemetry-verifier.mjs", contract: "/wanted-10k/telemetry-verifier-sdk.json", performs_network_requests: false },
   "x-wanted-key-manifest-schema": "/wanted-10k/telemetry-key-manifest.schema.json",
   "x-hilo-realtime-contract": "/wanted-10k/realtime.json",
   "x-hilo-realtime-schema": "/wanted-10k/realtime.schema.json",
