@@ -110,6 +110,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 51 | `digitalocean-v51` | `5f26594` | Publish normative root-envelope batch conformance vectors and CI runner |
 | 52 | `digitalocean-v52` | `e9f26db` | Bind experiment cohorts to exact normalized rendered-site source manifests |
 | 53 | `digitalocean-v53` | `8d174b6` | Require short-lived same-session server receipts for counted experiment traffic |
+| 54 | `digitalocean-v54` | `03bec09` | Add indexed receipt-to-exposure integrity diagnostics for the site rotator |
 
 ## Release convention
 
