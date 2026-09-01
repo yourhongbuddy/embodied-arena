@@ -1,0 +1,2 @@
+import{EXPERIMENT_ROLLOUT_AUTHORITY_KEY_MANIFEST,EXPERIMENT_ROLLOUT_AUTHORITY_KEY_MANIFEST_SHA256}from"../rollout-authorization.ts";
+export function GET(){return Response.json({canonical_key_manifest_sha256:EXPERIMENT_ROLLOUT_AUTHORITY_KEY_MANIFEST_SHA256,key_manifest:EXPERIMENT_ROLLOUT_AUTHORITY_KEY_MANIFEST,interpretation:"Synthetic public-key conformance manifest only; no private key is included or accepted."},{headers:{"cache-control":"public, max-age=3600"}})}

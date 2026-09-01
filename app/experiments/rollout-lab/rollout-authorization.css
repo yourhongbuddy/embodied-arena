@@ -1,0 +1,4 @@
+.rolloutAuthorizationWorkspace{padding-top:24px;border-top:1px solid var(--line)}
+.rolloutAuthorizationWorkspace .rolloutEditor textarea{height:720px}
+.rolloutAuthorizationWorkspace .rolloutChecks article:nth-last-child(-n+2){border-bottom:0}
+@media(max-width:560px){.rolloutAuthorizationWorkspace .rolloutChecks article{border-bottom:1px solid var(--line)}.rolloutAuthorizationWorkspace .rolloutChecks article:last-child{border-bottom:0}}

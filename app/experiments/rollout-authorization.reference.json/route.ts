@@ -1,0 +1,2 @@
+import{experimentRolloutAuthorizationReferenceBundle,verifyExperimentRolloutAuthorization}from"../rollout-authorization.ts";
+export async function GET(){const bundle=experimentRolloutAuthorizationReferenceBundle();return Response.json({synthetic:true,bundle,expected:await verifyExperimentRolloutAuthorization(bundle),interpretation:"Cryptographic conformance only. The rollout authority, approval, artifact, digests, key, and authorization are synthetic and authorize no live allocation change or deployment."},{headers:{"cache-control":"public, max-age=3600"}})}
