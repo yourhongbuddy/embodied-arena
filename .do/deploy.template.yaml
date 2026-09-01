@@ -1,0 +1,40 @@
+spec:
+  name: embodied-arena
+  region: nyc
+
+  services:
+    - name: web
+      environment_slug: node-js
+      git:
+        repo_clone_url: https://github.com/yourhongbuddy/embodied-arena.git
+        branch: digitalocean
+      source_dir: /
+      build_command: npm ci && npm run build
+      run_command: npm start
+      http_port: 8080
+      instance_count: 1
+      instance_size_slug: apps-s-1vcpu-1gb
+      health_check:
+        http_path: /wanted-10k
+        initial_delay_seconds: 10
+        period_seconds: 10
+        timeout_seconds: 5
+        failure_threshold: 6
+        success_threshold: 1
+      envs:
+        - key: NODE_ENV
+          value: production
+          scope: RUN_TIME
+          type: GENERAL
+
+  ingress:
+    rules:
+      - component:
+          name: web
+        match:
+          path:
+            prefix: /
+
+  alerts:
+    - rule: DEPLOYMENT_FAILED
+    - rule: DOMAIN_FAILED

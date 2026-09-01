@@ -47,17 +47,21 @@ GitHub runs both checks on pushes and pull requests targeting `digitalocean` or 
 
 ## DigitalOcean App Platform
 
-Deploy the `digitalocean` branch as a **Web Service**.
+[![Deploy to DigitalOcean](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/yourhongbuddy/embodied-arena/tree/digitalocean)
+
+Deploy the `digitalocean` branch as a **Web Service**. DigitalOcean can read the reviewable [App Platform specification](.do/app.yaml), while the button uses the separate [one-click template](.do/deploy.template.yaml). Neither file contains credentials, and automatic deployments are disabled.
 
 | Setting | Value |
 |---|---|
-| Build command | `npm run build` |
+| Build command | `npm ci && npm run build` |
 | Run command | `npm start` |
 | HTTP port | `8080` |
 | Route | `/` |
 | Health check | `/wanted-10k` |
 
 The generated standalone server reads DigitalOcean's `PORT` environment variable and binds publicly. The analytics endpoint is intentionally a no-storage stub on this deployment line until a production data policy and database are selected.
+
+See [docs/DIGITALOCEAN-DEPLOYMENT.md](docs/DIGITALOCEAN-DEPLOYMENT.md) for the owner-review, cost-review, and deployment sequence.
 
 ## Evidence boundary
 

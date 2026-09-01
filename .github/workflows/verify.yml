@@ -33,5 +33,5 @@ jobs:
         run: npm ci
       - name: Verify documented release tags
         run: npm run verify:versions
-      - name: Build, lint, and test
+      - name: Build, lint, test, and verify deployment specifications
         run: npm run verify
