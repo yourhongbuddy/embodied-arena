@@ -7,7 +7,7 @@ import { createExperimentOutbox,EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY,type Delivery
 import { currentTrackingExclusionReason } from "../experiments/privacy-choice";
 import { EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES } from "../experiments/rotator";
 
-function sessionId() {
+export function analyticsSessionId() {
   const key = "ea_session";
   let value = safeSessionStorage.getItem(key);
   if (!value) { value = crypto.randomUUID(); safeSessionStorage.setItem(key,value); }
@@ -15,7 +15,7 @@ function sessionId() {
 }
 
 function eventBody(eventType:string,path:string,metadata:Record<string,unknown>) {
-  return JSON.stringify({sessionId:sessionId(),eventType,path,metadata});
+  return JSON.stringify({sessionId:analyticsSessionId(),eventType,path,metadata});
 }
 
 export function track(eventType:string, path=location.pathname, metadata:Record<string,unknown>={}) {

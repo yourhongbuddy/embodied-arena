@@ -13,3 +13,19 @@ export const analyticsEvents = sqliteTable("analytics_events", {
   index("idx_analytics_event_path").on(table.eventType, table.path),
   index("idx_analytics_session_created").on(table.sessionId, table.createdAt),
 ]);
+
+export const experimentAssignmentReceipts = sqliteTable("experiment_assignment_receipts", {
+  receiptId: text("receipt_id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  experiment: text("experiment").notNull(),
+  analysisCohort: text("analysis_cohort").notNull(),
+  treatmentFingerprint: text("treatment_fingerprint").notNull(),
+  presentationFingerprint: text("presentation_fingerprint").notNull(),
+  unitId: text("unit_id").notNull(),
+  variant: text("variant").notNull(),
+  bucket: integer("bucket").notNull(),
+  issuedAt: text("issued_at").notNull(),
+  expiresAt: text("expires_at").notNull(),
+}, (table) => [
+  index("idx_experiment_assignment_receipts_expires_at").on(table.expiresAt),
+]);

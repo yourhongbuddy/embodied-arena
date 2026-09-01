@@ -1,5 +1,6 @@
 import { getD1 } from "../../../db/d1";
 import { ANALYTICS_RETENTION_QUERY,validExperimentEvent } from "../../experiments/ingestion.ts";
+import { verifyAssignmentReceipt } from "../../experiments/assignment-receipt.ts";
 
 const allowedEvents = new Set(["page_view","heartbeat","scan_started","scan_failed","scan_completed","report_downloaded","video_opened","video_recommended","leaderboard_filter","campaign_reviewed","experiment_exposure","experiment_goal"]);
 const identifier = /^[A-Za-z0-9_-]{8,80}$/;
@@ -24,9 +25,11 @@ export async function POST(request: Request) {
   const sessionId=String(body.sessionId||""),eventType=String(body.eventType||""),path=String(body.path||"");
   if(!identifier.test(sessionId)||!allowedEvents.has(eventType)||!path.startsWith("/")||path.length>180)return new Response(null,{status:400});
   const safe=safeMetadata(body.metadata);
-  if(eventType.startsWith("experiment_")&&!validExperimentEvent(eventType,path,safe))return new Response(null,{status:400});
+  const experimentEvent=eventType.startsWith("experiment_");
+  if(experimentEvent&&!validExperimentEvent(eventType,path,safe))return new Response(null,{status:400});
   try {
     const db=await getD1();
+    if(experimentEvent&&!await verifyAssignmentReceipt(db,sessionId,safe))return new Response(null,{status:400});
     await db.prepare(ANALYTICS_RETENTION_QUERY).run();
     await db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)").bind(sessionId,eventType,path,JSON.stringify(safe)).run();
     return new Response(null,{status:204,headers:{"x-analytics-status":"accepted"}});

@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
+import { analyticsSessionId,queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
 import { nativeLocalStorage,persistentRandomUnit,safeSessionStorage } from "../experiments/browser-storage";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
 import { currentTrackingExclusionReason,type TrackingExclusionReason } from "../experiments/privacy-choice";
-import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignmentForUnit,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
+import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignmentForUnit,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
 
 function experimentUnitId(){
   const key=`ea_experiment_unit:${WANTED_LANDING_EXPERIMENT.id}`;
@@ -20,7 +20,7 @@ function assignmentLockKey(){return`ea_assignment:${WANTED_LANDING_EXPERIMENT.id
 function lockedSessionAssignment(unitId:string){try{const value=JSON.parse(safeSessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignmentForUnit(value,unitId)?value:null}catch{return null}}
 
 export function WantedLandingExperience() {
-  const [assignment, setAssignment] = useState<WantedAssignment|null>(null),[exclusionReason,setExclusionReason]=useState<TrackingExclusionReason|"storage_unavailable"|null>(null);
+  const [assignment, setAssignment] = useState<WantedAssignment|null>(null),[assignmentReceipt,setAssignmentReceipt]=useState<string|null>(null),[exclusionReason,setExclusionReason]=useState<TrackingExclusionReason|"storage_unavailable"|"receipt_unavailable"|null>(null);
   const exposureId=useRef<string|null>(null),unitId=useRef<string|null>(null),shouldTrackExposure=useRef(false);
   useEffect(() => {
     const preview = new URLSearchParams(location.search).get("wanted_variant");
@@ -36,13 +36,16 @@ export function WantedLandingExperience() {
       const key=exposureKey(next),token=exposureTokenForAssignment(unit,next.variant);
       unitId.current=unit;exposureId.current=token;shouldTrackExposure.current=safeSessionStorage.getItem(`${key}:sent`)!=="1";
     }
-    const update=window.setTimeout(()=>setAssignment(next),0);
-    return()=>window.clearTimeout(update);
+    if(next.mode!=="assigned"){const update=window.setTimeout(()=>setAssignment(next),0);return()=>window.clearTimeout(update)}
+    let active=true;const controller=new AbortController(),timeout=window.setTimeout(()=>controller.abort(),3_000);
+    const exclude=()=>{if(active){setExclusionReason("receipt_unavailable");setAssignment({...next,bucket:null,mode:"preview"})}};
+    void fetch("/api/experiments/assignment",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({unit_id:unit,session_id:analyticsSessionId()}),keepalive:true,signal:controller.signal}).then(async response=>{if(!response.ok)throw new Error("receipt unavailable");const value=await response.json() as Record<string,unknown>;if(value.status!=="issued"||value.profile!==EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE||value.experiment!==next.experiment||value.analysis_cohort!==EXPERIMENT_ANALYSIS_COHORT||value.treatment_fingerprint!==EXPERIMENT_TREATMENT_FINGERPRINT||value.presentation_fingerprint!==EXPERIMENT_PRESENTATION_FINGERPRINT||value.unit_id!==unit||value.variant!==next.variant||value.bucket!==next.bucket||typeof value.receipt_id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value.receipt_id))throw new Error("receipt mismatch");if(active){setAssignmentReceipt(value.receipt_id);setAssignment(next)}}).catch(exclude).finally(()=>window.clearTimeout(timeout));
+    return()=>{active=false;window.clearTimeout(timeout);controller.abort()};
   }, []);
   useEffect(()=>{
-    if(assignment?.mode!=="assigned"||!unitId.current||!exposureId.current||!shouldTrackExposure.current)return;
+    if(assignment?.mode!=="assigned"||!assignmentReceipt||!unitId.current||!exposureId.current||!shouldTrackExposure.current)return;
     const token=exposureId.current,sentKey=`${exposureKey(assignment)}:sent`;
-    const metadata={experiment:assignment.experiment,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
+    const metadata={experiment:assignment.experiment,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:assignmentReceipt,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
     const delivery=startAcknowledgedDelivery({
       send:()=>trackConfirmed("experiment_exposure",location.pathname,metadata),
       isAcknowledged:()=>safeSessionStorage.getItem(sentKey)==="1",
@@ -51,16 +54,16 @@ export function WantedLandingExperience() {
     });
     window.addEventListener("online",delivery.retryNow);
     return()=>{delivery.cancel();window.removeEventListener("online",delivery.retryNow)};
-  },[assignment]);
+  },[assignment,assignmentReceipt]);
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
   const variant = WANTED_LANDING_TREATMENTS[displayAssignment.variant];
   const goal = (goalName: string, href: string) => {
-    if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
+    if (assignment?.mode === "assigned"&&assignmentReceipt&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:assignmentReceipt,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
   return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} data-exclusion-reason={exclusionReason??undefined} aria-busy={pending}>
     {pending&&<div className="variantPending" role="status"><i/><b>WANTED-10K</b><span>Assigning a stable privacy-first site version</span></div>}
-    {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>{exclusionReason==="storage_unavailable"?"STORAGE UNAVAILABLE":exclusionReason?"PRIVACY PREFERENCE":"PREVIEW MODE"}</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
+    {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>{exclusionReason==="storage_unavailable"?"STORAGE UNAVAILABLE":exclusionReason==="receipt_unavailable"?"RECEIPT UNAVAILABLE":exclusionReason?"PRIVACY PREFERENCE":"PREVIEW MODE"}</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
     <div className="wantedHeroCopy" aria-hidden={pending}>
       <span className="eyebrow"><i className="liveDot"/> {variant.eyebrow}</span>
       <h1>{variant.headline[0]}<br/><em>{variant.headline[1]}</em></h1>
