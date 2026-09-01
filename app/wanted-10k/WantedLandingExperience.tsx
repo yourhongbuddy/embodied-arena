@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { track } from "../components/AnalyticsHeartbeat";
 import { resolveWantedAssignment, ROTATOR_VERSION, WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
 
@@ -46,23 +46,31 @@ function exposureKey(assignment: WantedAssignment) {
   return `ea_exposure:${assignment.experiment}:${assignment.variant}`;
 }
 
+const exposureTokenPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export function WantedLandingExperience() {
   const [assignment, setAssignment] = useState<WantedAssignment|null>(null);
+  const exposureId=useRef<string|null>(null),shouldTrackExposure=useRef(false);
   useEffect(() => {
     const preview = new URLSearchParams(location.search).get("wanted_variant");
     const resolved = resolveWantedAssignment(assignmentSeed(), preview);
     const next = sessionStorage.getItem("ea_experiment_operator")==="1"&&resolved.mode==="assigned"?{...resolved,mode:"preview" as const}:resolved;
-    const update=window.setTimeout(()=>setAssignment(next),0);
-    if (next.mode === "assigned" && !sessionStorage.getItem(exposureKey(next))) {
-      sessionStorage.setItem(exposureKey(next), "1");
-      track("experiment_exposure", location.pathname, { experiment: next.experiment, variant: next.variant, assignment_mode: next.mode, rotator_version: ROTATOR_VERSION });
+    if(next.mode==="assigned"){
+      const key=exposureKey(next),stored=sessionStorage.getItem(key),token=stored&&exposureTokenPattern.test(stored)?stored:crypto.randomUUID();
+      sessionStorage.setItem(key,token);exposureId.current=token;shouldTrackExposure.current=sessionStorage.getItem(`${key}:sent`)!=="1";
     }
+    const update=window.setTimeout(()=>setAssignment(next),0);
     return()=>window.clearTimeout(update);
   }, []);
+  useEffect(()=>{
+    if(assignment?.mode!=="assigned"||!exposureId.current||!shouldTrackExposure.current)return;
+    shouldTrackExposure.current=false;sessionStorage.setItem(`${exposureKey(assignment)}:sent`,"1");
+    track("experiment_exposure",location.pathname,{experiment:assignment.experiment,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current});
+  },[assignment]);
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
   const variant = content[displayAssignment.variant];
   const goal = (goalName: string, href: string) => {
-    if (assignment?.mode === "assigned") track("experiment_goal", location.pathname, { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION });
+    if (assignment?.mode === "assigned"&&exposureId.current) track("experiment_goal", location.pathname, { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
   return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} aria-busy={pending}>
