@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
-import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
+import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
 
 const content: Record<WantedVariant, { eyebrow: string; headline: React.ReactNode; intro: string; primary: { label: string; href: string }; proof: [string,string][]; cardLabel: string }> = {
   control: {
@@ -36,13 +36,6 @@ const secondaryActions = [
   ["Open HILO Realtime", "/wanted-10k/realtime"], ["Preflight a policy", "/wanted-10k/preflight"], ["Verify resident hours", "/wanted-10k/exposure-ledger"], ["Calculate a cohort", "/wanted-10k/calculator"], ["Reproduce a score", "/wanted-10k/analysis-reproduction"], ["Audited registry", "/wanted-10k/leaderboard"], ["Research basis", "/wanted-10k/evidence"],
 ];
 
-function assignmentSeed() {
-  const key = "ea_experiment_seed";
-  let seed = localStorage.getItem(key);
-  if (!seed) { seed = crypto.randomUUID(); localStorage.setItem(key, seed); }
-  return seed;
-}
-
 function experimentUnitId(){
   const key=`ea_experiment_unit:${WANTED_LANDING_EXPERIMENT.id}`;
   let value=localStorage.getItem(key);
@@ -57,20 +50,19 @@ function exposureKey(assignment: WantedAssignment) {
 function assignmentLockKey(){return`ea_assignment:${WANTED_LANDING_EXPERIMENT.id}:${ROTATOR_VERSION}`}
 function lockedSessionAssignment(){try{const value=JSON.parse(sessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignment(value)?value:null}catch{return null}}
 
-const exposureTokenPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
 export function WantedLandingExperience() {
   const [assignment, setAssignment] = useState<WantedAssignment|null>(null);
   const exposureId=useRef<string|null>(null),unitId=useRef<string|null>(null),shouldTrackExposure=useRef(false);
   useEffect(() => {
+    const unit=experimentUnitId();
     const preview = new URLSearchParams(location.search).get("wanted_variant");
-    const resolved = resolveWantedAssignment(assignmentSeed(), preview);
+    const resolved = resolveWantedAssignment(unit, preview);
     const operator=sessionStorage.getItem("ea_experiment_operator")==="1";
     let next:WantedAssignment=operator&&resolved.mode==="assigned"?{...resolved,mode:"preview"}:resolved;
     if(next.mode==="assigned"){const locked=lockedSessionAssignment();next=locked??next;if(!locked)sessionStorage.setItem(assignmentLockKey(),JSON.stringify(next))}
     if(next.mode==="assigned"){
-      const key=exposureKey(next),stored=localStorage.getItem(key),token=stored&&exposureTokenPattern.test(stored)?stored:crypto.randomUUID();
-      localStorage.setItem(key,token);unitId.current=experimentUnitId();exposureId.current=token;shouldTrackExposure.current=sessionStorage.getItem(`${key}:sent`)!=="1";
+      const key=exposureKey(next),token=exposureTokenForAssignment(unit,next.variant);
+      unitId.current=unit;exposureId.current=token;shouldTrackExposure.current=sessionStorage.getItem(`${key}:sent`)!=="1";
     }
     const update=window.setTimeout(()=>setAssignment(next),0);
     return()=>window.clearTimeout(update);
