@@ -5,7 +5,7 @@ import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeart
 import { nativeLocalStorage,persistentRandomUnit,safeSessionStorage } from "../experiments/browser-storage";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
 import { currentTrackingExclusionReason,type TrackingExclusionReason } from "../experiments/privacy-choice";
-import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignmentForUnit,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
+import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignmentForUnit,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
 
 function experimentUnitId(){
   const key=`ea_experiment_unit:${WANTED_LANDING_EXPERIMENT.id}`;
@@ -42,7 +42,7 @@ export function WantedLandingExperience() {
   useEffect(()=>{
     if(assignment?.mode!=="assigned"||!unitId.current||!exposureId.current||!shouldTrackExposure.current)return;
     const token=exposureId.current,sentKey=`${exposureKey(assignment)}:sent`;
-    const metadata={experiment:assignment.experiment,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
+    const metadata={experiment:assignment.experiment,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
     const delivery=startAcknowledgedDelivery({
       send:()=>trackConfirmed("experiment_exposure",location.pathname,metadata),
       isAcknowledged:()=>safeSessionStorage.getItem(sentKey)==="1",
@@ -55,7 +55,7 @@ export function WantedLandingExperience() {
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
   const variant = WANTED_LANDING_TREATMENTS[displayAssignment.variant];
   const goal = (goalName: string, href: string) => {
-    if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
+    if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
   return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} data-exclusion-reason={exclusionReason??undefined} aria-busy={pending}>

@@ -1,6 +1,6 @@
 import { getD1 } from "../../../db/d1.ts";
 import { ANALYTICS_RETENTION_QUERY } from "../../experiments/ingestion.ts";
-import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,ROTATOR_VERSION,WANTED_LANDING_EXPERIMENT } from "../../experiments/rotator.ts";
+import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,ROTATOR_VERSION,WANTED_LANDING_EXPERIMENT } from "../../experiments/rotator.ts";
 import { summarizeExperiment,type RawExperimentRow } from "../../experiments/results.ts";
 
 export const experimentResultsQuery=`WITH exposure_tokens AS (
@@ -12,6 +12,7 @@ export const experimentResultsQuery=`WITH exposure_tokens AS (
     AND json_extract(metadata,'$.experiment')=?
     AND json_extract(metadata,'$.analysis_cohort')=?
     AND json_extract(metadata,'$.treatment_fingerprint')=?
+    AND json_extract(metadata,'$.presentation_fingerprint')=?
     AND json_extract(metadata,'$.assignment_mode')='assigned'
     AND json_extract(metadata,'$.unit_id') IS NOT NULL
     AND json_extract(metadata,'$.exposure_id') IS NOT NULL
@@ -30,6 +31,7 @@ export const experimentResultsQuery=`WITH exposure_tokens AS (
       AND json_extract(g.metadata,'$.experiment')=?
       AND json_extract(g.metadata,'$.analysis_cohort')=?
       AND json_extract(g.metadata,'$.treatment_fingerprint')=?
+      AND json_extract(g.metadata,'$.presentation_fingerprint')=?
       AND json_extract(g.metadata,'$.unit_id')=e.unit_id
       AND json_extract(g.metadata,'$.variant')=e.variant
       AND json_extract(g.metadata,'$.exposure_id')=e.exposure_token
@@ -49,6 +51,7 @@ export const experimentIntegrityQuery=`WITH exposure_tokens AS (
     AND json_extract(metadata,'$.experiment')=?
     AND json_extract(metadata,'$.analysis_cohort')=?
     AND json_extract(metadata,'$.treatment_fingerprint')=?
+    AND json_extract(metadata,'$.presentation_fingerprint')=?
     AND json_extract(metadata,'$.assignment_mode')='assigned'
     AND json_extract(metadata,'$.unit_id') IS NOT NULL
     AND json_extract(metadata,'$.exposure_id') IS NOT NULL
@@ -68,9 +71,9 @@ export async function GET() {
     const db=await getD1();
     await db.prepare(ANALYTICS_RETENTION_QUERY).run();
     const[result,integrity]=await Promise.all([
-      db.prepare(experimentResultsQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT).all<RawExperimentRow>(),
-      db.prepare(experimentIntegrityQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT).first<{cross_variant_units:number;multi_token_units:number}>(),
+      db.prepare(experimentResultsQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).all<RawExperimentRow>(),
+      db.prepare(experimentIntegrityQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).first<{cross_variant_units:number;multi_token_units:number}>(),
     ]);
-    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:Number(integrity?.cross_variant_units||0),multi_token_units_excluded:Number(integrity?.multi_token_units||0),...summarizeExperiment(result.results)},{headers:{"cache-control":"no-store"}});
-  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:0,multi_token_units_excluded:0,...emptySummary()},{headers:{"cache-control":"no-store"}}); }
+    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:Number(integrity?.cross_variant_units||0),multi_token_units_excluded:Number(integrity?.multi_token_units||0),...summarizeExperiment(result.results)},{headers:{"cache-control":"no-store"}});
+  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:0,multi_token_units_excluded:0,...emptySummary()},{headers:{"cache-control":"no-store"}}); }
 }
