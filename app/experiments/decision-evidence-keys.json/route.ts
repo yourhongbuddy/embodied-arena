@@ -1,0 +1,2 @@
+import{EXPERIMENT_DECISION_EVIDENCE_KEY_MANIFEST,EXPERIMENT_DECISION_EVIDENCE_KEY_MANIFEST_SHA256}from"../decision-evidence.ts";
+export function GET(){return Response.json({synthetic:true,canonical_key_manifest_sha256:EXPERIMENT_DECISION_EVIDENCE_KEY_MANIFEST_SHA256,key_manifest:EXPERIMENT_DECISION_EVIDENCE_KEY_MANIFEST,interpretation:"Synthetic trust root only. A production verifier must receive and pin the analysis-custodian key-manifest digest through an independent channel."},{headers:{"cache-control":"public, max-age=3600"}})}

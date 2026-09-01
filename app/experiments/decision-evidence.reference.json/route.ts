@@ -1,0 +1,2 @@
+import{experimentDecisionEvidenceReferenceBundle,verifyExperimentDecisionEvidence}from"../decision-evidence.ts";
+export async function GET(){const bundle=experimentDecisionEvidenceReferenceBundle();return Response.json({synthetic:true,bundle,expected:await verifyExperimentDecisionEvidence(bundle),interpretation:"Cryptographic conformance vector only. The example.org analysis custodian, record, key, and signature are synthetic and establish no real decision evidence."},{headers:{"cache-control":"public, max-age=3600"}})}
