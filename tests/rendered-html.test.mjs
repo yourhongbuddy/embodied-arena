@@ -749,22 +749,22 @@ test("publishes normative A2 analysis conformance vectors and executable runner"
     openapiResponse.json(),
     specResponse.json(),
   ]);
-  assert.equal(vectors.version, "0.2-AC2");
+  assert.equal(vectors.version, "0.2-AC3");
   assert.equal(vectors.analysis_profile_version, "0.2-A2");
-  assert.equal(vectors.vectors.length, 6);
-  assert.equal(schema.properties.version.const, "0.2-AC2");
-  assert.equal(contract.conformance_profile, "0.2-AC2");
+  assert.equal(vectors.vectors.length, 8);
+  assert.equal(schema.properties.version.const, "0.2-AC3");
+  assert.equal(contract.conformance_profile, "0.2-AC3");
   assert.equal(contract.conformance_vectors, "/wanted-10k/analysis-conformance-vectors.json");
   assert.match(runnerSource, /runWantedAnalysisConformance/);
-  assert.equal(runnerContract.version, "0.2-ACS2");
+  assert.equal(runnerContract.version, "0.2-ACS3");
   assert.equal(runnerContract.source_sha256, createHash("sha256").update(runnerSource).digest("hex"));
   assert.equal(runnerContract.vector_pack_sha256, createHash("sha256").update(JSON.stringify(vectors)).digest("hex"));
   assert.match(pageHtml, /Import once/);
   assert.match(pageHtml, /href="\/wanted-10k\/wanted-analysis-conformance\.mjs"/);
-  assert.equal(openapi["x-wanted-analysis-conformance"].runner_version, "0.2-ACS2");
+  assert.equal(openapi["x-wanted-analysis-conformance"].runner_version, "0.2-ACS3");
   assert.equal(openapi["x-wanted-analysis-conformance"].vector_pack_sha256, runnerContract.vector_pack_sha256);
-  assert.equal(spec.analysis_conformance_profile.version, "0.2-AC2");
-  assert.equal(spec.analysis_conformance_profile.runner_version, "0.2-ACS2");
+  assert.equal(spec.analysis_conformance_profile.version, "0.2-AC3");
+  assert.equal(spec.analysis_conformance_profile.runner_version, "0.2-ACS3");
   assert.match(spec.primary_score.terminal_competing_cause_rule,/refuse_primary_W/);
   assert.equal(spec.analysis_conformance_profile.vector_pack_sha256, runnerContract.vector_pack_sha256);
   assert.equal(spec.developer_resources.analysis_conformance_vectors, "/wanted-10k/analysis-conformance-vectors.json");
