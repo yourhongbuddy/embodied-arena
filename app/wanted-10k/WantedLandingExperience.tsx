@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
-import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,resolveWantedAssignment, ROTATOR_VERSION, WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
+import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,resolveWantedAssignment, ROTATOR_VERSION,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
 
 const content: Record<WantedVariant, { eyebrow: string; headline: React.ReactNode; intro: string; primary: { label: string; href: string }; proof: [string,string][]; cardLabel: string }> = {
   control: {
@@ -47,6 +47,9 @@ function exposureKey(assignment: WantedAssignment) {
   return `ea_exposure:${assignment.experiment}:${ROTATOR_VERSION}:${assignment.variant}`;
 }
 
+function assignmentLockKey(){return`ea_assignment:${WANTED_LANDING_EXPERIMENT.id}:${ROTATOR_VERSION}`}
+function lockedSessionAssignment(){try{const value=JSON.parse(sessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignment(value)?value:null}catch{return null}}
+
 const exposureTokenPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function WantedLandingExperience() {
@@ -55,7 +58,9 @@ export function WantedLandingExperience() {
   useEffect(() => {
     const preview = new URLSearchParams(location.search).get("wanted_variant");
     const resolved = resolveWantedAssignment(assignmentSeed(), preview);
-    const next = sessionStorage.getItem("ea_experiment_operator")==="1"&&resolved.mode==="assigned"?{...resolved,mode:"preview" as const}:resolved;
+    const operator=sessionStorage.getItem("ea_experiment_operator")==="1";
+    let next:WantedAssignment=operator&&resolved.mode==="assigned"?{...resolved,mode:"preview"}:resolved;
+    if(next.mode==="assigned"){const locked=lockedSessionAssignment();next=locked??next;if(!locked)sessionStorage.setItem(assignmentLockKey(),JSON.stringify(next))}
     if(next.mode==="assigned"){
       const key=exposureKey(next),stored=sessionStorage.getItem(key),token=stored&&exposureTokenPattern.test(stored)?stored:crypto.randomUUID();
       sessionStorage.setItem(key,token);exposureId.current=token;shouldTrackExposure.current=sessionStorage.getItem(`${key}:sent`)!=="1";

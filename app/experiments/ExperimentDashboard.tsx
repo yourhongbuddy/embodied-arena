@@ -5,7 +5,7 @@ import { ROTATOR_VERSION,WANTED_LANDING_EXPERIMENT } from "./rotator";
 
 type Row={variant:string;label:string;weight_basis_points:number;exposed_sessions:number;goal_sessions:number;conversion_rate:number|null;conversion_interval_95:{low:number;high:number}|null};
 type RatioCheck={status:"insufficient"|"pass"|"alert";p_value:number|null};
-type Data={status:"ready"|"unavailable";experiment:string;window_days:number;primary_goal:string;total_exposed_sessions:number;sample_ratio_mismatch:RatioCheck;variants:Row[]};
+type Data={status:"ready"|"unavailable";experiment:string;window_days:number;primary_goal:string;total_exposed_sessions:number;cross_variant_sessions_excluded:number;sample_ratio_mismatch:RatioCheck;variants:Row[]};
 
 export function ExperimentDashboard(){
   const[data,setData]=useState<Data|null>(null);const[failed,setFailed]=useState(false);
@@ -14,7 +14,7 @@ export function ExperimentDashboard(){
   const reset=()=>{
     localStorage.removeItem("ea_experiment_seed");
     sessionStorage.removeItem(EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY);
-    for(let index=sessionStorage.length-1;index>=0;index--){const key=sessionStorage.key(index);if(key?.startsWith("ea_exposure:"))sessionStorage.removeItem(key)}
+    for(let index=sessionStorage.length-1;index>=0;index--){const key=sessionStorage.key(index);if(key?.startsWith("ea_exposure:")||key?.startsWith("ea_assignment:"))sessionStorage.removeItem(key)}
     location.href="/wanted-10k";
   };
   return <div className="experimentSurface">
@@ -31,7 +31,7 @@ export function ExperimentDashboard(){
       {(failed||data?.status==="unavailable")&&<p className="experimentNotice">The rotator is active. Aggregate results will appear after the hosted analytics database receives assignments and goal events.</p>}
       <div className={`ratioCheck ratioCheck--${data?.sample_ratio_mismatch.status||"insufficient"}`}><div><b>SAMPLE RATIO CHECK</b><span>{data?.sample_ratio_mismatch.status==="alert"?"ALLOCATION DRIFT":data?.sample_ratio_mismatch.status==="pass"?"WITHIN EXPECTATION":"WAITING FOR SAMPLE"}</span></div><p>{data?.sample_ratio_mismatch.p_value===null||data?.sample_ratio_mismatch.p_value===undefined?"Evaluates after every variant expects at least five exposures.":`Pearson χ² (2 df), p = ${data.sample_ratio_mismatch.p_value<.0001?"<0.0001":data.sample_ratio_mismatch.p_value.toFixed(4)} · alert below 0.001.`}</p></div>
       <div className="resultTable"><header><span>VERSION</span><span>EXPOSED</span><span>PRIMARY GOALS</span><span>CONVERSION</span><span>95% INTERVAL</span></header>{rows.map(row=><article key={row.variant}><span><i className={`resultDot resultDot--${row.variant}`}/><b>{row.label}</b><small>{row.variant}</small></span><strong>{row.exposed_sessions}</strong><strong>{row.goal_sessions}</strong><strong>{row.conversion_rate===null?"—":`${(row.conversion_rate*100).toFixed(1)}%`}</strong><strong>{row.conversion_interval_95?`${(row.conversion_interval_95.low*100).toFixed(1)}–${(row.conversion_interval_95.high*100).toFixed(1)}%`:"—"}</strong></article>)}</div>
-      <aside><b>READING THE TEST</b><p>Goals count only when the same session and rotator version carry a matching exposure token. Wilson intervals show per-version uncertainty; they do not compare variants or declare a winner. Preview and operator traffic are excluded.</p></aside>
+      <aside><b>READING THE TEST</b><p>Goals count only when the same session and rotator version carry a matching exposure token. Sessions exposed to multiple assigned variants are excluded and disclosed ({data?.cross_variant_sessions_excluded??0} in this window). Wilson intervals do not declare a winner. Preview and operator traffic are excluded.</p></aside>
     </section>
   </div>
 }
