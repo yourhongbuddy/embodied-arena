@@ -134,6 +134,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 75 | `digitalocean-v75` | `a78899e` | Add a deterministic synthetic population simulator proving sticky, monotone 5% → 25% → 50% → 100% rollout membership without live allocation or inference effects |
 | 76 | `digitalocean-v76` | `192a29d` | Compile the exact verified package and signed phase-ledger prefix into deterministic, inert activation and ≤15-minute control rollback manifests without reading secrets or applying configuration |
 | 77 | `digitalocean-v77` | `e46a9a7` | Reproduce control and proof ramp assignments through a fail-closed synthetic runtime resolver that verifies the compiler, manifest, explicit environment, unit, and analysis boundary without serving or counting exposure |
+| 78 | `digitalocean-v78` | `7d7fac3` | Exhaustively enumerate all 10,000 integer buckets to prove exact staged populations, gap-free disjoint assignment, monotone phase nesting, activation-manifest alignment, and complete control rollback without reading users or changing live allocation |
 
 ## Release convention
 
