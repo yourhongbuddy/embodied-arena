@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteNav } from "../../components/SiteNav";
 import { RolloutConfigCompilerLab } from "./RolloutConfigCompilerLab";
+import { RolloutRuntimeInspector } from "./RolloutRuntimeInspector";
 import { RolloutSimulatorLab } from "./RolloutSimulatorLab";
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function RolloutSimulatorPage() {
       </section>
       <RolloutSimulatorLab />
       <RolloutConfigCompilerLab />
+      <RolloutRuntimeInspector />
       <section className="experimentBoundary">
         <div className="shell">
           <b>PREPRODUCTION SIMULATION ONLY</b>
