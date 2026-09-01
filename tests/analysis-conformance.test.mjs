@@ -34,6 +34,8 @@ test("reproduces every normative A2 analysis conformance vector", () => {
         assert.match(errors.join(" "),/duplicate environment identifier/,vector.id);
       } else if(vector.expected.error_code === "invalid_completion") {
         assert.match(errors.join(" "),/completion requires exactly 10000 resident hours/,vector.id);
+      } else if(vector.expected.error_code === "noncanonical_environment") {
+        assert.match(errors.join(" "),/must not have leading or trailing whitespace/,vector.id);
       } else {
         assert.equal(errors.length, 0, vector.id);
         const primary = score(rows);
@@ -72,14 +74,14 @@ test("reproduces every normative A2 analysis conformance vector", () => {
 });
 
 test("publishes a strict, unique, self-contained conformance pack", () => {
-  assert.equal(ANALYSIS_CONFORMANCE_VERSION, "0.2-AC3");
+  assert.equal(ANALYSIS_CONFORMANCE_VERSION, "0.2-AC4");
   assert.equal(analysisConformancePack.analysis_profile_version, "0.2-A2");
-  assert.equal(analysisConformancePack.vectors.length, 8);
+  assert.equal(analysisConformancePack.vectors.length, 9);
   assert.equal(
     new Set(analysisConformancePack.vectors.map((vector) => vector.id)).size,
     analysisConformancePack.vectors.length,
   );
   assert.equal(analysisConformanceSchema.additionalProperties, false);
-  assert.equal(analysisConformanceSchema.properties.vectors.minItems, 8);
+  assert.equal(analysisConformanceSchema.properties.vectors.minItems, 9);
   assert.equal(analysisConformanceSchema.properties.bootstrap.properties.prng.const, "pcg32_xsh_rr_64_32_seeded_v1");
 });

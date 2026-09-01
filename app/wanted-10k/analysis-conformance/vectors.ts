@@ -1,6 +1,6 @@
 import type { Outcome } from "../calculator/scoring.ts";
 
-export const ANALYSIS_CONFORMANCE_VERSION = "0.2-AC3";
+export const ANALYSIS_CONFORMANCE_VERSION = "0.2-AC4";
 
 export type AnalysisConformanceRecord = {
   environment: string;
@@ -23,7 +23,7 @@ export type AnalysisConformanceVector = {
         ci95?: [number, number];
         bootstrap_valid_fraction?: number;
       }
-    | { status: "fail"; error_code: "unsupported_horizon" | "invalid_horizon_censor" | "terminal_competing_cause" | "duplicate_environment" | "invalid_completion" };
+    | { status: "fail"; error_code: "unsupported_horizon" | "invalid_horizon_censor" | "terminal_competing_cause" | "duplicate_environment" | "invalid_completion" | "noncanonical_environment" };
 };
 
 const records = (
@@ -46,7 +46,7 @@ const baselineRecords = [
 
 export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = [
   {
-    id: "AC3-BASELINE",
+    id: "AC4-BASELINE",
     purpose: "Canonical 24-environment WILD example including the deterministic bootstrap interval.",
     records: baselineRecords,
     expected: {
@@ -61,7 +61,7 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     },
   },
   {
-    id: "AC3-HORIZON-REJECTION",
+    id: "AC4-HORIZON-REJECTION",
     purpose: "A rejection exactly at 10,000 hours changes post-event S(10K), but not integrated W.",
     records: baselineRecords.map((record, index) =>
       index === 0 ? { ...record, disposition: "rejected" } : { ...record },
@@ -76,7 +76,7 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     },
   },
   {
-    id: "AC3-TIED-EVENT-CENSOR",
+    id: "AC4-TIED-EVENT-CENSOR",
     purpose: "Events are applied before unrelated censoring at an identical pre-horizon time.",
     records: [
       ...records(5, "TIE-COMPLETE", 10_000, "completed"),
@@ -94,13 +94,13 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     },
   },
   {
-    id: "AC3-UNSUPPORTED-HORIZON",
+    id: "AC4-UNSUPPORTED-HORIZON",
     purpose: "Follow-up ends before 10,000 hours while survival remains above zero; extrapolation is forbidden.",
     records: records(20, "UNSUPPORTED", 5_000, "unrelated_censor"),
     expected: { status: "fail", error_code: "unsupported_horizon" },
   },
   {
-    id: "AC3-INVALID-HORIZON-CENSOR",
+    id: "AC4-INVALID-HORIZON-CENSOR",
     purpose: "An environment observed through 10,000 hours cannot be encoded as an unrelated censor.",
     records: [
       ...records(19, "INVALID-COMPLETE", 10_000, "completed"),
@@ -109,7 +109,7 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     expected: { status: "fail", error_code: "invalid_horizon_censor" },
   },
   {
-    id: "AC3-TERMINAL-COMPETING-CAUSE",
+    id: "AC4-TERMINAL-COMPETING-CAUSE",
     purpose: "A safety, developer, or consent/privacy termination refuses primary W and can never be silently censored.",
     records: [
       ...records(19, "TERMINAL-COMPLETE", 10_000, "completed"),
@@ -118,7 +118,7 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     expected: { status: "fail", error_code: "terminal_competing_cause" },
   },
   {
-    id: "AC3-DUPLICATE-ENVIRONMENT",
+    id: "AC4-DUPLICATE-ENVIRONMENT",
     purpose: "The independent environment is the analysis and bootstrap unit; duplicate identifiers must refuse primary W.",
     records: [
       ...records(19, "UNIQUE-COMPLETE", 10_000, "completed"),
@@ -127,13 +127,22 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     expected: { status: "fail", error_code: "duplicate_environment" },
   },
   {
-    id: "AC3-INVALID-COMPLETION",
+    id: "AC4-INVALID-COMPLETION",
     purpose: "Administrative completion is valid only after the full 10,000-hour horizon; an early completion must refuse primary W.",
     records: [
       ...records(19, "VALID-COMPLETE", 10_000, "completed"),
       ...records(1, "EARLY-COMPLETE", 9_999, "completed"),
     ],
     expected: { status: "fail", error_code: "invalid_completion" },
+  },
+  {
+    id: "AC4-NONCANONICAL-ENVIRONMENT",
+    purpose: "Leading or trailing whitespace cannot create a second spelling of one environment identity across implementations.",
+    records: [
+      ...records(19, "CANONICAL-COMPLETE", 10_000, "completed"),
+      { environment: " PADDED-COMPLETE ", resident_hours: 10_000, disposition: "completed" },
+    ],
+    expected: { status: "fail", error_code: "noncanonical_environment" },
   },
 ] as const;
 
@@ -159,7 +168,7 @@ const recordSchema = {
   additionalProperties: false,
   required: ["environment", "resident_hours", "disposition"],
   properties: {
-    environment: { type: "string", minLength: 1 },
+    environment: { type: "string", minLength: 1, pattern: "^\\S(?:.*\\S)?$" },
     resident_hours: { type: "number", minimum: 0, maximum: 10_000 },
     disposition: {
       enum: [
@@ -212,13 +221,13 @@ export const analysisConformanceSchema = {
     pass_condition: { type: "string", minLength: 20 },
     vectors: {
       type: "array",
-      minItems: 8,
+      minItems: 9,
       items: {
         type: "object",
         additionalProperties: false,
         required: ["id", "purpose", "records", "expected"],
         properties: {
-          id: { type: "string", pattern: "^AC3-[A-Z0-9-]+$" },
+          id: { type: "string", pattern: "^AC4-[A-Z0-9-]+$" },
           purpose: { type: "string", minLength: 20 },
           records: { type: "array", minItems: 1, items: recordSchema },
           expected: {
@@ -259,7 +268,7 @@ export const analysisConformanceSchema = {
                 required: ["status", "error_code"],
                 properties: {
                   status: { const: "fail" },
-                  error_code: { enum: ["unsupported_horizon", "invalid_horizon_censor", "terminal_competing_cause", "duplicate_environment", "invalid_completion"] },
+                  error_code: { enum: ["unsupported_horizon", "invalid_horizon_censor", "terminal_competing_cause", "duplicate_environment", "invalid_completion", "noncanonical_environment"] },
                 },
               },
             ],

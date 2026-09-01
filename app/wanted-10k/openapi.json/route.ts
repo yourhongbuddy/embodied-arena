@@ -42,7 +42,7 @@ const openapi = {
   },
   "x-wanted-certification": { contract: "/wanted-10k/certification.json", audit_schema: "/wanted-10k/audit-manifest.schema.json", target_templates: "/wanted-10k/certification-templates.json", local_readiness_verifier: "/wanted-10k/audit" },
   "x-wanted-audit-verifier": { module: "/wanted-10k/wanted-audit-verifier.mjs", contract: "/wanted-10k/audit-verifier-sdk.json", performs_network_requests: false },
-  "x-wanted-analysis-conformance": { profile: "0.2-AC3", runner_version: "0.2-ACS3", module: "/wanted-10k/wanted-analysis-conformance.mjs", contract: "/wanted-10k/analysis-conformance-sdk.json", vectors: "/wanted-10k/analysis-conformance-vectors.json", vector_pack_sha256: "0eaf836abb133819eb452cf9711ba11e799186bbc52a9290d51c6b5d5300687e", ranking_effect: "none" },
+  "x-wanted-analysis-conformance": { profile: "0.2-AC4", runner_version: "0.2-ACS4", module: "/wanted-10k/wanted-analysis-conformance.mjs", contract: "/wanted-10k/analysis-conformance-sdk.json", vectors: "/wanted-10k/analysis-conformance-vectors.json", vector_pack_sha256: "64e0071ba4d0b843825dd57dca6636a25ddfa1af60d510a6f47bf8c04a29b277", ranking_effect: "none" },
   "x-wanted-exposure-ledger": "/wanted-10k/exposure-ledger.json",
   "x-wanted-telemetry-authenticity": "/wanted-10k/telemetry-authenticity.json",
   "x-wanted-key-manifest-schema": "/wanted-10k/telemetry-key-manifest.schema.json",

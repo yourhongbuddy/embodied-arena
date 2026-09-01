@@ -12,6 +12,7 @@ export function validateRows(rows: Row[]) {
   rows.forEach((row, index) => {
     const label = row.environment.trim();
     if (!label) errors.push(`Row ${index + 1}: environment identifier is required.`);
+    else if (row.environment !== label) errors.push(`Row ${index + 1}: environment identifier must not have leading or trailing whitespace.`);
     else if (identifiers.has(label)) errors.push(`Row ${index + 1}: duplicate environment identifier ${label}.`);
     identifiers.add(label);
     if (!Number.isFinite(row.hours) || row.hours < 0 || row.hours > HORIZON) errors.push(`Row ${index + 1}: resident hours must be between 0 and ${HORIZON}.`);

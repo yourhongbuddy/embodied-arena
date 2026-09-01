@@ -54,6 +54,14 @@ test("rejects invalid completion records and preserves bootstrap resampling", ()
   assert.ok(resampled.validFraction > 0);
 });
 
+test("rejects padded environment identifiers before scoring or resampling", () => {
+  const padded = [{ id: 1, environment: " ENV-A ", hours: 10000, outcome: "completed" }];
+  assert.match(validateRows(padded).join(" "), /must not have leading or trailing whitespace/);
+  assert.equal(score(padded).wanted, null);
+  assert.equal(bootstrap(padded, 1000).interval, null);
+  assert.equal(robustness(padded).bounds, null);
+});
+
 test("refuses primary W for every terminal competing cause",()=>{
   for(const outcome of ["safety_termination","developer_withdrawal","consent_privacy_withdrawal"]){
     const rows=[{id:1,environment:"ENV-A",hours:10000,outcome:"completed"},{id:2,environment:"ENV-B",hours:5000,outcome}];

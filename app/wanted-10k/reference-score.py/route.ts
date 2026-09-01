@@ -51,7 +51,15 @@ def validate_rows(rows: list[Environment], horizon: float = HORIZON) -> None:
     """Validate the complete A2 endpoint taxonomy before any statistic is reported."""
     if not rows:
         raise ValueError("at least one independent environment is required")
+    identifiers: set[str] = set()
     for index, row in enumerate(rows, start=1):
+        if not isinstance(row.identifier, str) or not row.identifier.strip():
+            raise ValueError(f"row {index}: environment identifier is required")
+        if row.identifier != row.identifier.strip():
+            raise ValueError(f"row {index}: environment identifier must not have leading or trailing whitespace")
+        if row.identifier in identifiers:
+            raise ValueError(f"row {index}: duplicate environment identifier")
+        identifiers.add(row.identifier)
         if row.hours < 0 or row.hours > horizon:
             raise ValueError(f"row {index}: hours must be inside the evaluation horizon")
         if row.disposition not in ALLOWED_DISPOSITIONS:
@@ -63,10 +71,7 @@ def validate_rows(rows: list[Environment], horizon: float = HORIZON) -> None:
         if row.disposition in TERMINAL_COMPETING_CAUSES:
             raise ValueError(f"row {index}: terminal competing cause is not rankable")
 
-def wanted_summary(rows: list[Environment], horizon: float = HORIZON) -> dict[str, float | int]:
-    """A2 normalized RMST, post-event S(tau), and exact horizon accounting."""
-    validate_rows(rows, horizon)
-
+def _wanted_summary_unchecked(rows: list[Environment], horizon: float) -> dict[str, float | int]:
     event_times = sorted({r.hours for r in rows if r.rejected})
     survival = 1.0
     area = 0.0
@@ -100,6 +105,11 @@ def wanted_summary(rows: list[Environment], horizon: float = HORIZON) -> dict[st
         "retained_at_10000": retained,
     }
 
+def wanted_summary(rows: list[Environment], horizon: float = HORIZON) -> dict[str, float | int]:
+    """A2 normalized RMST, post-event S(tau), and exact horizon accounting."""
+    validate_rows(rows, horizon)
+    return _wanted_summary_unchecked(rows, horizon)
+
 def wanted_score(rows: list[Environment], horizon: float = HORIZON) -> float:
     """Normalized RMST using Kaplan-Meier, without unsupported extrapolation."""
     return float(wanted_summary(rows, horizon)["wanted_score"])
@@ -126,7 +136,7 @@ def confidence_summary(
     for _ in range(samples):
         sample = [rows[rng.index(n)] for _ in range(n)]
         try:
-            estimates.append(wanted_score(sample))
+            estimates.append(float(_wanted_summary_unchecked(sample, HORIZON)["wanted_score"]))
         except ValueError:
             pass
 
