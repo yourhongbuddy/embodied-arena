@@ -36,6 +36,7 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const db=await getD1();
+    await db.prepare(ANALYTICS_RETENTION_QUERY).run();
     const [totals,live,paths,events]=await Promise.all([
       db.prepare("SELECT SUM(event_type='page_view') views, COUNT(DISTINCT session_id) sessions, SUM(event_type='scan_completed') scans, SUM(event_type='report_downloaded') downloads, SUM(event_type='heartbeat') heartbeats FROM analytics_events WHERE created_at >= datetime('now','-7 days')").first<Record<string,number>>(),
       db.prepare("SELECT COUNT(DISTINCT session_id) live FROM analytics_events WHERE created_at >= datetime('now','-90 seconds')").first<{live:number}>(),

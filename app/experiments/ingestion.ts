@@ -1,4 +1,4 @@
-import { ROTATOR_VERSION,validWantedVariant,WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
+import { ROTATOR_VERSION,validExperimentUnitId,validWantedVariant,WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
 
 export const ANALYTICS_RETENTION_DAYS=35;
 export const ANALYTICS_RETENTION_QUERY=`DELETE FROM analytics_events WHERE created_at < datetime('now','-${ANALYTICS_RETENTION_DAYS} days')`;
@@ -11,6 +11,7 @@ export function validExperimentEvent(eventType:string,path:string,metadata:Metad
   if(path!=="/wanted-10k"||metadata.experiment!==WANTED_LANDING_EXPERIMENT.id||!validWantedVariant(metadata.variant))return false;
   if(metadata.assignment_mode!=="assigned"&&metadata.assignment_mode!=="preview")return false;
   if(metadata.rotator_version!==ROTATOR_VERSION)return false;
+  if(!validExperimentUnitId(metadata.unit_id))return false;
   if(!validExposureToken(metadata.exposure_id))return false;
   if(eventType==="experiment_exposure")return metadata.goal===undefined&&metadata.destination===undefined;
   if(eventType!=="experiment_goal"||typeof metadata.goal!=="string"||typeof metadata.destination!=="string")return false;

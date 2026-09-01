@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
-import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,resolveWantedAssignment, ROTATOR_VERSION,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
+import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
 
 const content: Record<WantedVariant, { eyebrow: string; headline: React.ReactNode; intro: string; primary: { label: string; href: string }; proof: [string,string][]; cardLabel: string }> = {
   control: {
@@ -43,6 +43,13 @@ function assignmentSeed() {
   return seed;
 }
 
+function experimentUnitId(){
+  const key=`ea_experiment_unit:${WANTED_LANDING_EXPERIMENT.id}`;
+  let value=localStorage.getItem(key);
+  if(!validExperimentUnitId(value)){value=crypto.randomUUID();localStorage.setItem(key,value)}
+  return value;
+}
+
 function exposureKey(assignment: WantedAssignment) {
   return `ea_exposure:${assignment.experiment}:${ROTATOR_VERSION}:${assignment.variant}`;
 }
@@ -54,7 +61,7 @@ const exposureTokenPattern=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]
 
 export function WantedLandingExperience() {
   const [assignment, setAssignment] = useState<WantedAssignment|null>(null);
-  const exposureId=useRef<string|null>(null),shouldTrackExposure=useRef(false);
+  const exposureId=useRef<string|null>(null),unitId=useRef<string|null>(null),shouldTrackExposure=useRef(false);
   useEffect(() => {
     const preview = new URLSearchParams(location.search).get("wanted_variant");
     const resolved = resolveWantedAssignment(assignmentSeed(), preview);
@@ -62,16 +69,16 @@ export function WantedLandingExperience() {
     let next:WantedAssignment=operator&&resolved.mode==="assigned"?{...resolved,mode:"preview"}:resolved;
     if(next.mode==="assigned"){const locked=lockedSessionAssignment();next=locked??next;if(!locked)sessionStorage.setItem(assignmentLockKey(),JSON.stringify(next))}
     if(next.mode==="assigned"){
-      const key=exposureKey(next),stored=sessionStorage.getItem(key),token=stored&&exposureTokenPattern.test(stored)?stored:crypto.randomUUID();
-      sessionStorage.setItem(key,token);exposureId.current=token;shouldTrackExposure.current=sessionStorage.getItem(`${key}:sent`)!=="1";
+      const key=exposureKey(next),stored=localStorage.getItem(key),token=stored&&exposureTokenPattern.test(stored)?stored:crypto.randomUUID();
+      localStorage.setItem(key,token);unitId.current=experimentUnitId();exposureId.current=token;shouldTrackExposure.current=sessionStorage.getItem(`${key}:sent`)!=="1";
     }
     const update=window.setTimeout(()=>setAssignment(next),0);
     return()=>window.clearTimeout(update);
   }, []);
   useEffect(()=>{
-    if(assignment?.mode!=="assigned"||!exposureId.current||!shouldTrackExposure.current)return;
+    if(assignment?.mode!=="assigned"||!unitId.current||!exposureId.current||!shouldTrackExposure.current)return;
     const token=exposureId.current,sentKey=`${exposureKey(assignment)}:sent`;
-    const metadata={experiment:assignment.experiment,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
+    const metadata={experiment:assignment.experiment,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
     const delivery=startAcknowledgedDelivery({
       send:()=>trackConfirmed("experiment_exposure",location.pathname,metadata),
       isAcknowledged:()=>sessionStorage.getItem(sentKey)==="1",
@@ -84,7 +91,7 @@ export function WantedLandingExperience() {
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
   const variant = content[displayAssignment.variant];
   const goal = (goalName: string, href: string) => {
-    if (assignment?.mode === "assigned"&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
+    if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
   return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} aria-busy={pending}>
