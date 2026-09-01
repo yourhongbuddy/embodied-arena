@@ -38,8 +38,7 @@ npm run dev
 Validate the standalone release with:
 
 ```bash
-npm run build
-npm start
+npm test
 ```
 
 ## DigitalOcean App Platform
