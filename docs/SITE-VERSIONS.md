@@ -111,6 +111,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 52 | `digitalocean-v52` | `e9f26db` | Bind experiment cohorts to exact normalized rendered-site source manifests |
 | 53 | `digitalocean-v53` | `8d174b6` | Require short-lived same-session server receipts for counted experiment traffic |
 | 54 | `digitalocean-v54` | `03bec09` | Add indexed receipt-to-exposure integrity diagnostics for the site rotator |
+| 55 | `digitalocean-v55` | `a81fb8e` | Diagnose assignment allocation and accepted-exposure delivery by site version |
 
 ## Release convention
 
