@@ -117,6 +117,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 58 | `digitalocean-v58` | `b977773` | Quantify delivery-rate differences versus control with familywise uncertainty intervals |
 | 59 | `digitalocean-v59` | `361f244` | Bind all rotator results to one exact inclusive server-UTC analysis window and begin cohort C7 |
 | 60 | `digitalocean-v60` | `9814696` | Derive rotator windows from a settled D1 database-clock snapshot and make unavailable windows explicit |
+| 61 | `digitalocean-v61` | `1a63f1d` | Preserve delayed exposure and goal delivery across explicitly compatible active-cohort rotator revisions |
 
 ## Release convention
 
