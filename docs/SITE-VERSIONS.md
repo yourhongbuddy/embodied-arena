@@ -102,6 +102,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 43 | `digitalocean-v43` | `78d9c89` | Add a no-upload browser workspace for cryptographic root-witness verification |
 | 44 | `digitalocean-v44` | `57c3b10` | Ship a zero-dependency RC1 verifier module with direct Node CLI |
 | 45 | `digitalocean-v45` | `fa3dd34` | Publish 11 normative RC1 conformance vectors and a direct CI runner |
+| 46 | `digitalocean-v46` | `cdfeb03` | Add no-key-custody RC1 witness receipt issuance and verification |
 
 ## Release convention
 
