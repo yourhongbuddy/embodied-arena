@@ -91,6 +91,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 32 | `digitalocean-v32` | `8b7bf88` | Honor browser privacy choices before experiment eligibility |
 | 33 | `digitalocean-v33` | `2aef98a` | Purge local experiment state when analytics is disabled |
 | 34 | `digitalocean-v34` | `bae26a3` | Rotate site experiences daily and refuse primary W for terminal competing causes |
+| 35 | `digitalocean-v35` | `264dfc1` | Enforce independent analysis units and full-horizon completion through AC3 |
 
 ## Release convention
 
