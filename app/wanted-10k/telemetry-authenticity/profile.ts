@@ -14,11 +14,11 @@ export const telemetryAuthenticityContract = {
   key_resolution: "signing_key_id_must_resolve_in_frozen_manifest",
   validity_rule: "valid_from_inclusive_valid_until_exclusive_revocation_effective_at_revoked_at",
   verification: ["every_event_signature", "every_hash_chain_link", "key_manifest_shape", "key_id_resolution", "key_validity_window", "key_revocation"],
-  audit_summary_required: ["total_events", "verified_signatures_equals_total_events", "invalid_signatures_equals_zero", "unknown_key_ids_equals_zero", "expired_key_events_equals_zero", "revoked_key_events_equals_zero", "hash_chain_mismatches_equals_zero", "key_manifest_hash", "verification_report_hash"],
+  audit_summary_required: ["total_events", "verified_signatures_equals_total_events", "invalid_signatures_equals_zero", "unknown_key_ids_equals_zero", "expired_key_events_equals_zero", "revoked_key_events_equals_zero", "hash_chain_mismatches_equals_zero", "key_manifest_hash", "verification_report_hash", "root_commitments_hash", "exposure_integrity_hash", "exposure_reconciliation_uri", "exposure_reconciliation_hash"],
   counting_rules: { invalid_signatures: "malformed_or_cryptographically_invalid_event_signatures", unknown_key_ids: "distinct_unresolved_signing_key_identifiers", expired_key_events: "events_at_or_after_valid_until", revoked_key_events: "events_at_or_after_revoked_at", hash_chain_mismatches: "non_genesis_events_whose_previous_event_hash_does_not_match" },
-  hard_failures: ["missing_key_manifest", "unknown_key_id", "malformed_public_key", "invalid_signature", "expired_key_event", "revoked_key_event", "broken_hash_chain", "noncanonical_signature_scope"],
+  hard_failures: ["missing_key_manifest", "unknown_key_id", "malformed_public_key", "invalid_signature", "expired_key_event", "revoked_key_event", "broken_hash_chain", "noncanonical_signature_scope", "telemetry_exposure_reconciliation_mismatch"],
   privacy: "verification_runs_locally_and_does_not_upload_event_data",
-  portable_verifier: { version: TELEMETRY_VERIFIER_SDK_VERSION, module: "/wanted-10k/wanted-telemetry-verifier.mjs", contract: "/wanted-10k/telemetry-verifier-sdk.json", stream_report: "0.2-TR1", aggregate_report: "0.2-TA1", audit_handoff: "exact_audit_manifest.telemetry_shape" },
+  portable_verifier: { version: TELEMETRY_VERIFIER_SDK_VERSION, module: "/wanted-10k/wanted-telemetry-verifier.mjs", contract: "/wanted-10k/telemetry-verifier-sdk.json", stream_report: "0.2-TR1", aggregate_report: "0.2-TA1", exposure_reconciliation: "0.2-TX1", audit_handoff: "exact_audit_manifest.telemetry_shape_with_exposure_binding" },
   interpretation: "proves_integrity_and_possession_of_a_registered_signing_key_not_sensor_truth_complete_capture_or_key_custody",
 } as const;
 

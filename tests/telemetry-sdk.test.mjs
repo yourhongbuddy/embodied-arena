@@ -31,7 +31,7 @@ test("portable telemetry verifier accepts the canonical signed six-event chain",
   assert.equal(standalone.events, 6);
   assert.equal(standalone.coverage, 6);
   assert.equal(standalone.reportProfile, "0.2-TR1");
-  assert.equal(standalone.verifierVersion, "0.2-TS3");
+  assert.equal(standalone.verifierVersion, "0.2-TS4");
   assert.match(standalone.eventStreamSha256, /^[a-f0-9]{64}$/);
   assert.match(standalone.keyManifestSha256, /^[a-f0-9]{64}$/);
   const unsigned = structuredClone(standalone);
@@ -56,34 +56,64 @@ test("canonical evidence digests ignore JSON formatting but bind semantic change
 
 test("aggregates unique passing streams and emits the exact audit telemetry shape", async () => {
   const [first, second] = await Promise.all([
-    sampleBundle({ deployment_id: "dep_demo_001", environment_id: "env_demo_001" }),
-    sampleBundle({ deployment_id: "dep_demo_002", environment_id: "env_demo_002" }),
+    sampleBundle({ deployment_id: "dep_demo_001", environment_id: "env_demo_001", include_end: true }),
+    sampleBundle({ deployment_id: "dep_demo_002", environment_id: "env_demo_002", include_end: true }),
   ]);
   const reports = await Promise.all([sdk.verifyTelemetryJsonl(first.jsonl, first.keyManifest), sdk.verifyTelemetryJsonl(second.jsonl, second.keyManifest)]);
   const aggregate = await sdk.aggregateTelemetryReports(reports);
   assert.equal(aggregate.status, "pass", JSON.stringify(aggregate.errors));
   assert.equal(aggregate.reportProfile, "0.2-TA1");
   assert.equal(aggregate.deploymentStreams, 2);
-  assert.equal(aggregate.totalEvents, 12);
-  assert.equal(aggregate.verifiedSignatures, 12);
+  assert.equal(aggregate.totalEvents, 14);
+  assert.equal(aggregate.verifiedSignatures, 14);
   assert.equal(aggregate.streams.length, 2);
   const aggregateUnsigned = structuredClone(aggregate);
   delete aggregateUnsigned.verificationReportSha256;
   assert.equal(aggregate.verificationReportSha256, await sdk.sha256Hex(aggregateUnsigned));
+
+  const exposureLedger = {
+    profile_version: "0.2-X1",
+    target_certification: "WANTED_WILD",
+    records: aggregate.streams.map((stream, index) => ({
+      deployment_id: stream.deploymentId,
+      environment_id_sha256: stream.environmentIdSha256,
+      activation: { event_id: stream.genesis.eventId, sequence: stream.genesis.sequence, occurred_at: stream.genesis.occurredAt, event_sha256: stream.genesis.eventSha256 },
+      end: { event_id: stream.tail.eventId, sequence: stream.tail.sequence, occurred_at: stream.tail.occurredAt, event_sha256: stream.tail.eventSha256, disposition: stream.tail.disposition },
+      validated_event_count: stream.events,
+      missing_sequences: 0,
+      duplicate_sequences: 0,
+      backward_timestamps: 0,
+      chain_complete: true,
+      root_commitment_uri: `https://evidence.example/roots/${index + 1}.json`,
+      root_commitment_sha256: String(index + 1).repeat(64),
+    })),
+  };
+  const reconciliation = await sdk.reconcileTelemetryExposure(aggregate, exposureLedger);
+  assert.equal(reconciliation.status, "pass", JSON.stringify(reconciliation.errors));
+  assert.equal(reconciliation.reportProfile, "0.2-TX1");
+  assert.equal(reconciliation.rows.length, 2);
+  assert.equal(reconciliation.rows.every(row => row.passed), true);
+  const reconciliationUnsigned = structuredClone(reconciliation);
+  delete reconciliationUnsigned.reconciliationSha256;
+  assert.equal(reconciliation.reconciliationSha256, await sdk.sha256Hex(reconciliationUnsigned));
 
   const bindings = {
     keyManifestUri: "https://evidence.example/telemetry-key-manifest.json",
     verificationReportUri: "https://evidence.example/telemetry-verification-report.json",
     rootCommitmentsUri: "https://evidence.example/telemetry-root-commitments.json",
     rootCommitmentsSha256: "a".repeat(64),
+    exposureIntegritySha256: "b".repeat(64),
+    exposureReconciliationUri: "https://evidence.example/telemetry-exposure-reconciliation.json",
   };
-  const summary = await sdk.createTelemetryAuditSummary(aggregate, bindings);
+  const summary = await sdk.createTelemetryAuditSummary(aggregate, bindings, reconciliation);
   assert.equal(summary.conformance_status, "passed");
-  assert.equal(summary.total_events, 12);
-  assert.equal(summary.verified_signatures, 12);
+  assert.equal(summary.total_events, 14);
+  assert.equal(summary.verified_signatures, 14);
   assert.equal(summary.deployment_streams, 2);
   assert.equal(summary.key_manifest_sha256, aggregate.keyManifestSha256);
   assert.equal(summary.verification_report_sha256, aggregate.verificationReportSha256);
+  assert.equal(summary.exposure_integrity_sha256, bindings.exposureIntegritySha256);
+  assert.equal(summary.exposure_reconciliation_sha256, reconciliation.reconciliationSha256);
   assert.deepEqual(Object.keys(summary).sort(), Object.keys(auditManifestTemplates.WANTED_WILD.telemetry).sort());
 
   const duplicated = await sdk.aggregateTelemetryReports([reports[0], reports[0]]);
@@ -92,12 +122,25 @@ test("aggregates unique passing streams and emits the exact audit telemetry shap
   assert.match(duplicated.errors.join(" "), /duplicates environment/);
   const tampered = structuredClone(aggregate);
   tampered.totalEvents++;
-  await assert.rejects(sdk.createTelemetryAuditSummary(tampered, bindings), /does not match/);
+  await assert.rejects(sdk.createTelemetryAuditSummary(tampered, bindings, reconciliation), /does not match/);
   const forged = structuredClone(aggregate);
   forged.streams[1].environmentId = forged.streams[0].environmentId;
   delete forged.verificationReportSha256;
   forged.verificationReportSha256 = await sdk.sha256Hex(forged);
-  await assert.rejects(sdk.createTelemetryAuditSummary(forged, bindings), /inconsistent/);
+  await assert.rejects(sdk.createTelemetryAuditSummary(forged, bindings, reconciliation), /inconsistent/);
+
+  for (const mutate of [
+    ledger => ledger.records[0].validated_event_count++,
+    ledger => { ledger.records[0].end.event_sha256 = "f".repeat(64); },
+    ledger => { ledger.records[0].environment_id_sha256 = "e".repeat(64); },
+    ledger => { ledger.records[0].root_commitment_uri = ""; },
+  ]) {
+    const invalidLedger = structuredClone(exposureLedger);
+    mutate(invalidLedger);
+    const failed = await sdk.reconcileTelemetryExposure(aggregate, invalidLedger);
+    assert.equal(failed.status, "fail");
+    await assert.rejects(sdk.createTelemetryAuditSummary(aggregate, bindings, failed), /passing 0.2-TX1/);
+  }
 });
 
 test("portable verifier exposes payload tampering and the downstream broken chain", async () => {
@@ -153,16 +196,18 @@ test("published telemetry module and contract are digest-bound and local-only", 
   const moduleResponse = await getModule();
   const moduleSource = await moduleResponse.text();
   const contract = await (await getContract()).json();
-  assert.equal(TELEMETRY_VERIFIER_SDK_VERSION, "0.2-TS3");
+  assert.equal(TELEMETRY_VERIFIER_SDK_VERSION, "0.2-TS4");
   assert.equal(moduleSource, telemetryVerifierSdkSource);
   assert.equal(contract.source_sha256, await digest(new TextEncoder().encode(moduleSource)));
-  assert.equal(contract.version, "0.2-TS3");
+  assert.equal(contract.version, "0.2-TS4");
   assert.equal(contract.authenticity_profile, "0.2-T1");
   assert.equal(contract.runtime_dependencies, 0);
   assert.equal(contract.performs_network_requests, false);
   assert.deepEqual(contract.cli.exit_codes, { pass: 0, verification_failed: 1, usage_or_io_error: 2 });
   assert.equal(contract.reports.stream_profile, "0.2-TR1");
   assert.equal(contract.reports.aggregate_profile, "0.2-TA1");
+  assert.equal(contract.reports.exposure_reconciliation_profile, "0.2-TX1");
+  assert.equal(contract.reports.audit_summary, "exact_audit_manifest.telemetry_shape_with_exposure_binding");
   assert.equal(contract.privacy, "local_only_no_event_uploads_or_network_requests");
   assert.equal(moduleResponse.headers.get("content-type"), "text/javascript; charset=utf-8");
   assert.match(moduleResponse.headers.get("content-disposition"), /wanted-telemetry-verifier\.mjs/);

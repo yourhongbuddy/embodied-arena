@@ -73,17 +73,26 @@ test("binds 0.2-T1 into every field certification and the registry", async () =>
     manifest.telemetry.invalid_signatures = 1;
     manifest.telemetry.verified_signatures--;
     assert.equal((await assessManifest(JSON.stringify(manifest))).gates.find(gate => gate.id === "G5").status, "fail");
+    const mismatchedExposure = clone(auditManifestTemplates[target]);
+    mismatchedExposure.telemetry.exposure_integrity_sha256 = "f".repeat(64);
+    assert.equal((await assessManifest(JSON.stringify(mismatchedExposure))).gates.find(gate => gate.id === "G5").status, "fail");
+    const missingReconciliation = clone(auditManifestTemplates[target]);
+    missingReconciliation.evidence = missingReconciliation.evidence.filter(item => item.role !== "telemetry_exposure_reconciliation");
+    assert.equal((await assessManifest(JSON.stringify(missingReconciliation))).gates.find(gate => gate.id === "G5").status, "fail");
   }
   assert.equal(auditManifestTemplates.PREQUALIFIED.telemetry.applicable, false);
   assert.equal(leaderboardContract.admission.includes("telemetry_authenticity_profile_0.2-T1_passes"), true);
+  assert.equal(leaderboardContract.admission.includes("telemetry_exposure_reconciliation_0.2-TX1_passes"), true);
 });
 
 test("publishes an exact Ed25519 key-manifest contract", () => {
   assert.equal(telemetryAuthenticityContract.version, "0.2-T1");
   assert.equal(telemetryAuthenticityContract.algorithm, "Ed25519");
-  assert.equal(telemetryAuthenticityContract.portable_verifier.version, "0.2-TS3");
+  assert.equal(telemetryAuthenticityContract.portable_verifier.version, "0.2-TS4");
   assert.equal(telemetryAuthenticityContract.portable_verifier.aggregate_report, "0.2-TA1");
-  assert.equal(telemetryAuthenticityContract.portable_verifier.audit_handoff, "exact_audit_manifest.telemetry_shape");
+  assert.equal(telemetryAuthenticityContract.portable_verifier.exposure_reconciliation, "0.2-TX1");
+  assert.equal(telemetryAuthenticityContract.portable_verifier.audit_handoff, "exact_audit_manifest.telemetry_shape_with_exposure_binding");
+  assert.equal(telemetryAuthenticityContract.hard_failures.includes("telemetry_exposure_reconciliation_mismatch"), true);
   assert.equal(telemetryKeyManifestSchema.properties.algorithm.const, "Ed25519");
   assert.equal(telemetryKeyManifestSchema.properties.keys.items.properties.public_key_base64url.pattern, "^[A-Za-z0-9_-]{43}$");
 });

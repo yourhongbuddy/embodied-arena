@@ -45,7 +45,7 @@ const openapi = {
   "x-wanted-analysis-conformance": { profile: "0.2-AC4", runner_version: "0.2-ACS4", module: "/wanted-10k/wanted-analysis-conformance.mjs", contract: "/wanted-10k/analysis-conformance-sdk.json", vectors: "/wanted-10k/analysis-conformance-vectors.json", vector_pack_sha256: "64e0071ba4d0b843825dd57dca6636a25ddfa1af60d510a6f47bf8c04a29b277", ranking_effect: "none" },
   "x-wanted-exposure-ledger": "/wanted-10k/exposure-ledger.json",
   "x-wanted-telemetry-authenticity": "/wanted-10k/telemetry-authenticity.json",
-  "x-wanted-telemetry-verifier": { version: "0.2-TS3", module: "/wanted-10k/wanted-telemetry-verifier.mjs", contract: "/wanted-10k/telemetry-verifier-sdk.json", performs_network_requests: false, cli_exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 }, reports: { stream: "0.2-TR1", aggregate: "0.2-TA1", audit_handoff: "audit_manifest.telemetry" } },
+  "x-wanted-telemetry-verifier": { version: "0.2-TS4", module: "/wanted-10k/wanted-telemetry-verifier.mjs", contract: "/wanted-10k/telemetry-verifier-sdk.json", performs_network_requests: false, cli_exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 }, reports: { stream: "0.2-TR1", aggregate: "0.2-TA1", exposure_reconciliation: "0.2-TX1", audit_handoff: "exact_audit_manifest.telemetry_shape_with_exposure_binding" } },
   "x-wanted-key-manifest-schema": "/wanted-10k/telemetry-key-manifest.schema.json",
   "x-hilo-realtime-contract": "/wanted-10k/realtime.json",
   "x-hilo-realtime-schema": "/wanted-10k/realtime.schema.json",

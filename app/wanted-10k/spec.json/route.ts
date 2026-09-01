@@ -86,7 +86,7 @@ const spec = {
     minimum_independent_environments: 20,
     minimum_total_resident_hours: 10000,
     recommended_environments: 50,
-    rankability_requires: ["preregistration_integrity_0.2-PR1_passed", "protocol_deviation_integrity_0.2-DV1_passed", "sampling_stopping_integrity_0.2-ST1_passed", "cohort_integrity_0.2-E1_passed", "site_heterogeneity_0.2-SH1_passed", "exposure_ledger_0.2-X1_passed", "endpoint_adjudication_0.2-J1_passed", "analysis_reproduction_0.2-A2_passed", "telemetry_authenticity_0.2-T1_passed", "privacy_integrity_0.2-PV1_passed", "service_continuity_0.2-SC1_passed", "rmst_identifiable_at_10000", "bootstrap_interval_available", "safety_gate_passed", "independent_audit_seal_0.2-V1_passed", "auditor_credential_0.2-V2_passed"],
+    rankability_requires: ["preregistration_integrity_0.2-PR1_passed", "protocol_deviation_integrity_0.2-DV1_passed", "sampling_stopping_integrity_0.2-ST1_passed", "cohort_integrity_0.2-E1_passed", "site_heterogeneity_0.2-SH1_passed", "exposure_ledger_0.2-X1_passed", "endpoint_adjudication_0.2-J1_passed", "analysis_reproduction_0.2-A2_passed", "telemetry_authenticity_0.2-T1_passed", "telemetry_exposure_reconciliation_0.2-TX1_passed", "privacy_integrity_0.2-PV1_passed", "service_continuity_0.2-SC1_passed", "rmst_identifiable_at_10000", "bootstrap_interval_available", "safety_gate_passed", "independent_audit_seal_0.2-V1_passed", "auditor_credential_0.2-V2_passed"],
   },
   cohort_integrity_profile: {
     version: "0.2-E1",
@@ -157,13 +157,13 @@ const spec = {
     interpretation: "proves_integrity_and_registered_key_possession_not_sensor_truth_complete_capture_or_key_custody",
   },
   telemetry_verifier_sdk_profile: {
-    version: "0.2-TS3",
+    version: "0.2-TS4",
     authenticity_profile: "0.2-T1",
     format: "zero_dependency_JavaScript_ESM",
     runtime: "Web_Crypto_Ed25519",
     performs_network_requests: false,
     cli: { runtime: "Node.js_22_plus", exit_codes: { pass: 0, verification_failed: 1, usage_or_IO_error: 2 }, stdout: "JSON_verification_report" },
-    reports: { stream: "0.2-TR1", aggregate: "0.2-TA1", stream_digest: "SHA256_RFC8785_JCS_ordered_event_array", key_manifest_digest: "SHA256_RFC8785_JCS_frozen_manifest", report_digest: "SHA256_RFC8785_JCS_report_without_verificationReportSha256", aggregate_requires: ["unique_deployment_ids", "unique_environment_ids", "one_frozen_key_manifest", "all_stream_report_digests_valid", "all_hard_failure_counters_zero"], audit_handoff: "exact_audit_manifest.telemetry_shape" },
+    reports: { stream: "0.2-TR1", aggregate: "0.2-TA1", exposure_reconciliation: "0.2-TX1", stream_digest: "SHA256_RFC8785_JCS_ordered_event_array", key_manifest_digest: "SHA256_RFC8785_JCS_frozen_manifest", report_digest: "SHA256_RFC8785_JCS_report_without_verificationReportSha256", aggregate_requires: ["unique_deployment_ids", "unique_environment_ids", "one_frozen_key_manifest", "all_stream_report_digests_valid", "all_hard_failure_counters_zero"], reconciliation_requires: ["same_deployments", "same_hashed_environments", "same_event_counts", "same_activation_boundaries", "same_terminal_boundaries", "complete_sequence_accounting", "bound_root_commitments"], audit_handoff: "exact_audit_manifest.telemetry_shape_with_exposure_binding" },
     strict_input: "I-JSON_with_RFC8785_JCS",
     verification: ["event_shape", "payload_semantics", "contiguous_sequence", "single_deployment_environment", "monotonic_UTC", "event_id_uniqueness", "SHA256_previous_event_chain", "every_Ed25519_signature", "key_manifest_resolution", "key_validity_and_revocation"],
     distributed_source_digest: "SHA-256_in_telemetry_verifier_sdk_contract",
@@ -504,11 +504,12 @@ const spec = {
   certification_handoff: {
     public_unit: "aggregate_audit_manifest",
     participant_data_permitted: false,
-    binds: ["preregistration_integrity_profile_0.2-PR1", "protocol_deviation_integrity_profile_0.2-DV1", "sampling_stopping_integrity_profile_0.2-ST1", "robot_versions", "preflight", "cohort_summary", "cohort_integrity", "site_heterogeneity_profile_0.2-SH1", "exposure_integrity", "analysis_reproduction", "human_measures_profile_0.2-H1", "learning_generalization_profile_0.2-LG1", "assistance_integrity_profile_0.2-I1", "policy_evolution_integrity_profile_0.2-U1", "privacy_integrity_profile_0.2-PV1", "service_continuity_profile_0.2-SC1", "withdrawal_profile_0.2-W1", "primary_score", "diagnostics", "safety_evidence", "telemetry_key_manifest", "telemetry_authenticity_report", "telemetry_commitments", "endpoint_adjudication", "withdrawal_results", "independent_audit_seal_0.2-V1", "auditor_credential_0.2-V2"],
+    binds: ["preregistration_integrity_profile_0.2-PR1", "protocol_deviation_integrity_profile_0.2-DV1", "sampling_stopping_integrity_profile_0.2-ST1", "robot_versions", "preflight", "cohort_summary", "cohort_integrity", "site_heterogeneity_profile_0.2-SH1", "exposure_integrity", "analysis_reproduction", "human_measures_profile_0.2-H1", "learning_generalization_profile_0.2-LG1", "assistance_integrity_profile_0.2-I1", "policy_evolution_integrity_profile_0.2-U1", "privacy_integrity_profile_0.2-PV1", "service_continuity_profile_0.2-SC1", "withdrawal_profile_0.2-W1", "primary_score", "diagnostics", "safety_evidence", "telemetry_key_manifest", "telemetry_authenticity_report", "telemetry_commitments", "telemetry_exposure_reconciliation_0.2-TX1", "endpoint_adjudication", "withdrawal_results", "independent_audit_seal_0.2-V1", "auditor_credential_0.2-V2"],
     local_readiness_is_certification: false,
     secondary_nonranking_disclosures: ["revealed_preference_profile_0.2-RP1_when_run"],
   },
   changelog: {
+    "0.2-telemetry-verifier-sdk-4": ["bind_stream_reports_to_activation_and_terminal_event_digests", "reconcile_every_stream_against_exposure_ledger_0.2-X1", "reject_identity_count_boundary_chain_and_root_commitment_mismatches", "require_the_reconciliation_in_audit_telemetry", "preserve_external_root_witness_freshness_as_an_independent_audit_duty"],
     "0.2-telemetry-verifier-sdk-3": ["bind_each_stream_report_to_canonical_event_and_key_manifest_digests", "self_digest_every_stream_and_aggregate_report", "reject_duplicate_deployment_and_environment_streams", "require_one_frozen_key_manifest_and_zero_hard_failures", "emit_the_exact_audit_manifest_telemetry_summary"],
     "0.2-telemetry-verifier-sdk-2": ["make_the_same_verifier_module_directly_executable_in_Node_22_plus", "publish_stable_machine_exit_codes", "retain_browser_and_ESM_import_compatibility", "keep_file_IO_lazy_and_local_only"],
     "0.2-telemetry-verifier-sdk-1": ["ship_zero_dependency_local_telemetry_verifier_ESM", "enforce_strict_I-JSON_before_RFC8785_JCS", "verify_every_event_signature_chain_link_and_key_lifecycle", "bind_contract_to_distributed_source_digest"],

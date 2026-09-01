@@ -1,16 +1,17 @@
-export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS3";
+export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS4";
 
 export const telemetryVerifierSdkSource = String.raw`/**
- * WANTED-10K telemetry verifier — Protocol 0.2-TS3 / authenticity 0.2-T1
+ * WANTED-10K telemetry verifier — Protocol 0.2-TS4 / authenticity 0.2-T1
  *
  * Zero runtime dependencies. Verification is local and performs no network
  * requests. Supply one JSONL event stream and its frozen key manifest.
  */
 
-export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS3";
+export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS4";
 export const TELEMETRY_AUTHENTICITY_VERSION = "0.2-T1";
 export const TELEMETRY_STREAM_REPORT_VERSION = "0.2-TR1";
 export const TELEMETRY_AGGREGATE_REPORT_VERSION = "0.2-TA1";
+export const TELEMETRY_EXPOSURE_RECONCILIATION_VERSION = "0.2-TX1";
 export const EVENT_TYPES = Object.freeze(["DEPLOYMENT_LIFECYCLE", "ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"]);
 
 const REQUIRED = Object.freeze(["schema_version", "event_id", "deployment_id", "environment_id", "robot_id", "sequence", "occurred_at", "type", "payload", "signing_key_id", "signature"]);
@@ -139,14 +140,18 @@ function emptyResult(errors = [], keyManifestId = null) {
 async function finalizeStreamReport(report, events, manifest) {
   const deploymentIds = new Set((events ?? []).map(event => event.deployment_id).filter(value => typeof value === "string" && value));
   const environmentIds = new Set((events ?? []).map(event => event.environment_id).filter(value => typeof value === "string" && value));
+  const first = events?.[0] ?? null, last = events?.[events.length - 1] ?? null;
   const base = {
     reportProfile: TELEMETRY_STREAM_REPORT_VERSION,
     verifierVersion: TELEMETRY_VERIFIER_SDK_VERSION,
     authenticityProfile: TELEMETRY_AUTHENTICITY_VERSION,
     deploymentId: deploymentIds.size === 1 ? [...deploymentIds][0] : null,
     environmentId: environmentIds.size === 1 ? [...environmentIds][0] : null,
+    environmentIdSha256: environmentIds.size === 1 ? await sha256Hex([...environmentIds][0]) : null,
     eventStreamSha256: events ? await sha256Hex(events) : null,
     keyManifestSha256: manifest ? await sha256Hex(manifest) : null,
+    genesis: first ? { eventId: first.event_id ?? null, sequence: first.sequence ?? null, occurredAt: first.occurred_at ?? null, eventSha256: await sha256Hex(first) } : null,
+    tail: last ? { eventId: last.event_id ?? null, sequence: last.sequence ?? null, occurredAt: last.occurred_at ?? null, eventSha256: await sha256Hex(last), type: last.type ?? null, disposition: last.type === "DEPLOYMENT_LIFECYCLE" && last.payload?.phase === "end" ? last.payload.disposition ?? null : null } : null,
     ...report,
   };
   return { ...base, verificationReportSha256: await sha256Hex(base) };
@@ -270,7 +275,7 @@ export async function aggregateTelemetryReports(reports) {
     expiredKeyEvents += Number(report.expiredKeyEvents) || 0;
     revokedKeyEvents += Number(report.revokedKeyEvents) || 0;
     hashChainMismatches += Number(report.hashChainMismatches) || 0;
-    streams.push({ deploymentId: report.deploymentId ?? null, environmentId: report.environmentId ?? null, events: Number(report.events) || 0, eventStreamSha256: report.eventStreamSha256 ?? null, streamReportSha256: report.verificationReportSha256 ?? null });
+    streams.push({ deploymentId: report.deploymentId ?? null, environmentId: report.environmentId ?? null, environmentIdSha256: report.environmentIdSha256 ?? null, events: Number(report.events) || 0, eventStreamSha256: report.eventStreamSha256 ?? null, streamReportSha256: report.verificationReportSha256 ?? null, genesis: report.genesis ?? null, tail: report.tail ?? null });
   }
   if (manifestDigests.size !== 1) errors.push("Every stream report must bind the same frozen key manifest.");
   if (totalEvents < 1 || verifiedSignatures !== totalEvents) errors.push("Aggregate verified signatures must equal aggregate event count.");
@@ -295,19 +300,51 @@ export async function aggregateTelemetryReports(reports) {
   return { ...base, verificationReportSha256: await sha256Hex(base) };
 }
 
+/** Reconcile verified streams to the independently assessed 0.2-X1 exposure ledger. */
+export async function reconcileTelemetryExposure(aggregate, exposureLedger) {
+  if (!object(aggregate) || aggregate.reportProfile !== TELEMETRY_AGGREGATE_REPORT_VERSION || aggregate.verifierVersion !== TELEMETRY_VERIFIER_SDK_VERSION || aggregate.authenticityProfile !== TELEMETRY_AUTHENTICITY_VERSION) throw new TypeError("aggregate telemetry report profile is incompatible");
+  if (!await reportDigestMatches(aggregate)) throw new Error("aggregate verificationReportSha256 does not match its canonical report");
+  if (aggregate.status !== "pass") throw new Error("only a passing telemetry aggregate can be reconciled");
+  if (!object(exposureLedger) || exposureLedger.profile_version !== "0.2-X1" || !Array.isArray(exposureLedger.records)) throw new TypeError("a 0.2-X1 exposure ledger with records is required");
+  const errors = [], rows = [], records = new Map();
+  for (const [index, record] of exposureLedger.records.entries()) {
+    if (!object(record) || typeof record.deployment_id !== "string" || !record.deployment_id) { errors.push("Exposure record " + (index + 1) + " lacks a deployment_id."); continue; }
+    if (records.has(record.deployment_id)) errors.push("Exposure ledger duplicates deployment " + record.deployment_id + ".");
+    records.set(record.deployment_id, record);
+  }
+  if (!Array.isArray(aggregate.streams) || aggregate.streams.length !== exposureLedger.records.length) errors.push("Telemetry stream count must equal exposure-ledger record count.");
+  for (const [index, stream] of (Array.isArray(aggregate.streams) ? aggregate.streams : []).entries()) {
+    const label = "Telemetry stream " + (index + 1), record = records.get(stream.deploymentId);
+    if (!record) { errors.push(label + " has no matching exposure-ledger deployment."); continue; }
+    const rootValid = typeof record.root_commitment_uri === "string" && /^https:\/\//.test(record.root_commitment_uri) && typeof record.root_commitment_sha256 === "string" && /^[a-f0-9]{64}$/.test(record.root_commitment_sha256);
+    const boundaryPass = stream.environmentIdSha256 === record.environment_id_sha256 && stream.events === record.validated_event_count && object(stream.genesis) && object(stream.tail) && object(record.activation) && object(record.end) && stream.genesis.eventId === record.activation.event_id && stream.genesis.sequence === record.activation.sequence && stream.genesis.occurredAt === record.activation.occurred_at && stream.genesis.eventSha256 === record.activation.event_sha256 && stream.tail.eventId === record.end.event_id && stream.tail.sequence === record.end.sequence && stream.tail.occurredAt === record.end.occurred_at && stream.tail.eventSha256 === record.end.event_sha256 && stream.tail.type === "DEPLOYMENT_LIFECYCLE" && stream.tail.disposition === record.end.disposition;
+    const integrityPass = record.chain_complete === true && record.missing_sequences === 0 && record.duplicate_sequences === 0 && record.backward_timestamps === 0 && rootValid;
+    if (!boundaryPass) errors.push(label + " does not match its exposure-ledger identity, event count, activation, or terminal boundary.");
+    if (!integrityPass) errors.push(label + " lacks a complete exposure chain or valid root commitment binding.");
+    rows.push({ deploymentId: stream.deploymentId, environmentIdSha256: stream.environmentIdSha256, eventStreamSha256: stream.eventStreamSha256, events: stream.events, activationEventSha256: stream.genesis?.eventSha256 ?? null, endEventSha256: stream.tail?.eventSha256 ?? null, rootCommitmentUri: record.root_commitment_uri ?? null, rootCommitmentSha256: record.root_commitment_sha256 ?? null, passed: Boolean(boundaryPass && integrityPass) });
+  }
+  const base = { reportProfile: TELEMETRY_EXPOSURE_RECONCILIATION_VERSION, verifierVersion: TELEMETRY_VERIFIER_SDK_VERSION, aggregateReportSha256: aggregate.verificationReportSha256, exposureLedgerSha256: await sha256Hex(exposureLedger), deploymentStreams: aggregate.deploymentStreams, status: errors.length ? "fail" : "pass", rows, errors, interpretation: "reconciles_declared_streams_and_boundaries_but_external_root_witness_freshness_requires_independent_audit" };
+  return { ...base, reconciliationSha256: await sha256Hex(base) };
+}
+
 /** Map a passing aggregate into the exact telemetry object in an audit manifest. */
-export async function createTelemetryAuditSummary(aggregate, bindings) {
+export async function createTelemetryAuditSummary(aggregate, bindings, reconciliation) {
   if (!object(aggregate) || aggregate.reportProfile !== TELEMETRY_AGGREGATE_REPORT_VERSION || aggregate.verifierVersion !== TELEMETRY_VERIFIER_SDK_VERSION || aggregate.authenticityProfile !== TELEMETRY_AUTHENTICITY_VERSION) throw new TypeError("aggregate telemetry report profile is incompatible");
   if (!await reportDigestMatches(aggregate)) throw new Error("aggregate verificationReportSha256 does not match its canonical report");
   if (aggregate.status !== "pass" || !Array.isArray(aggregate.errors) || aggregate.errors.length) throw new Error("only a passing aggregate can enter an audit manifest");
   const streams = Array.isArray(aggregate.streams) ? aggregate.streams : [];
   const deploymentIds = new Set(streams.map(stream => stream?.deploymentId)), environmentIds = new Set(streams.map(stream => stream?.environmentId));
-  const streamsValid = streams.length > 0 && streams.every(stream => object(stream) && typeof stream.deploymentId === "string" && stream.deploymentId && typeof stream.environmentId === "string" && stream.environmentId && Number.isInteger(stream.events) && stream.events > 0 && /^[a-f0-9]{64}$/.test(String(stream.eventStreamSha256)) && /^[a-f0-9]{64}$/.test(String(stream.streamReportSha256)));
+  const streamsValid = streams.length > 0 && streams.every(stream => object(stream) && typeof stream.deploymentId === "string" && stream.deploymentId && typeof stream.environmentId === "string" && stream.environmentId && /^[a-f0-9]{64}$/.test(String(stream.environmentIdSha256)) && Number.isInteger(stream.events) && stream.events > 0 && /^[a-f0-9]{64}$/.test(String(stream.eventStreamSha256)) && /^[a-f0-9]{64}$/.test(String(stream.streamReportSha256)) && object(stream.genesis) && object(stream.tail));
   const countsValid = aggregate.deploymentStreams === streams.length && deploymentIds.size === streams.length && environmentIds.size === streams.length && aggregate.totalEvents === streams.reduce((sum, stream) => sum + Number(stream.events || 0), 0) && aggregate.verifiedSignatures === aggregate.totalEvents && [aggregate.invalidSignatures, aggregate.unknownKeyIds, aggregate.expiredKeyEvents, aggregate.revokedKeyEvents, aggregate.hashChainMismatches].every(value => value === 0) && /^[a-f0-9]{64}$/.test(String(aggregate.keyManifestSha256));
   if (!streamsValid || !countsValid) throw new Error("aggregate stream identities, digests, or hard-failure counters are inconsistent");
+  if (!object(reconciliation) || reconciliation.reportProfile !== TELEMETRY_EXPOSURE_RECONCILIATION_VERSION || reconciliation.verifierVersion !== TELEMETRY_VERIFIER_SDK_VERSION || reconciliation.aggregateReportSha256 !== aggregate.verificationReportSha256 || reconciliation.status !== "pass" || !Array.isArray(reconciliation.errors) || reconciliation.errors.length) throw new Error("a passing 0.2-TX1 telemetry-exposure reconciliation is required");
+  const unsignedReconciliation = { ...reconciliation };
+  delete unsignedReconciliation.reconciliationSha256;
+  if (typeof reconciliation.reconciliationSha256 !== "string" || await sha256Hex(unsignedReconciliation) !== reconciliation.reconciliationSha256) throw new Error("reconciliationSha256 does not match its canonical report");
   if (!object(bindings)) throw new TypeError("audit bindings are required");
-  for (const field of ["keyManifestUri", "verificationReportUri", "rootCommitmentsUri"]) if (typeof bindings[field] !== "string" || !/^https:\/\//.test(bindings[field])) throw new TypeError(field + " must be an HTTPS URI");
+  for (const field of ["keyManifestUri", "verificationReportUri", "rootCommitmentsUri", "exposureReconciliationUri"]) if (typeof bindings[field] !== "string" || !/^https:\/\//.test(bindings[field])) throw new TypeError(field + " must be an HTTPS URI");
   if (typeof bindings.rootCommitmentsSha256 !== "string" || !/^[a-f0-9]{64}$/.test(bindings.rootCommitmentsSha256)) throw new TypeError("rootCommitmentsSha256 must be 64 lowercase hexadecimal characters");
+  if (typeof bindings.exposureIntegritySha256 !== "string" || !/^[a-f0-9]{64}$/.test(bindings.exposureIntegritySha256)) throw new TypeError("exposureIntegritySha256 must be 64 lowercase hexadecimal characters");
   return {
     profile_version: TELEMETRY_AUTHENTICITY_VERSION,
     schema_version: "0.2",
@@ -329,6 +366,9 @@ export async function createTelemetryAuditSummary(aggregate, bindings) {
     verification_report_sha256: aggregate.verificationReportSha256,
     root_commitments_uri: bindings.rootCommitmentsUri,
     root_commitments_sha256: bindings.rootCommitmentsSha256,
+    exposure_integrity_sha256: bindings.exposureIntegritySha256,
+    exposure_reconciliation_uri: bindings.exposureReconciliationUri,
+    exposure_reconciliation_sha256: reconciliation.reconciliationSha256,
   };
 }
 
@@ -377,8 +417,8 @@ export const telemetryVerifierSdkContract = {
   runtime_requirements: ["Web Crypto Ed25519", "TextEncoder", "structuredClone", "atob"],
   performs_network_requests: false,
   input: ["JSONL signed event stream", "frozen telemetry key manifest"],
-  exports: ["canonicalize", "sha256Hex", "eventSigningBytes", "validateKeyManifest", "verifyTelemetryJsonl", "verifyTelemetry", "aggregateTelemetryReports", "createTelemetryAuditSummary", "verifyTelemetryFiles", "CLI_EXIT_CODES", "runCli"],
-  reports: { stream_profile: "0.2-TR1", aggregate_profile: "0.2-TA1", canonical_digest: "SHA-256_of_RFC8785_JCS_report_without_verificationReportSha256", stream_bindings: ["ordered_event_array", "frozen_key_manifest", "deployment_id", "environment_id"], aggregate_rules: ["every_stream_passes", "every_report_digest_matches", "unique_deployments", "unique_environments", "one_frozen_key_manifest", "verified_signatures_equal_total_events", "all_hard_failure_counters_zero"], audit_summary: "exact_WANTED_audit_manifest.telemetry_shape" },
+  exports: ["canonicalize", "sha256Hex", "eventSigningBytes", "validateKeyManifest", "verifyTelemetryJsonl", "verifyTelemetry", "aggregateTelemetryReports", "reconcileTelemetryExposure", "createTelemetryAuditSummary", "verifyTelemetryFiles", "CLI_EXIT_CODES", "runCli"],
+  reports: { stream_profile: "0.2-TR1", aggregate_profile: "0.2-TA1", exposure_reconciliation_profile: "0.2-TX1", canonical_digest: "SHA-256_of_RFC8785_JCS_report_without_its_digest_field", stream_bindings: ["ordered_event_array", "frozen_key_manifest", "deployment_id", "environment_id", "activation_boundary", "terminal_boundary"], aggregate_rules: ["every_stream_passes", "every_report_digest_matches", "unique_deployments", "unique_environments", "one_frozen_key_manifest", "verified_signatures_equal_total_events", "all_hard_failure_counters_zero"], exposure_reconciliation: ["deployment_and_environment_identity", "validated_event_count", "activation_event", "terminal_event", "complete_sequence_accounting", "root_commitment_binding"], audit_summary: "exact_audit_manifest.telemetry_shape_with_exposure_binding" },
   cli: { runtime: "Node.js 22+", usage: "node wanted-telemetry-verifier.mjs EVENTS.jsonl KEY-MANIFEST.json", stdout: "JSON verification report", stderr: "usage or input error", exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 } },
   verifies: ["strict_I-JSON", "event_shape", "payload_semantics", "contiguous_sequence", "single_deployment_environment", "monotonic_UTC", "event_id_uniqueness", "RFC8785_SHA256_hash_chain", "Ed25519_signatures", "key_manifest_resolution", "key_validity", "key_revocation"],
   result: "pass_only_when_every_event_and_chain_link_verifies",

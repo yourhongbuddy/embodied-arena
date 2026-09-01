@@ -691,15 +691,17 @@ test("ships an executable adapter that produces one conformant six-event chain",
   assert.equal(openapi["x-wanted-evidence-profiles"].sampling_stopping_integrity.version, "0.2-ST1");
   assert.equal(openapi["x-wanted-certification"].target_templates, "/wanted-10k/certification-templates.json");
   assert.equal(openapi["x-wanted-audit-verifier"].performs_network_requests, false);
-  assert.equal(openapi["x-wanted-telemetry-verifier"].version, "0.2-TS3");
+  assert.equal(openapi["x-wanted-telemetry-verifier"].version, "0.2-TS4");
   assert.equal(openapi["x-wanted-telemetry-verifier"].performs_network_requests, false);
   assert.equal(openapi["x-wanted-telemetry-verifier"].cli_exit_codes.verification_failed, 1);
   assert.equal(openapi["x-wanted-telemetry-verifier"].reports.aggregate, "0.2-TA1");
+  assert.equal(openapi["x-wanted-telemetry-verifier"].reports.exposure_reconciliation, "0.2-TX1");
+  assert.equal(openapi["x-wanted-telemetry-verifier"].reports.audit_handoff, "exact_audit_manifest.telemetry_shape_with_exposure_binding");
   assert.equal(spec.developer_resources.reference_sdk, "/wanted-10k/wanted-sdk.mjs");
   assert.equal(spec.developer_resources.telemetry_verifier_module, "/wanted-10k/wanted-telemetry-verifier.mjs");
-  assert.equal(spec.telemetry_verifier_sdk_profile.version, "0.2-TS3");
+  assert.equal(spec.telemetry_verifier_sdk_profile.version, "0.2-TS4");
   assert.equal(spec.telemetry_verifier_sdk_profile.cli.exit_codes.usage_or_IO_error, 2);
-  assert.equal(spec.telemetry_verifier_sdk_profile.reports.audit_handoff, "exact_audit_manifest.telemetry_shape");
+  assert.equal(spec.telemetry_verifier_sdk_profile.reports.audit_handoff, "exact_audit_manifest.telemetry_shape_with_exposure_binding");
   assert.equal(spec.mandatory_events[0], "DEPLOYMENT_LIFECYCLE");
 });
 

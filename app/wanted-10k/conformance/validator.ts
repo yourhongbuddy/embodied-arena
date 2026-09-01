@@ -209,7 +209,7 @@ export const sampleKeyManifest: KeyManifest = {
   keys: [{ key_id: "demo_ed25519_key_01", public_key_base64url: "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo", valid_from: "2026-01-01T00:00:00Z", valid_until: "2027-01-01T00:00:00Z", revoked_at: null }],
 };
 
-export async function sampleBundle(identity: Partial<{ deployment_id: string; environment_id: string; robot_id: string }> = {}) {
+export async function sampleBundle(identity: Partial<{ deployment_id: string; environment_id: string; robot_id: string; include_end: boolean }> = {}) {
   const base = { schema_version: "0.2", deployment_id: identity.deployment_id ?? "dep_demo_001", environment_id: identity.environment_id ?? "env_demo_001", robot_id: identity.robot_id ?? "robot_demo_001", signing_key_id: "demo_ed25519_key_01" };
   const seed = Uint8Array.from("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60".match(/../g) ?? [], value => Number.parseInt(value, 16));
   const prefix = Uint8Array.from("302e020100300506032b657004220420".match(/../g) ?? [], value => Number.parseInt(value, 16));
@@ -221,6 +221,7 @@ export async function sampleBundle(identity: Partial<{ deployment_id: string; en
     { type: "ROBOT_ACTION", payload: { intent: "bring water", proactive: false } },
     { type: "HUMAN_INTERVENTION", payload: { mode: "remote_guidance", duration_seconds: 18, reason: "recovery" } },
     { type: "INCIDENT", payload: { level: "L1", summary: "Robot briefly blocked a hallway.", participant_requested_stop: false } },
+    ...(identity.include_end ? [{ type: "DEPLOYMENT_LIFECYCLE" as const, payload: { phase: "end", disposition: "administrative_completion", evidence_ref: "controlled://disposition/1" } }] : []),
   ] as const;
   const events: Record<string, unknown>[] = [];
   for (let index = 0; index < partials.length; index++) {
