@@ -122,6 +122,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 63 | `digitalocean-v63` | `48ccec1` | Ship a source-digest-bound zero-dependency verifier for canonical rotator result snapshots |
 | 64 | `digitalocean-v64` | `d9b02b2` | Publish a digest-bound zero-dependency SDK and normative vectors for rotator assignment parity |
 | 65 | `digitalocean-v65` | `5cff109` | Add a local-only assignment lab with exact bucket and synthetic-cohort diagnostics |
+| 66 | `digitalocean-v66` | `74fca7f` | Add a local fixed-horizon design lab with familywise sample targets and a canonical preregistration draft |
 
 ## Release convention
 
