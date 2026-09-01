@@ -46,6 +46,8 @@ const kit = [
   ["ROOT WITNESS CONTRACT", "Read the 0.2-RC1 cadence, quorum, publication-delay, key-lifecycle, and interpretation rules.", "/wanted-10k/root-commitment-witness.json", "OPEN CONTRACT ↗"],
   ["ROOT WITNESS SCHEMA", "Validate the witness registry, deployment root series, signed receipts, public log index, and independent assurance.", "/wanted-10k/root-commitment-witness.schema.json", "OPEN SCHEMA ↗"],
   ["ROOT WITNESS TEMPLATE", "Download a passing 100-hour WANTED LAB example with five roots and ten valid witness receipts.", "/wanted-10k/root-commitment-witness.template.json", "DOWNLOAD JSON ↓"],
+  ["ROOT WITNESS VERIFIER", "Run the exact eight-gate RC1 checks locally in a browser, Node, or CI with a zero-dependency ESM module.", "/wanted-10k/wanted-root-witness-verifier.mjs", "DOWNLOAD VERIFIER ↓"],
+  ["ROOT WITNESS SDK CONTRACT", "Pin verifier version 0.2-RCS1, exports, source digest, runtime requirements, privacy boundary, and CLI exit codes.", "/wanted-10k/root-witness-verifier-sdk.json", "OPEN SDK CONTRACT ↗"],
   ["ANALYSIS REPRODUCER", "Rebuild W, S(10K), deterministic uncertainty, censoring bounds, influence, and tail support from the audited endpoint table.", "/wanted-10k/analysis-reproduction", "OPEN REPRODUCER →"],
   ["ANALYSIS CONTRACT", "Read the 0.2-A2 estimator, PCG32 bootstrap, exact-horizon convention, numerical tolerance, upstream bindings, and hard-failure rules.", "/wanted-10k/analysis-reproduction.json", "OPEN CONTRACT ↗"],
   ["ANALYSIS SCHEMA", "Validate the environment-level endpoint table, claimed outputs, deterministic bootstrap parameters, and evidence bindings.", "/wanted-10k/analysis-reproduction.schema.json", "OPEN SCHEMA ↗"],
