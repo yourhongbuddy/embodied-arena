@@ -116,6 +116,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 57 | `digitalocean-v57` | `80122a6` | Add marginal Wilson uncertainty intervals to matured version-delivery diagnostics |
 | 58 | `digitalocean-v58` | `b977773` | Quantify delivery-rate differences versus control with familywise uncertainty intervals |
 | 59 | `digitalocean-v59` | `361f244` | Bind all rotator results to one exact inclusive server-UTC analysis window and begin cohort C7 |
+| 60 | `digitalocean-v60` | `9814696` | Derive rotator windows from a settled D1 database-clock snapshot and make unavailable windows explicit |
 
 ## Release convention
 
