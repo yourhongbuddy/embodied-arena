@@ -1,4 +1,4 @@
-export const ROTATOR_VERSION = "0.12-R12";
+export const ROTATOR_VERSION = "0.13-R13";
 export const EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS = [2_000,10_000,30_000] as const;
 export const EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES=20;
 export const EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS=86_400_000;
@@ -76,13 +76,20 @@ export function resolveWantedAssignment(seed: string, previewOverride?: string |
   return assignWantedVariant(seed);
 }
 
+export const EXPERIMENT_DECISION_GATE={
+  status:"descriptive_only",
+  automatic_action:false,
+  blocking_reasons:["rolling_window_continuously_monitored","no_repeated_look_adjustment","no_preregistered_stopping_rule","human_traffic_not_authenticated"],
+  required_before_decision:["preregistered_fixed_or_sequential_design","valid_repeated_look_control","independent_edge_abuse_control","precommitted_decision_rule"],
+} as const;
+
 export const experimentRotatorContract = {
   version: ROTATOR_VERSION,
   privacy: { persistent_identifier: "experiment_scoped_random_assignment_id", transmitted_identifier: "experiment_unit_session_and_exposure_token", assignment_id_contains_user_attributes: false, separate_device_identifier: false, unit_id_scope: WANTED_LANDING_EXPERIMENT.id, unit_id_cross_experiment_linkage: false, IP_storage: false, fingerprinting: false, third_party_analytics: false, event_retention_days: 35, deletion_mechanism: "delete_before_each_accepted_insert_and_results_read", deletion_triggers: ["accepted_insert","analytics_summary_read","experiment_results_read"] },
   assignment: { unit: "experiment_scoped_anonymous_browser_unit", assignment_material: "random_experiment_scoped_unit_id", server_recomputable: true, analysis_unit_matches_assignment_unit: true, algorithm: "FNV1a_32", modulus: 10_000, stable_per_device: true, stable_per_session: true, session_lock_scope: "rotator_version_experiment", one_assigned_variant_per_session: true, one_assigned_variant_per_unit: true, query_override: "wanted_variant", invalid_override: "ignored", pre_assignment_presentation: "neutral_noninteractive" },
   delivery: { exposure_transport: "acknowledged_fetch_keepalive", exposure_token: "deterministic_unit_variant_rotator_binding", exposure_token_server_recomputable: true, acknowledgement: "x-analytics-status=accepted", retry_delays_ms: EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS, retry_when_online: true, session_marker_after_acknowledgement: true, session_marker_scope: "rotator_version_experiment_variant", goal_transport: "acknowledged_fetch_keepalive_with_session_outbox", goal_outbox_scope: "session_only", goal_outbox_max_entries: EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES, goal_outbox_max_age_ms: EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS, goal_retry_on_route_change: true, goal_retry_when_online: true, rejected_goal_events_discarded: true },
   counting: { unit: "experiment_scoped_anonymous_browser_unit", exposure: "one_unique_exposure_token_per_experiment_unit", goal: "distinct_exposed_units_with_matching_exposure_token_primary_cta", event_path: "/wanted-10k", query_path_required: true, duplicate_sessions_and_receipts_with_same_unit_token_deduplicated: true, one_exposure_token_per_counted_unit: true, receipt_order_dependency: false, cross_variant_units_excluded: true, multi_token_units_excluded: true, integrity_exclusions_disclosed: true, preview_mode_included: false, operator_mode_included: false, reporting_window_days: 30 },
-  inference: { conversion_interval: "wilson_score_95_percent", effect_measure: "absolute_conversion_rate_difference_vs_control", effect_interval: "newcombe_wilson", multiple_comparison_control: "bonferroni_two_comparisons_familywise_95_percent", automatic_decision: false, sample_ratio_mismatch: "pearson_chi_square_df_2", sample_ratio_alert_p_below: 0.001, winner_declaration: false },
+  inference: { monitoring_window: "rolling_30_day_continuously_viewed", conversion_interval: "wilson_score_95_percent", effect_measure: "absolute_conversion_rate_difference_vs_control", effect_interval: "newcombe_wilson", multiple_comparison_control: "bonferroni_two_comparisons_familywise_95_percent", repeated_look_adjustment: "none", confidence_intervals_support_stopping: false, preregistered_stopping_rule: false, interval_labels_are_directional_decisions: false, decision_gate: EXPERIMENT_DECISION_GATE, automatic_decision: false, sample_ratio_mismatch: "pearson_chi_square_df_2", sample_ratio_alert_p_below: 0.001, winner_declaration: false },
   ingestion: { maximum_body_bytes: 8192, content_type: "application/json", experiment_id_required: true, experiment_unit_id_required: true, current_rotator_version_required: true, assigned_mode_only: true, server_recomputes_variant: true, server_recomputes_exposure_token: true, same_variant_goal_required: true, matching_exposure_token_required: true, traffic_authentication: "none", automated_fabrication_resistance: false, decision_use_without_edge_abuse_control: false },
   safety_boundary: { changes_benchmark_content: false, changes_score: false, changes_certification: false, changes_registry_rank: false, presentation_only: true },
   experiments: [WANTED_LANDING_EXPERIMENT],

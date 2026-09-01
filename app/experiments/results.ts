@@ -1,4 +1,4 @@
-import { WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
+import { EXPERIMENT_DECISION_GATE,WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
 
 export type RawExperimentRow={variant:string;exposed_units:number;goal_units:number};
 export const BONFERRONI_TWO_COMPARISON_Z=2.241402727604947;
@@ -36,7 +36,7 @@ export function summarizeExperiment(rawRows:RawExperimentRow[]){
   const comparisons=variants.filter(row=>row.variant!=="control").map(row=>{
     const interval=newcombeRiskDifference(row.goal_units,row.exposed_units,baseline.goal_units,baseline.exposed_units);
     const lift=interval?row.conversion_rate!-baseline.conversion_rate!:null;
-    return{variant:row.variant,label:row.label,baseline:"control",absolute_lift:lift,familywise_interval_95:interval,signal:!interval?"insufficient":interval.low>0?"positive":interval.high<0?"negative":"inconclusive"};
+    return{variant:row.variant,label:row.label,baseline:"control",absolute_lift:lift,familywise_interval_95:interval,interval_position:!interval?"unavailable":interval.low>0?"entirely_above_zero":interval.high<0?"entirely_below_zero":"includes_zero"};
   });
-  return{variants,comparisons,total_exposed_units:total,sample_ratio_mismatch:{method:"pearson_chi_square_df_2",alert_threshold:0.001,status:pValue===null?"insufficient":pValue<0.001?"alert":"pass",chi_square:pValue===null?null:chiSquare,p_value:pValue}};
+  return{variants,comparisons,total_exposed_units:total,decision_gate:EXPERIMENT_DECISION_GATE,sample_ratio_mismatch:{method:"pearson_chi_square_df_2",alert_threshold:0.001,status:pValue===null?"insufficient":pValue<0.001?"alert":"pass",chi_square:pValue===null?null:chiSquare,p_value:pValue}};
 }
