@@ -31,10 +31,25 @@ test("bounds collapse when every outcome is observed through rejection or comple
   assert.equal(robust.bounds.width, 0);
 });
 
+test("keeps W unchanged but applies an exact-horizon rejection to S(10K)", () => {
+  const rows = [
+    { id: 1, environment: "ENV-A", hours: 10000, outcome: "completed" },
+    { id: 2, environment: "ENV-B", hours: 10000, outcome: "rejected" },
+  ];
+  const primary = score(rows);
+  const robust = robustness(rows);
+  assert.equal(primary.wanted, 100);
+  assert.equal(primary.survival10k, .5);
+  assert.equal(robust.support.at_risk_10000, 2);
+  assert.equal(robust.support.horizon_rejections, 1);
+  assert.equal(robust.support.retained_at_10000, 1);
+});
+
 test("rejects invalid completion records and preserves bootstrap resampling", () => {
   const invalid = [{ id: 1, environment: "ENV-A", hours: 9999, outcome: "completed" }];
   assert.match(validateRows(invalid).join(" "), /exactly 10000/);
   assert.equal(score(invalid).wanted, null);
+  assert.match(validateRows([{ id: 1, environment: "ENV-A", hours: 10000, outcome: "unrelated_censor" }]).join(" "), /must be completed/);
   const resampled = bootstrap([...fragile, { id: 4, environment: "ENV-D", hours: 10000, outcome: "completed" }], 1000);
   assert.ok(resampled.validFraction > 0);
 });

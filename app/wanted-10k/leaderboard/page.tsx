@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Audited Registry — WANTED-10K", de
 
 const requirements = [
   ["01", "FROZEN ROOT + FINISH LINE", "Only WANTED WILD cohorts passing 0.2-PR1 preregistration integrity and 0.2-ST1 prospective sampling-and-stopping integrity can occupy a ranked row."],
-  ["02", "ADJUDICATED + REPRODUCED W", "Profile 0.2-J1 must freeze one independently reviewed terminal decision per environment; profile 0.2-A1 must rebuild the identifiable W, deterministic 95% CI, robustness, and tail support from that bound endpoint table."],
+  ["02", "ADJUDICATED + REPRODUCED W", "Profile 0.2-J1 must freeze one independently reviewed terminal decision per environment; profile 0.2-A2 must rebuild the identifiable W, deterministic 95% CI, robustness, tail support, and exact-horizon accounting from that bound endpoint table."],
   ["03", "TELEMETRY AUTHENTIC", "Profile 0.2-T1 must verify every Ed25519 event signature, key-validity decision, and hash-chain link."],
   ["04", "SAFETY + PRIVACY + SERVICE", "Safety and privacy hard gates pass, and service continuity accounts for every resident second, outage, repair, technician visit, part, consumable, and cloud-dependent loss."],
   ["05", "HUMAN + BURDEN DISCLOSED", "Human measures, separate-cohort reservation-value status, assistance, rescue interval, censoring envelope, and tail support remain beside W. None changes rank."],

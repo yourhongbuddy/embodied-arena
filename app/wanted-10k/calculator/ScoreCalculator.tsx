@@ -31,7 +31,7 @@ export function ScoreCalculator() {
     const payload = {
       benchmark: "WANTED-10K", schema_version: "0.2", generated_at: new Date().toISOString(),
       statistical_status: !result.identifiable ? "not_estimable_at_10000" : interval === null ? "bootstrap_support_below_95_percent" : terminalCauses ? "terminal_cause_requires_adjudication_and_rank_exclusion" : rankable ? "cohort_threshold_met" : "provisional",
-      analysis_profile_version: "0.2-A1", bootstrap: { samples: 10_000, seed: 10_000, prng: BOOTSTRAP_PRNG },
+      analysis_profile_version: "0.2-A2", bootstrap: { samples: 10_000, seed: 10_000, prng: BOOTSTRAP_PRNG },
       primary: { wanted_score: result.wanted === null ? null : +result.wanted.toFixed(4), bootstrap_95_ci: interval?.map(x=>+x.toFixed(4)) ?? null, survival_at_10000: result.survival10k === null ? null : +result.survival10k.toFixed(6), horizon_identifiable: result.identifiable, bootstrap_valid_fraction: +bootstrapResult.validFraction.toFixed(4) },
       cohort: { independent_environments: rows.length, total_resident_hours: totalHours, voluntary_rejections: rejections, terminal_competing_causes: terminalCauses },
       robustness: robust,
@@ -82,7 +82,7 @@ export function ScoreCalculator() {
       <header><div><span>ROBUSTNESS DISCLOSURE</span><b>How fragile is W?</b></div><a href="/wanted-10k/robustness.json">METHOD CONTRACT ↗</a></header>
       <div className="robustCards">
         <article><span>CENSORING ENVELOPE</span><b>{robust.bounds.lower?.toFixed(1)}–{robust.bounds.upper?.toFixed(1)}</b><small>W WIDTH {robust.bounds.width?.toFixed(1)} · {robust.bounds.early_exits} EARLY EXITS</small></article>
-        <article><span>TAIL SUPPORT</span><b>{robust.support.at_risk_10000}</b><small>AT 10K · {robust.support.at_risk_9000} AT 9K</small></article>
+        <article><span>TAIL SUPPORT</span><b>{robust.support.at_risk_10000}</b><small>{robust.support.horizon_rejections} REJECTED AT 10K · {robust.support.retained_at_10000} RETAINED</small></article>
         <article><span>MAX LEAVE-ONE-OUT SHIFT</span><b>{robust.influence.maximum_absolute_shift === null ? "—" : `±${robust.influence.maximum_absolute_shift.toFixed(2)}`}</b><small>{robust.influence.most_influential_environment ?? "NO IDENTIFIABLE EXCLUSION"}</small></article>
         <article><span>UNSUPPORTED EXCLUSIONS</span><b>{robust.influence.unidentifiable_exclusions}</b><small>OF {rows.length} LEAVE-ONE-OUT RUNS</small></article>
       </div>

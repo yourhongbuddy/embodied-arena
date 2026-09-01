@@ -16,6 +16,7 @@ export function validateRows(rows: Row[]) {
     if (!Number.isFinite(row.hours) || row.hours < 0 || row.hours > HORIZON) errors.push(`Row ${index + 1}: resident hours must be between 0 and ${HORIZON}.`);
     if (!outcomes.includes(row.outcome)) errors.push(`Row ${index + 1}: unrecognized outcome.`);
     if (row.outcome === "completed" && row.hours !== HORIZON) errors.push(`Row ${index + 1}: completion requires exactly ${HORIZON} resident hours.`);
+    if (row.outcome === "unrelated_censor" && row.hours === HORIZON) errors.push(`Row ${index + 1}: an environment observed through ${HORIZON} hours must be completed unless a rejection or terminal competing cause occurred at the horizon.`);
   });
   return errors;
 }
@@ -94,12 +95,14 @@ export function robustness(rows: Row[]) {
   const identifiable = leaveOneOut.filter((item): item is { environment: string; estimate: number } => item.estimate !== null && observed.wanted !== null).map(item => ({ ...item, shift: item.estimate - Number(observed.wanted), absolute_shift: Math.abs(item.estimate - Number(observed.wanted)) })).sort((a, b) => b.absolute_shift - a.absolute_shift);
   const at9000 = rows.filter(row => row.hours >= 9000).length;
   const at10000 = rows.filter(row => row.hours >= HORIZON).length;
+  const horizonRejections = rows.filter(row => row.outcome === "rejected" && row.hours === HORIZON).length;
+  const retainedAt10000 = rows.filter(row => row.outcome === "completed" && row.hours === HORIZON).length;
   const unrelatedEarly = rows.filter(row => row.outcome === "unrelated_censor" && row.hours < HORIZON).length;
   const terminalEarly = rows.filter(row => ["safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"].includes(row.outcome) && row.hours < HORIZON).length;
   return {
     errors,
     bounds: { lower, observed: observed.wanted, upper, width: lower === null || upper === null ? null : upper - lower, early_exits: unrelatedEarly + terminalEarly },
     influence: { maximum_absolute_shift: identifiable[0]?.absolute_shift ?? null, most_influential_environment: identifiable[0]?.environment ?? null, unidentifiable_exclusions: leaveOneOut.length - identifiable.length, estimates: identifiable },
-    support: { at_risk_9000: at9000, at_risk_10000: at10000, unrelated_early_censors: unrelatedEarly, terminal_early_exits: terminalEarly, voluntary_rejections: rows.filter(row => row.outcome === "rejected").length },
+    support: { at_risk_9000: at9000, at_risk_10000: at10000, horizon_rejections: horizonRejections, retained_at_10000: retainedAt10000, unrelated_early_censors: unrelatedEarly, terminal_early_exits: terminalEarly, voluntary_rejections: rows.filter(row => row.outcome === "rejected").length },
   };
 }

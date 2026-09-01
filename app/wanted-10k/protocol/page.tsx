@@ -39,7 +39,7 @@ const kit = [
   ["EXPOSURE LEDGER SCHEMA", "Validate the deployment-level signed boundary and stream-reconciliation manifest for every field target.", "/wanted-10k/exposure-ledger.schema.json", "OPEN SCHEMA ↗"],
   ["EXPOSURE LEDGER TEMPLATE", "Start from a passing synthetic 24-environment, 120,000-hour WANTED WILD ledger.", "/wanted-10k/exposure-ledger.template.json", "DOWNLOAD JSON ↓"],
   ["ANALYSIS REPRODUCER", "Rebuild W, S(10K), deterministic uncertainty, censoring bounds, influence, and tail support from the audited endpoint table.", "/wanted-10k/analysis-reproduction", "OPEN REPRODUCER →"],
-  ["ANALYSIS CONTRACT", "Read the 0.2-A1 estimator, PCG32 bootstrap, numerical tolerance, upstream bindings, and hard-failure rules.", "/wanted-10k/analysis-reproduction.json", "OPEN CONTRACT ↗"],
+  ["ANALYSIS CONTRACT", "Read the 0.2-A2 estimator, PCG32 bootstrap, exact-horizon convention, numerical tolerance, upstream bindings, and hard-failure rules.", "/wanted-10k/analysis-reproduction.json", "OPEN CONTRACT ↗"],
   ["ANALYSIS SCHEMA", "Validate the environment-level endpoint table, claimed outputs, deterministic bootstrap parameters, and evidence bindings.", "/wanted-10k/analysis-reproduction.schema.json", "OPEN SCHEMA ↗"],
   ["ANALYSIS TEMPLATE", "Start from a passing synthetic 24-environment claim with exact primary, uncertainty, and robustness outputs.", "/wanted-10k/analysis-reproduction.template.json", "DOWNLOAD JSON ↓"],
   ["FIELD SAFETY CASE", "Evaluate seven non-compensatory gates for scope, stop authority, protective functions, incidents, security, operations, and independent assessment.", "/wanted-10k/safety", "OPEN SAFETY LAB →"],
