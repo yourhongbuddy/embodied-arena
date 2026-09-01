@@ -5,7 +5,7 @@ import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeart
 import { nativeLocalStorage,persistentRandomUnit,safeSessionStorage } from "../experiments/browser-storage";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
 import { currentTrackingExclusionReason,type TrackingExclusionReason } from "../experiments/privacy-choice";
-import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
+import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignmentForUnit,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
 
 function experimentUnitId(){
   const key=`ea_experiment_unit:${WANTED_LANDING_EXPERIMENT.id}`;
@@ -17,7 +17,7 @@ function exposureKey(assignment: WantedAssignment) {
 }
 
 function assignmentLockKey(){return`ea_assignment:${WANTED_LANDING_EXPERIMENT.id}:${EXPERIMENT_ANALYSIS_COHORT}`}
-function lockedSessionAssignment(){try{const value=JSON.parse(safeSessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignment(value)?value:null}catch{return null}}
+function lockedSessionAssignment(unitId:string){try{const value=JSON.parse(safeSessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignmentForUnit(value,unitId)?value:null}catch{return null}}
 
 export function WantedLandingExperience() {
   const [assignment, setAssignment] = useState<WantedAssignment|null>(null),[exclusionReason,setExclusionReason]=useState<TrackingExclusionReason|"storage_unavailable"|null>(null);
@@ -31,7 +31,7 @@ export function WantedLandingExperience() {
     const resolved = resolveWantedAssignment(unit, preview);
     const operator=safeSessionStorage.getItem("ea_experiment_operator")==="1";
     let next:WantedAssignment=operator&&resolved.mode==="assigned"?{...resolved,mode:"preview"}:resolved;
-    if(next.mode==="assigned"){const locked=lockedSessionAssignment();next=locked??next;if(!locked)safeSessionStorage.setItem(assignmentLockKey(),JSON.stringify(next))}
+    if(next.mode==="assigned"){const locked=lockedSessionAssignment(unit);next=locked??next;if(!locked)safeSessionStorage.setItem(assignmentLockKey(),JSON.stringify(next))}
     if(next.mode==="assigned"){
       const key=exposureKey(next),token=exposureTokenForAssignment(unit,next.variant);
       unitId.current=unit;exposureId.current=token;shouldTrackExposure.current=safeSessionStorage.getItem(`${key}:sent`)!=="1";

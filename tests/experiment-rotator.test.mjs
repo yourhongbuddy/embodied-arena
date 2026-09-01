@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import { assignWantedVariant, canonicalTreatmentJson,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,EXPERIMENT_TREATMENT_FINGERPRINT,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validExperimentUnitId,validWantedSessionAssignment, validWantedVariant, WANTED_LANDING_EXPERIMENT,WANTED_LANDING_TREATMENT_IDENTITY } from "../app/experiments/rotator.ts";
+import { assignWantedVariant, canonicalTreatmentJson,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,EXPERIMENT_TREATMENT_FINGERPRINT,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validExperimentUnitId,validWantedSessionAssignment,validWantedSessionAssignmentForUnit, validWantedVariant, WANTED_LANDING_EXPERIMENT,WANTED_LANDING_TREATMENT_IDENTITY } from "../app/experiments/rotator.ts";
 import { BONFERRONI_TWO_COMPARISON_Z,newcombeRiskDifference,summarizeExperiment,wilsonInterval } from "../app/experiments/results.ts";
 import { experimentIntegrityQuery,experimentResultsQuery } from "../app/api/experiments/route.ts";
 import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent,validExposureToken } from "../app/experiments/ingestion.ts";
@@ -81,8 +81,11 @@ test("accepts only named preview variants and keeps previews out of assigned buc
 });
 
 test("accepts only complete assigned session locks",()=>{
-  const assigned=assignWantedVariant("stable-device-seed-0001");
+  const unit=unitForVariant("control"),assigned=assignWantedVariant(unit),otherUnit=unitForVariant("proof");
   assert.equal(validWantedSessionAssignment(assigned),true);
+  assert.equal(validWantedSessionAssignmentForUnit(assigned,unit),true);
+  assert.equal(validWantedSessionAssignmentForUnit(assigned,otherUnit),false);
+  assert.equal(validWantedSessionAssignmentForUnit(assigned,"not-a-unit"),false);
   assert.equal(validWantedSessionAssignment({...assigned,mode:"preview"}),false);
   assert.equal(validWantedSessionAssignment({...assigned,bucket:null}),false);
   assert.equal(validWantedSessionAssignment({...assigned,variant:"invented"}),false);
@@ -153,6 +156,8 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.deepEqual(experimentRotatorContract.assignment.unit_regeneration_conditions,["site_data_cleared","site_analytics_opt_out_then_reenabled","private_browsing_session_recreated","different_browser_profile","different_device"]);
   assert.equal(experimentRotatorContract.assignment.one_assigned_variant_per_unit,true);
   assert.equal(experimentRotatorContract.assignment.one_assigned_variant_per_session,true);
+  assert.equal(experimentRotatorContract.assignment.session_lock_revalidated_against_persistent_unit,true);
+  assert.equal(experimentRotatorContract.assignment.invalid_session_lock_behavior,"replace_with_recomputed_assignment");
   assert.equal(experimentRotatorContract.inference.multiple_comparison_control,"bonferroni_two_comparisons_familywise_95_percent");
   assert.equal(experimentRotatorContract.inference.monitoring_window,"rolling_30_day_continuously_viewed");
   assert.equal(experimentRotatorContract.inference.repeated_look_adjustment,"none");
