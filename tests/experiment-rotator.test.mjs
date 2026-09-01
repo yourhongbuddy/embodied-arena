@@ -5,13 +5,14 @@ import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { assignWantedVariant, canonicalTreatmentJson,EXPERIMENT_ACTIVE_COHORT_EVENT_VERSIONS,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_ANALYSIS_SETTLING_LAG_SECONDS,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_PRESENTATION_IDENTITY,EXPERIMENT_PRESENTATION_NORMALIZATION,EXPERIMENT_PRESENTATION_PROFILE,EXPERIMENT_PRESENTATION_SOURCES,EXPERIMENT_REPORTING_WINDOW_DAYS,EXPERIMENT_TREATMENT_FINGERPRINT,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validActiveCohortEventVersion,validExperimentUnitId,validWantedSessionAssignment,validWantedSessionAssignmentForUnit, validWantedVariant, WANTED_LANDING_EXPERIMENT,WANTED_LANDING_TREATMENT_IDENTITY } from "../app/experiments/rotator.ts";
 import { BONFERRONI_TWO_COMPARISON_Z,newcombeRiskDifference,summarizeExperiment,summarizeReceiptIntegrity,wilsonInterval } from "../app/experiments/results.ts";
-import { experimentAnalysisClockQuery,experimentAnalysisWindow,experimentIntegrityQuery,experimentReceiptIntegrityQuery,experimentResultsQuery,readExperimentResults } from "../app/api/experiments/route.ts";
+import { experimentAnalysisClockQuery,experimentAnalysisWindow,experimentIntegrityQuery,experimentReceiptIntegrityQuery,experimentResultsQuery,experimentResultsResponse,readExperimentResults } from "../app/api/experiments/route.ts";
 import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent,validExposureToken } from "../app/experiments/ingestion.ts";
 import { startAcknowledgedDelivery } from "../app/experiments/delivery.ts";
 import { createExperimentOutbox } from "../app/experiments/outbox.ts";
 import { persistentRandomUnit,safeSessionStorage } from "../app/experiments/browser-storage.ts";
 import { ANALYTICS_OPT_OUT_STORAGE_KEY,persistAnalyticsOptOut,purgeLocalAnalyticsState,trackingExclusionReason } from "../app/experiments/privacy-choice.ts";
 import { ASSIGNMENT_RECEIPT_DELETE_QUERY,createAssignmentReceiptRecord,EXPERIMENT_ASSIGNMENT_RECEIPT_RETENTION_DAYS,EXPERIMENT_ASSIGNMENT_RECEIPT_TTL_SECONDS,experimentAssignmentReceiptContract,storeAssignmentReceipt,verifyAssignmentReceipt } from "../app/experiments/assignment-receipt.ts";
+import { EXPERIMENT_RESULTS_SNAPSHOT_CONFORMANCE_DIGEST,EXPERIMENT_RESULTS_SNAPSHOT_CONFORMANCE_INPUT,EXPERIMENT_RESULTS_SNAPSHOT_PROFILE,experimentResultsSnapshot,verifyExperimentResultsSnapshot } from "../app/experiments/snapshot.ts";
 
 function unitForVariant(variant,ordinal=0){let found=0;for(let index=1;index<100_000;index++){const unit=`00000000-0000-4000-8000-${index.toString(16).padStart(12,"0")}`;if(assignWantedVariant(unit).variant===variant&&found++===ordinal)return unit}throw new Error(`No test unit for ${variant}`)}
 
@@ -37,11 +38,20 @@ test("freezes one exact inclusive settled D1 analysis window",()=>{
   assert.equal(new Date(clock.analysis_as_of).toISOString().replace(".000Z","Z"),clock.analysis_as_of);assert.equal(Date.now()-Date.parse(clock.analysis_as_of)>=500,true);assert.equal(Date.now()-Date.parse(clock.analysis_as_of)<3_000,true);clockDb.close();
 });
 
+test("binds each ready result to one reproducible canonical content snapshot",async()=>{
+  const payload={analysis_snapshot_status:"bound",z:2,a:{message:"wanted",values:[1,null,true]}};
+  const reordered={a:{values:[1,null,true],message:"wanted"},z:2,analysis_snapshot_status:"bound"};
+  const snapshot=await experimentResultsSnapshot(payload),same=await experimentResultsSnapshot(reordered);
+  assert.equal(EXPERIMENT_RESULTS_SNAPSHOT_PROFILE,"0.30-AS1");assert.equal(snapshot.profile,"0.30-AS1");assert.match(snapshot.digest,/^sha256:[0-9a-f]{64}$/);assert.equal(snapshot.digest,same.digest);assert.equal(snapshot.algorithm,"SHA-256");assert.equal(snapshot.canonicalization,"RFC8785_JCS");assert.equal(snapshot.scope,"complete_ready_response_without_analysis_snapshot");assert.equal(snapshot.signed,false);assert.equal(snapshot.proves_authenticity,false);
+  assert.equal((await experimentResultsSnapshot(EXPERIMENT_RESULTS_SNAPSHOT_CONFORMANCE_INPUT)).digest,EXPERIMENT_RESULTS_SNAPSHOT_CONFORMANCE_DIGEST);
+  const sealed={...payload,analysis_snapshot:snapshot};assert.equal(await verifyExperimentResultsSnapshot(sealed),true);assert.equal(await verifyExperimentResultsSnapshot({...sealed,z:3}),false);assert.equal(await verifyExperimentResultsSnapshot(payload),false);
+});
+
 test("returns a ready result only with a bound settled D1 window",async()=>{
   const db=new DatabaseSync(":memory:");
   for(const file of ["../drizzle/0000_remarkable_mongoose.sql","../drizzle/0001_lyrical_vermin.sql"]){const migration=readFileSync(new URL(file,import.meta.url),"utf8").split("--> statement-breakpoint").join("");db.exec(migration)}
   const result=await readExperimentResults(d1FromSqlite(db));
-  assert.equal(result.status,"ready");assert.equal(result.analysis_window_status,"bound");assert.equal(result.analysis_window.profile,"0.28-AW2");assert.equal(result.analysis_window.clock,"d1_database_utc");assert.equal(result.analysis_window.settling_lag_seconds,1);assert.equal(Date.parse(result.analysis_window.ended_at)-Date.parse(result.analysis_window.started_at),30*86_400_000);assert.equal(result.total_exposed_units,0);assert.equal(result.receipt_integrity.profile,"0.28-RD7");db.close();
+  assert.equal(result.status,"ready");assert.equal(result.analysis_window_status,"bound");assert.equal(result.analysis_window.profile,"0.28-AW2");assert.equal(result.analysis_window.clock,"d1_database_utc");assert.equal(result.analysis_window.settling_lag_seconds,1);assert.equal(Date.parse(result.analysis_window.ended_at)-Date.parse(result.analysis_window.started_at),30*86_400_000);assert.equal(result.analysis_snapshot_status,"bound");assert.equal(result.analysis_snapshot.profile,"0.30-AS1");assert.match(result.analysis_snapshot.digest,/^sha256:[0-9a-f]{64}$/);assert.equal(await verifyExperimentResultsSnapshot(result),true);const response=experimentResultsResponse(result);assert.equal(response.headers.get("cache-control"),"no-store");assert.equal(response.headers.get("x-experiment-snapshot-digest"),result.analysis_snapshot.digest);assert.deepEqual(await response.json(),result);assert.equal(result.total_exposed_units,0);assert.equal(result.receipt_integrity.profile,"0.28-RD7");db.close();
 });
 
 test("requires persistent storage before creating a counted browser unit",()=>{
@@ -157,9 +167,9 @@ test("accepts only complete assigned session locks",()=>{
 test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.analysis_cohort.id,EXPERIMENT_ANALYSIS_COHORT);
   assert.equal(experimentRotatorContract.analysis_cohort.starts_at_implementation_version,"0.28-R28");
-  assert.deepEqual(experimentRotatorContract.analysis_cohort.legacy_versions_included,["0.28-R28"]);
-  assert.deepEqual(experimentRotatorContract.analysis_cohort.active_event_versions,["0.28-R28","0.29-R29"]);
-  assert.deepEqual(EXPERIMENT_ACTIVE_COHORT_EVENT_VERSIONS,["0.28-R28","0.29-R29"]);
+  assert.deepEqual(experimentRotatorContract.analysis_cohort.legacy_versions_included,["0.28-R28","0.29-R29"]);
+  assert.deepEqual(experimentRotatorContract.analysis_cohort.active_event_versions,["0.28-R28","0.29-R29","0.30-R30"]);
+  assert.deepEqual(EXPERIMENT_ACTIVE_COHORT_EVENT_VERSIONS,["0.28-R28","0.29-R29","0.30-R30"]);
   assert.equal(EXPERIMENT_ACTIVE_COHORT_EVENT_VERSIONS[0],experimentRotatorContract.analysis_cohort.starts_at_implementation_version);
   assert.equal(EXPERIMENT_ACTIVE_COHORT_EVENT_VERSIONS.at(-1),experimentRotatorContract.version);
   assert.equal(new Set(EXPERIMENT_ACTIVE_COHORT_EVENT_VERSIONS).size,EXPERIMENT_ACTIVE_COHORT_EVENT_VERSIONS.length);
@@ -273,7 +283,7 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.ingestion.assignment_receipt_required,true);
   assert.equal(experimentRotatorContract.ingestion.assignment_receipt_same_session_required,true);
   assert.equal(experimentRotatorContract.ingestion.current_rotator_version_required,false);
-  assert.deepEqual(experimentRotatorContract.ingestion.accepted_rotator_versions,["0.28-R28","0.29-R29"]);
+  assert.deepEqual(experimentRotatorContract.ingestion.accepted_rotator_versions,["0.28-R28","0.29-R29","0.30-R30"]);
   assert.equal(experimentRotatorContract.ingestion.compatible_version_requires_current_cohort,true);
   assert.equal(experimentRotatorContract.ingestion.compatible_version_requires_current_fingerprints,true);
   assert.equal(experimentRotatorContract.ingestion.compatible_version_requires_live_assignment_receipt,true);
@@ -297,6 +307,15 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.receipt_diagnostics.unit_delivery_balance.method,"pearson_chi_square_homogeneity_df_2");
   assert.equal(experimentRotatorContract.receipt_diagnostics.decision_effect,"none");
   assert.equal(experimentRotatorContract.receipt_diagnostics.counts_rejected_requests,false);
+  assert.equal(experimentRotatorContract.results_snapshot.profile,"0.30-AS1");
+  assert.equal(experimentRotatorContract.results_snapshot.response_header,"x-experiment-snapshot-digest");
+  assert.equal(experimentRotatorContract.results_snapshot.canonicalization,"RFC8785_JCS");
+  assert.equal(experimentRotatorContract.results_snapshot.scope,"complete_ready_response_without_analysis_snapshot");
+  assert.deepEqual(experimentRotatorContract.results_snapshot.conformance_vector,{input:{a:1,b:"wanted"},digest:EXPERIMENT_RESULTS_SNAPSHOT_CONFORMANCE_DIGEST});
+  assert.equal(experimentRotatorContract.results_snapshot.ready_responses_only,true);
+  assert.equal(experimentRotatorContract.results_snapshot.unavailable_value,null);
+  assert.equal(experimentRotatorContract.results_snapshot.signed,false);
+  assert.equal(experimentRotatorContract.results_snapshot.proves_authenticity,false);
   assert.equal(experimentRotatorContract.receipt_diagnostics.proves_human_traffic,false);
   assert.equal(experimentRotatorContract.safety_boundary.presentation_only,true);
   assert.equal(experimentRotatorContract.safety_boundary.changes_score,false);
@@ -385,7 +404,7 @@ test("executes the matched-exposure query against SQLite",()=>{
   const db=new DatabaseSync(":memory:");
   db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT,event_type TEXT,path TEXT,metadata TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
   const insert=db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)");
-  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.29-R29",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,presentation=EXPERIMENT_PRESENTATION_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,presentation_fingerprint:presentation,assignment_receipt:"77777777-7777-4777-8777-777777777777",unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
+  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.30-R30",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,presentation=EXPERIMENT_PRESENTATION_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,presentation_fingerprint:presentation,assignment_receipt:"77777777-7777-4777-8777-777777777777",unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
   const controlUnit=unitForVariant("control"),controlToken=exposureTokenForAssignment(controlUnit,"control");
   event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_goal",variant:"control",unit:controlUnit,goal:"primary_cta"});
   const proofUnit=unitForVariant("proof"),proofToken=exposureTokenForAssignment(proofUnit,"proof");
@@ -454,15 +473,16 @@ test("reports the indexed receipt-to-exposure funnel without inventing rejected 
 
 test("accepts only active-cohort, internal, schema-valid experiment events",()=>{
   const unit=unitForVariant("control"),token=exposureTokenForAssignment(unit,"control");
-  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:"66666666-6666-4666-8666-666666666666",unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.29-R29",exposure_id:token};
+  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:"66666666-6666-4666-8666-666666666666",unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.30-R30",exposure_id:token};
   assert.equal(validExperimentUnitId(exposure.unit_id),true);assert.equal(validExperimentUnitId("shared-user"),false);
   assert.equal(validExposureToken(exposure.exposure_id),true);assert.equal(validExposureToken("1"),false);
-  assert.equal(validActiveCohortEventVersion("0.29-R29"),true);assert.equal(validActiveCohortEventVersion("0.28-R28"),true);assert.equal(validActiveCohortEventVersion("0.27-R27"),false);assert.equal(validActiveCohortEventVersion("0.30-R30"),false);
+  assert.equal(validActiveCohortEventVersion("0.30-R30"),true);assert.equal(validActiveCohortEventVersion("0.29-R29"),true);assert.equal(validActiveCohortEventVersion("0.28-R28"),true);assert.equal(validActiveCohortEventVersion("0.27-R27"),false);assert.equal(validActiveCohortEventVersion("0.31-R31"),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.28-R28"}),true);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.29-R29"}),true);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,variant:"invented"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.27-R27"}),false);
-  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.30-R30"}),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.31-R31"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,analysis_cohort:"wanted_landing_v1-C1"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",Object.fromEntries(Object.entries(exposure).filter(([key])=>key!=="analysis_cohort"))),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,treatment_fingerprint:"sha256:wrong"}),false);
