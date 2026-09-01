@@ -88,6 +88,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 29 | `digitalocean-v29` | `e636516` | Bind cohort telemetry to a frozen treatment fingerprint |
 | 30 | `digitalocean-v30` | `74e7d25` | Clarify anonymous browser-unit identity and counting limits |
 | 31 | `digitalocean-v31` | `ee65083` | Exclude unstable storage assignments without breaking the site |
+| 32 | `digitalocean-v32` | `8b7bf88` | Honor browser privacy choices before experiment eligibility |
 
 ## Release convention
 
