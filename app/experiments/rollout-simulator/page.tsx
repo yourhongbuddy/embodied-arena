@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SiteNav } from "../../components/SiteNav";
+import { RolloutConfigCompilerLab } from "./RolloutConfigCompilerLab";
 import { RolloutSimulatorLab } from "./RolloutSimulatorLab";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function RolloutSimulatorPage() {
         <p>Replay the exact 5% → 25% → 50% → 100% proof rollout over deterministic synthetic browser units. A selected unit stays selected in every later phase, while the live R36/C8 experiment remains untouched.</p>
       </section>
       <RolloutSimulatorLab />
+      <RolloutConfigCompilerLab />
       <section className="experimentBoundary">
         <div className="shell">
           <b>PREPRODUCTION SIMULATION ONLY</b>
