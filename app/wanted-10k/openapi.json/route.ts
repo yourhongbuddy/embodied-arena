@@ -47,7 +47,7 @@ const openapi = {
   "x-wanted-exposure-ledger": "/wanted-10k/exposure-ledger.json",
   "x-wanted-telemetry-authenticity": "/wanted-10k/telemetry-authenticity.json",
   "x-wanted-telemetry-verifier": { version: "0.2-TS4", module: "/wanted-10k/wanted-telemetry-verifier.mjs", contract: "/wanted-10k/telemetry-verifier-sdk.json", performs_network_requests: false, cli_exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 }, reports: { stream: "0.2-TR1", aggregate: "0.2-TA1", exposure_reconciliation: "0.2-TX1", audit_handoff: "exact_audit_manifest.telemetry_shape_with_exposure_binding" } },
-  "x-wanted-root-witness-verifier": { version: "0.2-RCS1", profile: "0.2-RC1", module: "/wanted-10k/wanted-root-witness-verifier.mjs", contract: "/wanted-10k/root-witness-verifier-sdk.json", performs_network_requests: false, cli_exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 }, result: "pass_only_when_all_eight_RC1_gates_pass" },
+  "x-wanted-root-witness-verifier": { version: "0.2-RCS2", profile: "0.2-RC1", module: "/wanted-10k/wanted-root-witness-verifier.mjs", contract: "/wanted-10k/root-witness-verifier-sdk.json", conformance: { version: "0.2-RCC1", vectors: "/wanted-10k/root-witness-conformance-vectors.json", vector_count: 11 }, performs_network_requests: false, cli_exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 }, result: "pass_only_when_all_eight_RC1_gates_pass" },
   "x-wanted-key-manifest-schema": "/wanted-10k/telemetry-key-manifest.schema.json",
   "x-hilo-realtime-contract": "/wanted-10k/realtime.json",
   "x-hilo-realtime-schema": "/wanted-10k/realtime.schema.json",

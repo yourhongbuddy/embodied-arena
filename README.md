@@ -12,6 +12,7 @@ The benchmark treats time to permanent voluntary rejection as the primary endpoi
 - `/wanted-10k/wanted-telemetry-verifier.mjs` — zero-dependency event verifier, multi-stream aggregator, exposure reconciliation, and audit-summary handoff
 - `/wanted-10k/root-commitment-witness` — no-upload local verifier for periodic-root chronology, two-organization Ed25519 quorum, and anti-backfill integrity
 - `/wanted-10k/wanted-root-witness-verifier.mjs` — zero-dependency RC1 verifier and Node CLI with digest-bound source contract
+- `/wanted-10k/root-witness-conformance-vectors.json` — 11 normative RC1 parity, tamper, replay, quorum, and chronology cases
 - `/wanted-10k/certification` — certification levels and applicability
 - `/wanted-10k/leaderboard` — audited registry and ranking rules
 - `/leaderboard` — broader embodied-robot rankings
