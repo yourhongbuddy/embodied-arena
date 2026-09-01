@@ -1014,6 +1014,16 @@ test("serves the exhaustive rollout bucket proof and developer artifacts", async
   assert.equal(schema.additionalProperties,false);assert.equal(schema.properties.compiler_bundle.additionalProperties,false);assert.equal(schema.properties.manifest.additionalProperties,false);assert.equal(reference.synthetic,true);assert.equal(reference.expected.status,"pass");assert.deepEqual(reference.expected.certificate.phases.map(phase=>phase.exact_selected_buckets),[500,2500,5000,10000]);assert.equal(reference.expected.certificate.rollback.exact_control_buckets,10000);
 });
 
+test("serves the one-million-unit rollout distribution audit and artifacts", async () => {
+  const [pageResponse,moduleResponse,contractResponse,schemaResponse,referenceResponse]=await Promise.all([request("/experiments/rollout-simulator"),request("/experiments/wanted-rollout-distribution.mjs"),request("/experiments/rollout-distribution.json","application/json"),request("/experiments/rollout-distribution.schema.json","application/json"),request("/experiments/rollout-distribution.reference.json","application/json")]);
+  for(const response of [pageResponse,moduleResponse,contractResponse,schemaResponse,referenceResponse])assert.equal(response.status,200);
+  const [html,source,contract,schema,reference]=await Promise.all([pageResponse.text(),moduleResponse.text(),contractResponse.json(),schemaResponse.json(),referenceResponse.json()]);
+  assert.match(html,/ONE MILLION SYNTHETIC UNITS/);assert.match(html,/10,000(?:<!-- -->)? \/ 10,000/);assert.match(html,/OCCUPANCY RANGE/);assert.match(html,/DEVIATION \/ 1M/);
+  assert.match(moduleResponse.headers.get("content-type"),/text\/javascript/);assert.doesNotMatch(source,/\bfetch\s*\(/);assert.doesNotMatch(source,/process\.env(?:\.|\[)/);assert.match(source,/auditRolloutDistribution/);
+  assert.equal(contract.version,"0.47-RDA1");assert.equal(contract.certificate_profile,"0.47-RDAC1");assert.equal(contract.sample_size,1000000);assert.equal(contract.buckets,10000);assert.equal(contract.runtime_dependencies,0);assert.equal(contract.reads_user_identifiers,false);assert.equal(contract.uses_live_traffic,false);assert.equal(contract.supports_version_selection,false);assert.equal(contract.changes_live_allocation,false);assert.equal(contract.changes_live_phase,false);assert.equal(contract.deploys,false);assert.equal(contract.source_sha256,createHash("sha256").update(source).digest("hex"));
+  assert.equal(schema.additionalProperties,false);assert.equal(reference.synthetic,true);assert.equal(reference.expected.status,"pass");assert.equal(reference.expected.certificate.empty_bucket_count,0);assert.deepEqual(reference.expected.certificate.phases.map(phase=>phase.observed_selected_units),[49907,249990,499757,1000000]);
+});
+
 test("publishes the aggregate certification audit contract", async () => {
   const [pageResponse, schemaResponse, templateResponse, specResponse] = await Promise.all([
     request("/wanted-10k/audit"),
