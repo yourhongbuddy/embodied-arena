@@ -94,7 +94,7 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /W is never extrapolated/);
   assert.match(protocolHtml, /ENDPOINT ADJUDICATION/);
   assert.match(protocolHtml, /Six gates/);
-  assert.match(protocolHtml, /One hundred two artifacts/);
+  assert.match(protocolHtml, /One hundred six artifacts/);
   assert.match(protocolHtml, /AUDIT VERIFIER SDK/);
   assert.match(protocolHtml, /PREFLIGHT LAB/);
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
@@ -155,6 +155,36 @@ test("publishes the signed resident-time exposure ledger", async () => {
 });
 
 test("publishes deterministic ranked-score reproduction",async()=>{const [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,leaderboardResponse,specResponse]=await Promise.all([request("/wanted-10k/analysis-reproduction"),request("/wanted-10k/analysis-reproduction.json","application/json"),request("/wanted-10k/analysis-reproduction.schema.json","application/json"),request("/wanted-10k/analysis-reproduction.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/leaderboard.json","application/json"),request("/wanted-10k/spec.json","application/json")]);for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,leaderboardResponse,specResponse])assert.equal(response.status,200);const pageHtml=await pageResponse.text();assert.match(pageHtml,/Do not trust W/);assert.match(pageHtml,/Same rows/);assert.match(pageHtml,/REPRODUCIBLE != REPRESENTATIVE/);const [contract,schema,template,audit,leaderboard,spec]=await Promise.all([contractResponse.json(),schemaResponse.json(),templateResponse.json(),auditResponse.json(),leaderboardResponse.json(),specResponse.json()]);assert.equal(contract.version,"0.2-A2");assert.equal(contract.bootstrap.minimum_samples,10000);assert.equal(contract.horizon_boundary.support_identity,"support_at_10000_equals_horizon_rejections_plus_retained_at_10000");assert.equal(schema.properties.bootstrap.properties.prng.const,"pcg32_xsh_rr_64_32_seeded_v1");assert.equal(schema.properties.claimed.required.includes("horizon_rejections"),true);assert.equal(template.claimed.wanted_score,87.5);assert.equal(template.claimed.horizon_rejections,0);assert.equal(template.claimed.retained_at_10000,8);assert.equal(audit.analysis_reproduction.profile_version,"0.2-A2");assert.equal(audit.primary.wanted_score,87.5);assert.equal(audit.primary.support_at_10000,audit.primary.horizon_rejections+audit.primary.retained_at_10000);assert.equal(leaderboard.admission.includes("analysis_reproduction_profile_0.2-A2_passes"),true);assert.equal(leaderboard.disclosure.includes("horizon_rejections_plus_retained_at_10000_equals_support_at_10000"),true);assert.equal(spec.analysis_reproduction_profile.numerical_tolerance,.000001);assert.equal(spec.analysis_reproduction_profile.horizon_boundary.support_identity,"support_at_10000_equals_horizon_rejections_plus_retained_at_10000");assert.equal(spec.developer_resources.analysis_reproduction_lab,"/wanted-10k/analysis-reproduction")});
+
+test("publishes non-ranking multi-site heterogeneity evidence",async()=>{
+  const responses=await Promise.all([
+    request("/wanted-10k/site-heterogeneity"),
+    request("/wanted-10k/site-heterogeneity.json","application/json"),
+    request("/wanted-10k/site-heterogeneity.schema.json","application/json"),
+    request("/wanted-10k/site-heterogeneity.template.json","application/json"),
+    request("/wanted-10k/audit-manifest.template.json","application/json"),
+    request("/wanted-10k/leaderboard.json","application/json"),
+    request("/wanted-10k/spec.json","application/json"),
+    request("/wanted-10k/openapi.json","application/json"),
+  ]);
+  for(const response of responses)assert.equal(response.status,200);
+  const pageHtml=await responses[0].text();
+  assert.match(pageHtml,/One score/);
+  assert.match(pageHtml,/HETEROGENEITY != RANK/);
+  const [contract,schema,template,audit,leaderboard,spec,openapi]=await Promise.all(responses.slice(1).map(response=>response.json()));
+  assert.equal(contract.version,"0.2-SH1");
+  assert.equal(contract.ranking_effect,"eligibility_gate_and_public_diagnostic_not_score_or_tiebreaker");
+  assert.equal(schema.properties.claimed.properties.site_profiles.minItems,3);
+  assert.equal(template.claimed.site_profiles.length,3);
+  assert.equal(template.claimed.maximum_site_share,.333333333);
+  assert.equal(audit.site_heterogeneity.profile_version,"0.2-SH1");
+  assert.equal(audit.site_heterogeneity.pooled_wanted_score,audit.primary.wanted_score);
+  assert.equal(leaderboard.admission.includes("site_heterogeneity_profile_0.2-SH1_passes"),true);
+  assert.equal(leaderboard.ranking.forbidden_tiebreakers.includes("site_heterogeneity_metrics"),true);
+  assert.equal(spec.site_heterogeneity_profile.topology.maximum_single_site_share,.5);
+  assert.equal(spec.developer_resources.site_heterogeneity_lab,"/wanted-10k/site-heterogeneity");
+  assert.equal(openapi["x-wanted-evidence-profiles"].site_heterogeneity.version,"0.2-SH1");
+});
 
 test("publishes and reproduces the neutral seven-day withdrawal profile",async()=>{const [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,certificationResponse,specResponse]=await Promise.all([request("/wanted-10k/withdrawal"),request("/wanted-10k/withdrawal.json","application/json"),request("/wanted-10k/withdrawal.schema.json","application/json"),request("/wanted-10k/withdrawal.template.json","application/json"),request("/wanted-10k/audit-manifest.template.json","application/json"),request("/wanted-10k/certification.json","application/json"),request("/wanted-10k/spec.json","application/json")]);for(const response of [pageResponse,contractResponse,schemaResponse,templateResponse,auditResponse,certificationResponse,specResponse])assert.equal(response.status,200);const pageHtml=await pageResponse.text();assert.match(pageHtml,/Take it away/);assert.match(pageHtml,/EXACT 168-HOUR CLOCK/);assert.match(pageHtml,/WITHDRAWAL != RANK/);const [contract,schema,template,audit,certification,spec]=await Promise.all([contractResponse.json(),schemaResponse.json(),templateResponse.json(),auditResponse.json(),certificationResponse.json(),specResponse.json()]);assert.equal(contract.version,"0.2-W1");assert.equal(contract.ranking_effect,"none");assert.equal(schema.properties.protocol.properties.withdrawal_hours.const,168);assert.equal(template.records.length,8);assert.equal(template.claimed.median_days_to_return_request,2.5);assert.equal(audit.withdrawal.profile_version,"0.2-W1");assert.equal(audit.withdrawal.manifest_sha256,template.evidence.withdrawal_register_sha256);assert.equal(certification.targets.WANTED_10K.requires.includes("withdrawal_0.2-W1"),true);assert.equal(spec.withdrawal_profile.median_rule.includes("null"),true);assert.equal(spec.developer_resources.withdrawal_reproducer,"/wanted-10k/withdrawal")});
 

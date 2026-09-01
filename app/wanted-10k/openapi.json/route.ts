@@ -38,6 +38,7 @@ const openapi = {
     protocol_deviation_integrity: { version: "0.2-DV1", contract: "/wanted-10k/protocol-deviations.json", schema: "/wanted-10k/protocol-deviations.schema.json", template: "/wanted-10k/protocol-deviations.template.json", local_verifier: "/wanted-10k/protocol-deviations" },
     sampling_stopping_integrity: { version: "0.2-ST1", contract: "/wanted-10k/sampling-stopping.json", schema: "/wanted-10k/sampling-stopping.schema.json", template: "/wanted-10k/sampling-stopping.template.json", local_verifier: "/wanted-10k/sampling-stopping" },
     endpoint_adjudication: { version: "0.2-J1", contract: "/wanted-10k/endpoint-adjudication.json", schema: "/wanted-10k/endpoint-adjudication.schema.json", template: "/wanted-10k/endpoint-adjudication.template.json", local_verifier: "/wanted-10k/endpoint-adjudication" },
+    site_heterogeneity: { version: "0.2-SH1", contract: "/wanted-10k/site-heterogeneity.json", schema: "/wanted-10k/site-heterogeneity.schema.json", template: "/wanted-10k/site-heterogeneity.template.json", local_verifier: "/wanted-10k/site-heterogeneity" },
   },
   "x-wanted-certification": { contract: "/wanted-10k/certification.json", audit_schema: "/wanted-10k/audit-manifest.schema.json", target_templates: "/wanted-10k/certification-templates.json", local_readiness_verifier: "/wanted-10k/audit" },
   "x-wanted-audit-verifier": { module: "/wanted-10k/wanted-audit-verifier.mjs", contract: "/wanted-10k/audit-verifier-sdk.json", performs_network_requests: false },
