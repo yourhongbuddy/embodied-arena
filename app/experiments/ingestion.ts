@@ -1,4 +1,4 @@
-import { assignWantedVariant,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,ROTATOR_VERSION,validExperimentUnitId,validWantedVariant,WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
+import { assignWantedVariant,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,validActiveCohortEventVersion,validExperimentUnitId,validWantedVariant,WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
 import { validAssignmentReceiptId } from "./assignment-receipt.ts";
 
 export const ANALYTICS_RETENTION_DAYS=35;
@@ -11,7 +11,7 @@ export function validExposureToken(value:unknown){return typeof value==="string"
 export function validExperimentEvent(eventType:string,path:string,metadata:Metadata){
   if(path!=="/wanted-10k"||metadata.experiment!==WANTED_LANDING_EXPERIMENT.id||!validWantedVariant(metadata.variant))return false;
   if(metadata.assignment_mode!=="assigned")return false;
-  if(metadata.rotator_version!==ROTATOR_VERSION)return false;
+  if(!validActiveCohortEventVersion(metadata.rotator_version))return false;
   if(metadata.analysis_cohort!==EXPERIMENT_ANALYSIS_COHORT)return false;
   if(metadata.treatment_fingerprint!==EXPERIMENT_TREATMENT_FINGERPRINT)return false;
   if(metadata.presentation_fingerprint!==EXPERIMENT_PRESENTATION_FINGERPRINT)return false;
