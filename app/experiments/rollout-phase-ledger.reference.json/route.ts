@@ -1,0 +1,2 @@
+import{experimentRolloutPhaseLedgerReferenceBundle,verifyExperimentRolloutPhaseLedger}from"../rollout-phase-ledger.ts";
+export async function GET(){const bundle=experimentRolloutPhaseLedgerReferenceBundle();return Response.json({synthetic:true,bundle,expected:await verifyExperimentRolloutPhaseLedger(bundle),interpretation:"Signed canary-review conformance vector only. It records no live phase change, excludes operational exposure from version selection, and authorizes no deployment."},{headers:{"cache-control":"public, max-age=3600"}})}
