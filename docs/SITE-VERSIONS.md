@@ -114,6 +114,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 55 | `digitalocean-v55` | `a81fb8e` | Diagnose assignment allocation and accepted-exposure delivery by site version |
 | 56 | `digitalocean-v56` | `ff218c0` | Restrict version-delivery diagnostics to matured first-receipt browser-unit cohorts |
 | 57 | `digitalocean-v57` | `80122a6` | Add marginal Wilson uncertainty intervals to matured version-delivery diagnostics |
+| 58 | `digitalocean-v58` | `b977773` | Quantify delivery-rate differences versus control with familywise uncertainty intervals |
 
 ## Release convention
 
