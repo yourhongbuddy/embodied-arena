@@ -42,6 +42,8 @@ const kit = [
   ["ANALYSIS CONTRACT", "Read the 0.2-A2 estimator, PCG32 bootstrap, exact-horizon convention, numerical tolerance, upstream bindings, and hard-failure rules.", "/wanted-10k/analysis-reproduction.json", "OPEN CONTRACT ↗"],
   ["ANALYSIS SCHEMA", "Validate the environment-level endpoint table, claimed outputs, deterministic bootstrap parameters, and evidence bindings.", "/wanted-10k/analysis-reproduction.schema.json", "OPEN SCHEMA ↗"],
   ["ANALYSIS TEMPLATE", "Start from a passing synthetic 24-environment claim with exact primary, uncertainty, and robustness outputs.", "/wanted-10k/analysis-reproduction.template.json", "DOWNLOAD JSON ↓"],
+  ["ANALYSIS CONFORMANCE VECTORS", "Run five normative 0.2-AC1 edge cases with exact outputs for the A2 estimator, tie rule, horizon boundary, and refusal paths.", "/wanted-10k/analysis-conformance-vectors.json", "DOWNLOAD VECTORS ↓"],
+  ["ANALYSIS CONFORMANCE SCHEMA", "Validate the complete vector pack before using it to qualify an independent SDK or analysis implementation.", "/wanted-10k/analysis-conformance-vectors.schema.json", "OPEN SCHEMA ↗"],
   ["FIELD SAFETY CASE", "Evaluate seven non-compensatory gates for scope, stop authority, protective functions, incidents, security, operations, and independent assessment.", "/wanted-10k/safety", "OPEN SAFETY LAB →"],
   ["SAFETY MANIFEST SCHEMA", "Validate the strict deployment-scoped evidence object behind every WANTED field safety decision.", "/wanted-10k/safety-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["SAFETY MANIFEST TEMPLATE", "Start from a complete synthetic 0.2-S1 case with assessed limits, incident closure, security controls, and artifact bindings.", "/wanted-10k/safety-manifest.template.json", "DOWNLOAD JSON ↓"],

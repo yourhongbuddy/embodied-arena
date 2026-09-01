@@ -4,6 +4,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 HORIZON = 10_000.0
 MASK_64 = (1 << 64) - 1
+ALLOWED_DISPOSITIONS = {
+    "completed",
+    "unrelated_censor",
+    "rejected",
+    "safety_termination",
+    "developer_withdrawal",
+    "consent_privacy_withdrawal",
+}
+TERMINAL_COMPETING_CAUSES = {
+    "safety_termination",
+    "developer_withdrawal",
+    "consent_privacy_withdrawal",
+}
 
 class PCG32:
     """Exact 0.2-A2 PCG XSH RR 64/32 stream and high-word index map."""
@@ -27,15 +40,32 @@ class PCG32:
 @dataclass(frozen=True)
 class Environment:
     hours: float
-    rejected: bool
+    disposition: str
     identifier: str = ""
+
+    @property
+    def rejected(self) -> bool:
+        return self.disposition == "rejected"
+
+def validate_rows(rows: list[Environment], horizon: float = HORIZON) -> None:
+    """Validate the complete A2 endpoint taxonomy before any statistic is reported."""
+    if not rows:
+        raise ValueError("at least one independent environment is required")
+    for index, row in enumerate(rows, start=1):
+        if row.hours < 0 or row.hours > horizon:
+            raise ValueError(f"row {index}: hours must be inside the evaluation horizon")
+        if row.disposition not in ALLOWED_DISPOSITIONS:
+            raise ValueError(f"row {index}: unknown disposition")
+        if row.disposition == "completed" and row.hours != horizon:
+            raise ValueError(f"row {index}: completion requires exactly 10,000 hours")
+        if row.disposition == "unrelated_censor" and row.hours == horizon:
+            raise ValueError(f"row {index}: unrelated censoring at 10,000 hours is invalid")
+        if row.disposition in TERMINAL_COMPETING_CAUSES:
+            raise ValueError(f"row {index}: terminal competing cause is not rankable")
 
 def wanted_summary(rows: list[Environment], horizon: float = HORIZON) -> dict[str, float | int]:
     """A2 normalized RMST, post-event S(tau), and exact horizon accounting."""
-    if not rows:
-        raise ValueError("at least one independent environment is required")
-    if any(r.hours < 0 or r.hours > horizon for r in rows):
-        raise ValueError("hours must be inside the evaluation horizon")
+    validate_rows(rows, horizon)
 
     event_times = sorted({r.hours for r in rows if r.rejected})
     survival = 1.0
@@ -59,7 +89,7 @@ def wanted_summary(rows: list[Environment], horizon: float = HORIZON) -> dict[st
     area += survival * (horizon - previous)
     risk_set = sum(r.hours >= horizon for r in rows)
     horizon_rejections = sum(r.rejected and r.hours == horizon for r in rows)
-    retained = sum((not r.rejected) and r.hours == horizon for r in rows)
+    retained = sum(r.disposition == "completed" and r.hours == horizon for r in rows)
     if risk_set != horizon_rejections + retained:
         raise ValueError("10,000-hour risk set does not reconcile")
     return {
@@ -78,8 +108,18 @@ def confidence_interval(
     rows: list[Environment], samples: int = 10_000, seed: int = 10_000
 ) -> tuple[float, float]:
     """Environment-level nonparametric bootstrap, percentile 95% interval."""
+    summary = confidence_summary(rows, samples, seed)
+    return float(summary["ci95_lower"]), float(summary["ci95_upper"])
+
+def confidence_summary(
+    rows: list[Environment], samples: int = 10_000, seed: int = 10_000
+) -> dict[str, float | int | str]:
+    """Deterministic A2 interval plus the required valid-resample fraction."""
+    validate_rows(rows)
     if len(rows) < 2:
         raise ValueError("at least two environments are required")
+    if samples < 1:
+        raise ValueError("samples must be positive")
     rng = PCG32(seed)
     n = len(rows)
     estimates: list[float] = []
@@ -102,7 +142,14 @@ def confidence_interval(
         high = min(low + 1, len(estimates) - 1)
         return estimates[low] + (estimates[high] - estimates[low]) * (index - low)
 
-    return percentile(0.025), percentile(0.975)
+    return {
+        "ci95_lower": percentile(0.025),
+        "ci95_upper": percentile(0.975),
+        "bootstrap_valid_fraction": len(estimates) / samples,
+        "bootstrap_samples": samples,
+        "bootstrap_seed": seed,
+        "bootstrap_prng": "pcg32_xsh_rr_64_32_seeded_v1",
+    }
 
 def robustness_profile(
     rows: list[Environment], horizon: float = HORIZON
@@ -110,11 +157,15 @@ def robustness_profile(
     """Required stress disclosures; these bounds never replace primary W."""
     observed = wanted_score(rows, horizon)
     lower_rows = [
-        Environment(r.hours, r.rejected or r.hours < horizon, r.identifier)
+        Environment(
+            r.hours,
+            "rejected" if r.disposition == "unrelated_censor" else r.disposition,
+            r.identifier,
+        )
         for r in rows
     ]
     upper_rows = [
-        r if r.rejected else Environment(horizon, False, r.identifier)
+        r if r.rejected else Environment(horizon, "completed", r.identifier)
         for r in rows
     ]
     lower = wanted_score(lower_rows, horizon)
@@ -145,7 +196,9 @@ def robustness_profile(
             "at_risk_9000": sum(r.hours >= 9000 for r in rows),
             "at_risk_10000": sum(r.hours >= horizon for r in rows),
             "horizon_rejections": sum(r.rejected and r.hours == horizon for r in rows),
-            "retained_at_10000": sum((not r.rejected) and r.hours == horizon for r in rows),
+            "retained_at_10000": sum(r.disposition == "completed" and r.hours == horizon for r in rows),
+            "unrelated_early_censors": sum(r.disposition == "unrelated_censor" and r.hours < horizon for r in rows),
+            "voluntary_rejections": sum(r.rejected for r in rows),
         },
         "leave_one_environment_out": {
             "maximum_absolute_shift": influence[0]["absolute_shift"] if influence else None,

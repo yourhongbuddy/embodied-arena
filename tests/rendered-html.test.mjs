@@ -665,6 +665,34 @@ test("ships the robustness analysis in the dependency-free Python reference", as
   assert.match(source, /def robustness_profile/);
   assert.match(source, /profile_version.*0\.2-R1/);
   assert.match(source, /unidentifiable_exclusions/);
+  assert.match(source, /def validate_rows/);
+  assert.match(source, /def confidence_summary/);
+  assert.match(source, /unrelated censoring at 10,000 hours is invalid/);
+  assert.match(source, /retained_at_10000/);
+});
+
+test("publishes normative A2 analysis conformance vectors", async () => {
+  const [vectorsResponse, schemaResponse, contractResponse, specResponse] = await Promise.all([
+    request("/wanted-10k/analysis-conformance-vectors.json", "application/json"),
+    request("/wanted-10k/analysis-conformance-vectors.schema.json", "application/json"),
+    request("/wanted-10k/analysis-reproduction.json", "application/json"),
+    request("/wanted-10k/spec.json", "application/json"),
+  ]);
+  for (const response of [vectorsResponse, schemaResponse, contractResponse, specResponse]) assert.equal(response.status, 200);
+  const [vectors, schema, contract, spec] = await Promise.all([
+    vectorsResponse.json(),
+    schemaResponse.json(),
+    contractResponse.json(),
+    specResponse.json(),
+  ]);
+  assert.equal(vectors.version, "0.2-AC1");
+  assert.equal(vectors.analysis_profile_version, "0.2-A2");
+  assert.equal(vectors.vectors.length, 5);
+  assert.equal(schema.properties.version.const, "0.2-AC1");
+  assert.equal(contract.conformance_profile, "0.2-AC1");
+  assert.equal(contract.conformance_vectors, "/wanted-10k/analysis-conformance-vectors.json");
+  assert.equal(spec.analysis_conformance_profile.version, "0.2-AC1");
+  assert.equal(spec.developer_resources.analysis_conformance_vectors, "/wanted-10k/analysis-conformance-vectors.json");
 });
 
 test("serves the local conformance checker and corrected score lab", async () => {
