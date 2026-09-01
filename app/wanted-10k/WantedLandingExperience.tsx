@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { track,trackConfirmed } from "../components/AnalyticsHeartbeat";
+import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
 import { EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,resolveWantedAssignment, ROTATOR_VERSION, WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
 
@@ -79,7 +79,7 @@ export function WantedLandingExperience() {
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
   const variant = content[displayAssignment.variant];
   const goal = (goalName: string, href: string) => {
-    if (assignment?.mode === "assigned"&&exposureId.current) track("experiment_goal", location.pathname, { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
+    if (assignment?.mode === "assigned"&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
   return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} aria-busy={pending}>
