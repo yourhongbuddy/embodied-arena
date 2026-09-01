@@ -79,6 +79,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 20 | `digitalocean-v20` | `0605f77` | Lock one variant per session and exclude cross-variant contamination |
 | 21 | `digitalocean-v21` | `3ab90a1` | Add family-wise control-comparison effect intervals without automatic winners |
 | 22 | `digitalocean-v22` | `5727d46` | Add read-only GitHub CI and executable release-tag integrity checks |
+| 23 | `digitalocean-v23` | `04ec0aa` | Add reproducible App Platform specifications and deployment checks |
 
 ## Release convention
 
