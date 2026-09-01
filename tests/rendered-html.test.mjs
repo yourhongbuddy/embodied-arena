@@ -1,24 +1,80 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import test from "node:test";
+import { once } from "node:events";
+import { createServer } from "node:net";
+import { dirname } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+import test, { after } from "node:test";
+import { fileURLToPath } from "node:url";
 
-let workerPromise;
-async function worker() {
-  if (!workerPromise) {
-    const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-    workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-    workerPromise = import(workerUrl.href).then(module => module.default);
+const projectRoot = dirname(fileURLToPath(new URL("../package.json", import.meta.url)));
+let serverProcess;
+let serverPromise;
+
+async function availablePort() {
+  return new Promise((resolve, reject) => {
+    const listener = createServer();
+    listener.once("error", reject);
+    listener.listen(0, "127.0.0.1", () => {
+      const address = listener.address();
+      const port = typeof address === "object" && address ? address.port : null;
+      listener.close(error => {
+        if (error) reject(error);
+        else if (port === null) reject(new Error("Could not reserve a test port"));
+        else resolve(port);
+      });
+    });
+  });
+}
+
+async function standaloneServer() {
+  if (!serverPromise) {
+    serverPromise = (async () => {
+      const port = await availablePort();
+      const baseUrl = `http://127.0.0.1:${port}/`;
+      let output = "";
+      serverProcess = spawn(process.execPath, ["dist/standalone/server.js"], {
+        cwd: projectRoot,
+        env: { ...process.env, HOST: "127.0.0.1", PORT: String(port) },
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+      for (const stream of [serverProcess.stdout, serverProcess.stderr]) {
+        stream.setEncoding("utf8");
+        stream.on("data", chunk => { output = `${output}${chunk}`.slice(-8_000); });
+      }
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        if (serverProcess.exitCode !== null) {
+          throw new Error(`Standalone server exited with code ${serverProcess.exitCode}.\n${output}`);
+        }
+        try {
+          const response = await fetch(new URL("wanted-10k", baseUrl), {
+            signal: AbortSignal.timeout(1_000),
+          });
+          if (response.status < 500) return baseUrl;
+        } catch {
+          // The server is still starting.
+        }
+        await delay(50);
+      }
+      serverProcess.kill("SIGTERM");
+      throw new Error(`Standalone server did not become ready.\n${output}`);
+    })();
   }
-  return workerPromise;
+  return serverPromise;
 }
 
 async function request(path, accept = "text/html") {
-  return (await worker()).fetch(
-    new Request(`http://localhost${path}`, { headers: { accept } }),
-    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
-    { waitUntil() {}, passThroughOnException() {} },
-  );
+  const baseUrl = await standaloneServer();
+  return fetch(new URL(path, baseUrl), { headers: { accept } });
 }
+
+after(async () => {
+  if (!serverProcess || serverProcess.exitCode !== null) return;
+  serverProcess.kill("SIGTERM");
+  await Promise.race([once(serverProcess, "exit"), delay(2_000)]);
+  if (serverProcess.exitCode === null) serverProcess.kill("SIGKILL");
+});
 
 test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   const benchmark = await request("/wanted-10k");
