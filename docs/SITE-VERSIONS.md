@@ -74,6 +74,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 15 | `digitalocean-v15` | `f4c6dfb` | Add bounded, schema-valid experiment analytics ingestion |
 | 16 | `digitalocean-v16` | `f5a3d7e` | Prevent pre-assignment variant flashes with a neutral state |
 | 17 | `digitalocean-v17` | `9bb6b10` | Bind goals to rendered experiment exposure tokens |
+| 18 | `digitalocean-v18` | `1733591` | Retry experiment exposures until storage acknowledges receipt |
 
 ## Release convention
 
