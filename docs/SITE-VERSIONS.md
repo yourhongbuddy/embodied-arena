@@ -120,6 +120,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 61 | `digitalocean-v61` | `1a63f1d` | Preserve delayed exposure and goal delivery across explicitly compatible active-cohort rotator revisions |
 | 62 | `digitalocean-v62` | `de1a2e2` | Bind every ready rotator result to a canonical SHA-256 snapshot with a public conformance vector |
 | 63 | `digitalocean-v63` | `48ccec1` | Ship a source-digest-bound zero-dependency verifier for canonical rotator result snapshots |
+| 64 | `digitalocean-v64` | `d9b02b2` | Publish a digest-bound zero-dependency SDK and normative vectors for rotator assignment parity |
 
 ## Release convention
 
