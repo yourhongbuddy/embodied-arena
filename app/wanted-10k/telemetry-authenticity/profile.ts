@@ -1,4 +1,5 @@
 import { sampleKeyManifest, TELEMETRY_AUTHENTICITY_VERSION } from "../conformance/validator.ts";
+import { TELEMETRY_VERIFIER_SDK_VERSION } from "../telemetry-sdk/source.ts";
 
 export const telemetryAuthenticityContract = {
   name: "WANTED Telemetry Authenticity Profile",
@@ -17,6 +18,7 @@ export const telemetryAuthenticityContract = {
   counting_rules: { invalid_signatures: "malformed_or_cryptographically_invalid_event_signatures", unknown_key_ids: "distinct_unresolved_signing_key_identifiers", expired_key_events: "events_at_or_after_valid_until", revoked_key_events: "events_at_or_after_revoked_at", hash_chain_mismatches: "non_genesis_events_whose_previous_event_hash_does_not_match" },
   hard_failures: ["missing_key_manifest", "unknown_key_id", "malformed_public_key", "invalid_signature", "expired_key_event", "revoked_key_event", "broken_hash_chain", "noncanonical_signature_scope"],
   privacy: "verification_runs_locally_and_does_not_upload_event_data",
+  portable_verifier: { version: TELEMETRY_VERIFIER_SDK_VERSION, module: "/wanted-10k/wanted-telemetry-verifier.mjs", contract: "/wanted-10k/telemetry-verifier-sdk.json", stream_report: "0.2-TR1", aggregate_report: "0.2-TA1", audit_handoff: "exact_audit_manifest.telemetry_shape" },
   interpretation: "proves_integrity_and_possession_of_a_registered_signing_key_not_sensor_truth_complete_capture_or_key_custody",
 } as const;
 

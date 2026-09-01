@@ -209,8 +209,8 @@ export const sampleKeyManifest: KeyManifest = {
   keys: [{ key_id: "demo_ed25519_key_01", public_key_base64url: "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo", valid_from: "2026-01-01T00:00:00Z", valid_until: "2027-01-01T00:00:00Z", revoked_at: null }],
 };
 
-export async function sampleBundle() {
-  const base = { schema_version: "0.2", deployment_id: "dep_demo_001", environment_id: "env_demo_001", robot_id: "robot_demo_001", signing_key_id: "demo_ed25519_key_01" };
+export async function sampleBundle(identity: Partial<{ deployment_id: string; environment_id: string; robot_id: string }> = {}) {
+  const base = { schema_version: "0.2", deployment_id: identity.deployment_id ?? "dep_demo_001", environment_id: identity.environment_id ?? "env_demo_001", robot_id: identity.robot_id ?? "robot_demo_001", signing_key_id: "demo_ed25519_key_01" };
   const seed = Uint8Array.from("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60".match(/../g) ?? [], value => Number.parseInt(value, 16));
   const prefix = Uint8Array.from("302e020100300506032b657004220420".match(/../g) ?? [], value => Number.parseInt(value, 16));
   const privateKey = await crypto.subtle.importKey("pkcs8", new Uint8Array([...prefix, ...seed]), { name: "Ed25519" }, false, ["sign"]);

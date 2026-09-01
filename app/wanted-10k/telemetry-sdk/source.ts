@@ -1,14 +1,16 @@
-export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS2";
+export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS3";
 
 export const telemetryVerifierSdkSource = String.raw`/**
- * WANTED-10K telemetry verifier — Protocol 0.2-TS2 / authenticity 0.2-T1
+ * WANTED-10K telemetry verifier — Protocol 0.2-TS3 / authenticity 0.2-T1
  *
  * Zero runtime dependencies. Verification is local and performs no network
  * requests. Supply one JSONL event stream and its frozen key manifest.
  */
 
-export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS2";
+export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS3";
 export const TELEMETRY_AUTHENTICITY_VERSION = "0.2-T1";
+export const TELEMETRY_STREAM_REPORT_VERSION = "0.2-TR1";
+export const TELEMETRY_AGGREGATE_REPORT_VERSION = "0.2-TA1";
 export const EVENT_TYPES = Object.freeze(["DEPLOYMENT_LIFECYCLE", "ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"]);
 
 const REQUIRED = Object.freeze(["schema_version", "event_id", "deployment_id", "environment_id", "robot_id", "sequence", "occurred_at", "type", "payload", "signing_key_id", "signature"]);
@@ -134,6 +136,22 @@ function emptyResult(errors = [], keyManifestId = null) {
   return { status: "fail", events: 0, coverage: 0, chainLinks: 0, signaturesVerified: 0, signatureFailures: 0, invalidSignatures: 0, unknownKeyIds: 0, expiredKeyEvents: 0, revokedKeyEvents: 0, hashChainMismatches: 0, keyManifestId, errors, warnings: [] };
 }
 
+async function finalizeStreamReport(report, events, manifest) {
+  const deploymentIds = new Set((events ?? []).map(event => event.deployment_id).filter(value => typeof value === "string" && value));
+  const environmentIds = new Set((events ?? []).map(event => event.environment_id).filter(value => typeof value === "string" && value));
+  const base = {
+    reportProfile: TELEMETRY_STREAM_REPORT_VERSION,
+    verifierVersion: TELEMETRY_VERIFIER_SDK_VERSION,
+    authenticityProfile: TELEMETRY_AUTHENTICITY_VERSION,
+    deploymentId: deploymentIds.size === 1 ? [...deploymentIds][0] : null,
+    environmentId: environmentIds.size === 1 ? [...environmentIds][0] : null,
+    eventStreamSha256: events ? await sha256Hex(events) : null,
+    keyManifestSha256: manifest ? await sha256Hex(manifest) : null,
+    ...report,
+  };
+  return { ...base, verificationReportSha256: await sha256Hex(base) };
+}
+
 export async function verifyTelemetryJsonl(jsonl, keyManifestInput) {
   if (typeof jsonl !== "string") throw new TypeError("telemetry must be JSONL text");
   const keyResult = validateKeyManifest(keyManifestInput);
@@ -148,7 +166,7 @@ export async function verifyTelemetryJsonl(jsonl, keyManifestInput) {
     } catch (error) { errors.push("Line " + (index + 1) + ": " + (error instanceof Error ? error.message : "invalid JSON") + "."); }
   }
   if (!lines.length) errors.push("Provide at least one non-empty JSONL event.");
-  if (events.length !== lines.length) return { ...emptyResult(errors, keyResult.manifest?.key_manifest_id ?? null), events: events.length };
+  if (events.length !== lines.length) return finalizeStreamReport({ ...emptyResult(errors, keyResult.manifest?.key_manifest_id ?? null), events: events.length }, null, keyResult.manifest);
 
   const manifestKeys = Array.isArray(keyResult.manifest?.keys) ? keyResult.manifest.keys : [];
   const keys = new Map(manifestKeys.map(key => [key.key_id, key]));
@@ -207,12 +225,111 @@ export async function verifyTelemetryJsonl(jsonl, keyManifestInput) {
   }
   const missingTypes = EVENT_TYPES.filter(type => !seenTypes.has(type));
   if (missingTypes.length) warnings.push("Coverage sample omits " + missingTypes.join(", ") + "; adapter qualification exercises all six types.");
-  return { status: errors.length ? "fail" : "pass", events: events.length, coverage: seenTypes.size, chainLinks, signaturesVerified, signatureFailures, invalidSignatures, unknownKeyIds: unknownKeyIds.size, expiredKeyEvents, revokedKeyEvents, hashChainMismatches, keyManifestId: keyResult.manifest?.key_manifest_id ?? null, errors, warnings };
+  return finalizeStreamReport({ status: errors.length ? "fail" : "pass", events: events.length, coverage: seenTypes.size, chainLinks, signaturesVerified, signatureFailures, invalidSignatures, unknownKeyIds: unknownKeyIds.size, expiredKeyEvents, revokedKeyEvents, hashChainMismatches, keyManifestId: keyResult.manifest?.key_manifest_id ?? null, errors, warnings }, events, keyResult.manifest);
 }
 
 export async function verifyTelemetry(events, keyManifest) {
   if (!Array.isArray(events)) throw new TypeError("events must be an array");
   return verifyTelemetryJsonl(events.map(event => JSON.stringify(event)).join("\n"), keyManifest);
+}
+
+async function reportDigestMatches(report) {
+  if (!object(report) || typeof report.verificationReportSha256 !== "string") return false;
+  const unsigned = { ...report };
+  delete unsigned.verificationReportSha256;
+  return /^[a-f0-9]{64}$/.test(report.verificationReportSha256) && await sha256Hex(unsigned) === report.verificationReportSha256;
+}
+
+/** Combine one independently verified stream per deployment/environment. */
+export async function aggregateTelemetryReports(reports) {
+  if (!Array.isArray(reports) || !reports.length) throw new TypeError("provide at least one telemetry stream report");
+  const errors = [], deploymentIds = new Set(), environmentIds = new Set(), manifestDigests = new Set();
+  const streams = [];
+  let totalEvents = 0, verifiedSignatures = 0, invalidSignatures = 0, unknownKeyIds = 0, expiredKeyEvents = 0, revokedKeyEvents = 0, hashChainMismatches = 0;
+  for (let index = 0; index < reports.length; index++) {
+    const report = reports[index], label = "Stream report " + (index + 1);
+    if (!object(report)) { errors.push(label + " must be an object."); continue; }
+    if (report.reportProfile !== TELEMETRY_STREAM_REPORT_VERSION || report.verifierVersion !== TELEMETRY_VERIFIER_SDK_VERSION || report.authenticityProfile !== TELEMETRY_AUTHENTICITY_VERSION) errors.push(label + " has an incompatible verifier or report profile.");
+    if (!await reportDigestMatches(report)) errors.push(label + " verificationReportSha256 does not match its canonical report.");
+    if (report.status !== "pass") errors.push(label + " did not pass telemetry verification.");
+    if (!Number.isInteger(report.events) || report.events < 1 || report.signaturesVerified !== report.events || report.chainLinks !== report.events - 1) errors.push(label + " has inconsistent event, signature, or chain-link counts.");
+    if (![report.invalidSignatures, report.unknownKeyIds, report.expiredKeyEvents, report.revokedKeyEvents, report.hashChainMismatches].every(value => value === 0)) errors.push(label + " contains one or more hard-failure counters.");
+    if (typeof report.deploymentId !== "string" || !report.deploymentId) errors.push(label + " lacks one canonical deployment identity.");
+    else if (deploymentIds.has(report.deploymentId)) errors.push(label + " duplicates deployment " + report.deploymentId + ".");
+    else deploymentIds.add(report.deploymentId);
+    if (typeof report.environmentId !== "string" || !report.environmentId) errors.push(label + " lacks one canonical environment identity.");
+    else if (environmentIds.has(report.environmentId)) errors.push(label + " duplicates environment " + report.environmentId + ".");
+    else environmentIds.add(report.environmentId);
+    if (typeof report.keyManifestSha256 !== "string" || !/^[a-f0-9]{64}$/.test(report.keyManifestSha256)) errors.push(label + " lacks a canonical key-manifest digest.");
+    else manifestDigests.add(report.keyManifestSha256);
+    if (typeof report.eventStreamSha256 !== "string" || !/^[a-f0-9]{64}$/.test(report.eventStreamSha256)) errors.push(label + " lacks a canonical event-stream digest.");
+    totalEvents += Number(report.events) || 0;
+    verifiedSignatures += Number(report.signaturesVerified) || 0;
+    invalidSignatures += Number(report.invalidSignatures) || 0;
+    unknownKeyIds += Number(report.unknownKeyIds) || 0;
+    expiredKeyEvents += Number(report.expiredKeyEvents) || 0;
+    revokedKeyEvents += Number(report.revokedKeyEvents) || 0;
+    hashChainMismatches += Number(report.hashChainMismatches) || 0;
+    streams.push({ deploymentId: report.deploymentId ?? null, environmentId: report.environmentId ?? null, events: Number(report.events) || 0, eventStreamSha256: report.eventStreamSha256 ?? null, streamReportSha256: report.verificationReportSha256 ?? null });
+  }
+  if (manifestDigests.size !== 1) errors.push("Every stream report must bind the same frozen key manifest.");
+  if (totalEvents < 1 || verifiedSignatures !== totalEvents) errors.push("Aggregate verified signatures must equal aggregate event count.");
+  if (invalidSignatures || unknownKeyIds || expiredKeyEvents || revokedKeyEvents || hashChainMismatches) errors.push("Aggregate telemetry contains one or more hard-failure counters.");
+  const base = {
+    reportProfile: TELEMETRY_AGGREGATE_REPORT_VERSION,
+    verifierVersion: TELEMETRY_VERIFIER_SDK_VERSION,
+    authenticityProfile: TELEMETRY_AUTHENTICITY_VERSION,
+    status: errors.length ? "fail" : "pass",
+    deploymentStreams: reports.length,
+    totalEvents,
+    verifiedSignatures,
+    invalidSignatures,
+    unknownKeyIds,
+    expiredKeyEvents,
+    revokedKeyEvents,
+    hashChainMismatches,
+    keyManifestSha256: manifestDigests.size === 1 ? [...manifestDigests][0] : null,
+    streams,
+    errors,
+  };
+  return { ...base, verificationReportSha256: await sha256Hex(base) };
+}
+
+/** Map a passing aggregate into the exact telemetry object in an audit manifest. */
+export async function createTelemetryAuditSummary(aggregate, bindings) {
+  if (!object(aggregate) || aggregate.reportProfile !== TELEMETRY_AGGREGATE_REPORT_VERSION || aggregate.verifierVersion !== TELEMETRY_VERIFIER_SDK_VERSION || aggregate.authenticityProfile !== TELEMETRY_AUTHENTICITY_VERSION) throw new TypeError("aggregate telemetry report profile is incompatible");
+  if (!await reportDigestMatches(aggregate)) throw new Error("aggregate verificationReportSha256 does not match its canonical report");
+  if (aggregate.status !== "pass" || !Array.isArray(aggregate.errors) || aggregate.errors.length) throw new Error("only a passing aggregate can enter an audit manifest");
+  const streams = Array.isArray(aggregate.streams) ? aggregate.streams : [];
+  const deploymentIds = new Set(streams.map(stream => stream?.deploymentId)), environmentIds = new Set(streams.map(stream => stream?.environmentId));
+  const streamsValid = streams.length > 0 && streams.every(stream => object(stream) && typeof stream.deploymentId === "string" && stream.deploymentId && typeof stream.environmentId === "string" && stream.environmentId && Number.isInteger(stream.events) && stream.events > 0 && /^[a-f0-9]{64}$/.test(String(stream.eventStreamSha256)) && /^[a-f0-9]{64}$/.test(String(stream.streamReportSha256)));
+  const countsValid = aggregate.deploymentStreams === streams.length && deploymentIds.size === streams.length && environmentIds.size === streams.length && aggregate.totalEvents === streams.reduce((sum, stream) => sum + Number(stream.events || 0), 0) && aggregate.verifiedSignatures === aggregate.totalEvents && [aggregate.invalidSignatures, aggregate.unknownKeyIds, aggregate.expiredKeyEvents, aggregate.revokedKeyEvents, aggregate.hashChainMismatches].every(value => value === 0) && /^[a-f0-9]{64}$/.test(String(aggregate.keyManifestSha256));
+  if (!streamsValid || !countsValid) throw new Error("aggregate stream identities, digests, or hard-failure counters are inconsistent");
+  if (!object(bindings)) throw new TypeError("audit bindings are required");
+  for (const field of ["keyManifestUri", "verificationReportUri", "rootCommitmentsUri"]) if (typeof bindings[field] !== "string" || !/^https:\/\//.test(bindings[field])) throw new TypeError(field + " must be an HTTPS URI");
+  if (typeof bindings.rootCommitmentsSha256 !== "string" || !/^[a-f0-9]{64}$/.test(bindings.rootCommitmentsSha256)) throw new TypeError("rootCommitmentsSha256 must be 64 lowercase hexadecimal characters");
+  return {
+    profile_version: TELEMETRY_AUTHENTICITY_VERSION,
+    schema_version: "0.2",
+    conformance_status: "passed",
+    signature_algorithm: "Ed25519",
+    canonicalization: "RFC8785_JCS",
+    signature_scope: "current_event_without_signature",
+    total_events: aggregate.totalEvents,
+    verified_signatures: aggregate.verifiedSignatures,
+    invalid_signatures: aggregate.invalidSignatures,
+    unknown_key_ids: aggregate.unknownKeyIds,
+    expired_key_events: aggregate.expiredKeyEvents,
+    revoked_key_events: aggregate.revokedKeyEvents,
+    hash_chain_mismatches: aggregate.hashChainMismatches,
+    deployment_streams: aggregate.deploymentStreams,
+    key_manifest_uri: bindings.keyManifestUri,
+    key_manifest_sha256: aggregate.keyManifestSha256,
+    verification_report_uri: bindings.verificationReportUri,
+    verification_report_sha256: aggregate.verificationReportSha256,
+    root_commitments_uri: bindings.rootCommitmentsUri,
+    root_commitments_sha256: bindings.rootCommitmentsSha256,
+  };
 }
 
 /** Node.js helper. Browser imports do not load node:fs. */
@@ -260,7 +377,8 @@ export const telemetryVerifierSdkContract = {
   runtime_requirements: ["Web Crypto Ed25519", "TextEncoder", "structuredClone", "atob"],
   performs_network_requests: false,
   input: ["JSONL signed event stream", "frozen telemetry key manifest"],
-  exports: ["canonicalize", "sha256Hex", "eventSigningBytes", "validateKeyManifest", "verifyTelemetryJsonl", "verifyTelemetry", "verifyTelemetryFiles", "CLI_EXIT_CODES", "runCli"],
+  exports: ["canonicalize", "sha256Hex", "eventSigningBytes", "validateKeyManifest", "verifyTelemetryJsonl", "verifyTelemetry", "aggregateTelemetryReports", "createTelemetryAuditSummary", "verifyTelemetryFiles", "CLI_EXIT_CODES", "runCli"],
+  reports: { stream_profile: "0.2-TR1", aggregate_profile: "0.2-TA1", canonical_digest: "SHA-256_of_RFC8785_JCS_report_without_verificationReportSha256", stream_bindings: ["ordered_event_array", "frozen_key_manifest", "deployment_id", "environment_id"], aggregate_rules: ["every_stream_passes", "every_report_digest_matches", "unique_deployments", "unique_environments", "one_frozen_key_manifest", "verified_signatures_equal_total_events", "all_hard_failure_counters_zero"], audit_summary: "exact_WANTED_audit_manifest.telemetry_shape" },
   cli: { runtime: "Node.js 22+", usage: "node wanted-telemetry-verifier.mjs EVENTS.jsonl KEY-MANIFEST.json", stdout: "JSON verification report", stderr: "usage or input error", exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 } },
   verifies: ["strict_I-JSON", "event_shape", "payload_semantics", "contiguous_sequence", "single_deployment_environment", "monotonic_UTC", "event_id_uniqueness", "RFC8785_SHA256_hash_chain", "Ed25519_signatures", "key_manifest_resolution", "key_validity", "key_revocation"],
   result: "pass_only_when_every_event_and_chain_link_verifies",

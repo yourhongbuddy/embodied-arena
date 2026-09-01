@@ -62,18 +62,18 @@ await durableStore.save(wanted.checkpoint());`}</code></pre><footer><span>WEB CR
     </div></section>
 
     <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
-      <div><span className="kicker">03 / VERIFY BEFORE HANDOFF</span><h2>Fail locally.<br/><em>Before the audit does.</em></h2><p>Run the independent module against exported JSONL and the frozen public-key manifest. It verifies every signature, previous-event digest, sequence, timestamp, key-validity boundary, and required payload without uploading raw study evidence.</p><div className="sdkResources"><a href="/wanted-10k/wanted-telemetry-verifier.mjs">DOWNLOAD VERIFIER ↓</a><a href="/wanted-10k/telemetry-verifier-sdk.json">SOURCE DIGEST + CONTRACT ↗</a><a href="/wanted-10k/telemetry-key-manifest.template.json">KEY MANIFEST TEMPLATE ↓</a></div></div>
+      <div><span className="kicker">03 / VERIFY BEFORE HANDOFF</span><h2>Fail locally.<br/><em>Before the audit does.</em></h2><p>Run the independent module against exported JSONL and the frozen public-key manifest. It verifies every signature, previous-event digest, sequence, timestamp, key boundary, and payload; then binds the ordered stream, key manifest, and report with canonical SHA-256 digests. Multiple unique streams can be aggregated into the exact telemetry summary required by an audit manifest.</p><div className="sdkResources"><a href="/wanted-10k/wanted-telemetry-verifier.mjs">DOWNLOAD VERIFIER ↓</a><a href="/wanted-10k/telemetry-verifier-sdk.json">SOURCE DIGEST + CONTRACT ↗</a><a href="/wanted-10k/telemetry-key-manifest.template.json">KEY MANIFEST TEMPLATE ↓</a><a href="/wanted-10k/audit-manifest.template.json">AUDIT MANIFEST TEMPLATE ↓</a></div></div>
       <div className="codeCard sdkCode"><header><span>CI CHECK / NODE 22+</span><i>LOCAL ONLY</i></header><pre><code>{`node wanted-telemetry-verifier.mjs \\
   events.jsonl telemetry-key-manifest.json
 
-# stdout: complete JSON verification report
+# stdout: self-digested JSON verification report
 # exit 0: every check passed
 # exit 1: evidence failed verification
 # exit 2: usage, file, or input error
 
 # The same file remains importable JavaScript ESM:
 import { verifyTelemetryJsonl } from
-  "./wanted-telemetry-verifier.mjs";`}</code></pre><footer><span>NO NETWORK · NO RAW EVENT UPLOAD</span><span>0.2-TS2</span></footer></div>
+  "./wanted-telemetry-verifier.mjs";`}</code></pre><footer><span>NO NETWORK · NO RAW EVENT UPLOAD</span><span>0.2-TS3</span></footer></div>
     </div></section>
 
     <section className="sdkEvents"><div className="shell">

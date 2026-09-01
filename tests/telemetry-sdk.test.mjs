@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
+import { auditManifestTemplates } from "../app/wanted-10k/audit/manifest.ts";
 import { sampleBundle, validateStream } from "../app/wanted-10k/conformance/validator.ts";
 import { TELEMETRY_VERIFIER_SDK_VERSION, telemetryVerifierSdkContract, telemetryVerifierSdkSource } from "../app/wanted-10k/telemetry-sdk/source.ts";
 import { GET as getModule } from "../app/wanted-10k/wanted-telemetry-verifier.mjs/route.ts";
@@ -29,6 +30,74 @@ test("portable telemetry verifier accepts the canonical signed six-event chain",
   assert.deepEqual(standalone.errors, []);
   assert.equal(standalone.events, 6);
   assert.equal(standalone.coverage, 6);
+  assert.equal(standalone.reportProfile, "0.2-TR1");
+  assert.equal(standalone.verifierVersion, "0.2-TS3");
+  assert.match(standalone.eventStreamSha256, /^[a-f0-9]{64}$/);
+  assert.match(standalone.keyManifestSha256, /^[a-f0-9]{64}$/);
+  const unsigned = structuredClone(standalone);
+  delete unsigned.verificationReportSha256;
+  assert.equal(standalone.verificationReportSha256, await sdk.sha256Hex(unsigned));
+});
+
+test("canonical evidence digests ignore JSON formatting but bind semantic changes", async () => {
+  const sample = await sampleBundle();
+  const events = parseEvents(sample.jsonl);
+  const compact = await sdk.verifyTelemetryJsonl(sample.jsonl, sample.keyManifest);
+  const reformatted = await sdk.verifyTelemetryJsonl(events.map(event => `  ${JSON.stringify(event)}  `).join("\r\n"), JSON.stringify(JSON.parse(sample.keyManifest)));
+  assert.equal(reformatted.status, "pass");
+  assert.equal(reformatted.eventStreamSha256, compact.eventStreamSha256);
+  assert.equal(reformatted.keyManifestSha256, compact.keyManifestSha256);
+  assert.equal(reformatted.verificationReportSha256, compact.verificationReportSha256);
+  events[4].payload.duration_seconds = 19;
+  const changed = await sdk.verifyTelemetry(events, JSON.parse(sample.keyManifest));
+  assert.notEqual(changed.eventStreamSha256, compact.eventStreamSha256);
+  assert.notEqual(changed.verificationReportSha256, compact.verificationReportSha256);
+});
+
+test("aggregates unique passing streams and emits the exact audit telemetry shape", async () => {
+  const [first, second] = await Promise.all([
+    sampleBundle({ deployment_id: "dep_demo_001", environment_id: "env_demo_001" }),
+    sampleBundle({ deployment_id: "dep_demo_002", environment_id: "env_demo_002" }),
+  ]);
+  const reports = await Promise.all([sdk.verifyTelemetryJsonl(first.jsonl, first.keyManifest), sdk.verifyTelemetryJsonl(second.jsonl, second.keyManifest)]);
+  const aggregate = await sdk.aggregateTelemetryReports(reports);
+  assert.equal(aggregate.status, "pass", JSON.stringify(aggregate.errors));
+  assert.equal(aggregate.reportProfile, "0.2-TA1");
+  assert.equal(aggregate.deploymentStreams, 2);
+  assert.equal(aggregate.totalEvents, 12);
+  assert.equal(aggregate.verifiedSignatures, 12);
+  assert.equal(aggregate.streams.length, 2);
+  const aggregateUnsigned = structuredClone(aggregate);
+  delete aggregateUnsigned.verificationReportSha256;
+  assert.equal(aggregate.verificationReportSha256, await sdk.sha256Hex(aggregateUnsigned));
+
+  const bindings = {
+    keyManifestUri: "https://evidence.example/telemetry-key-manifest.json",
+    verificationReportUri: "https://evidence.example/telemetry-verification-report.json",
+    rootCommitmentsUri: "https://evidence.example/telemetry-root-commitments.json",
+    rootCommitmentsSha256: "a".repeat(64),
+  };
+  const summary = await sdk.createTelemetryAuditSummary(aggregate, bindings);
+  assert.equal(summary.conformance_status, "passed");
+  assert.equal(summary.total_events, 12);
+  assert.equal(summary.verified_signatures, 12);
+  assert.equal(summary.deployment_streams, 2);
+  assert.equal(summary.key_manifest_sha256, aggregate.keyManifestSha256);
+  assert.equal(summary.verification_report_sha256, aggregate.verificationReportSha256);
+  assert.deepEqual(Object.keys(summary).sort(), Object.keys(auditManifestTemplates.WANTED_WILD.telemetry).sort());
+
+  const duplicated = await sdk.aggregateTelemetryReports([reports[0], reports[0]]);
+  assert.equal(duplicated.status, "fail");
+  assert.match(duplicated.errors.join(" "), /duplicates deployment/);
+  assert.match(duplicated.errors.join(" "), /duplicates environment/);
+  const tampered = structuredClone(aggregate);
+  tampered.totalEvents++;
+  await assert.rejects(sdk.createTelemetryAuditSummary(tampered, bindings), /does not match/);
+  const forged = structuredClone(aggregate);
+  forged.streams[1].environmentId = forged.streams[0].environmentId;
+  delete forged.verificationReportSha256;
+  forged.verificationReportSha256 = await sdk.sha256Hex(forged);
+  await assert.rejects(sdk.createTelemetryAuditSummary(forged, bindings), /inconsistent/);
 });
 
 test("portable verifier exposes payload tampering and the downstream broken chain", async () => {
@@ -84,14 +153,16 @@ test("published telemetry module and contract are digest-bound and local-only", 
   const moduleResponse = await getModule();
   const moduleSource = await moduleResponse.text();
   const contract = await (await getContract()).json();
-  assert.equal(TELEMETRY_VERIFIER_SDK_VERSION, "0.2-TS2");
+  assert.equal(TELEMETRY_VERIFIER_SDK_VERSION, "0.2-TS3");
   assert.equal(moduleSource, telemetryVerifierSdkSource);
   assert.equal(contract.source_sha256, await digest(new TextEncoder().encode(moduleSource)));
-  assert.equal(contract.version, "0.2-TS2");
+  assert.equal(contract.version, "0.2-TS3");
   assert.equal(contract.authenticity_profile, "0.2-T1");
   assert.equal(contract.runtime_dependencies, 0);
   assert.equal(contract.performs_network_requests, false);
   assert.deepEqual(contract.cli.exit_codes, { pass: 0, verification_failed: 1, usage_or_io_error: 2 });
+  assert.equal(contract.reports.stream_profile, "0.2-TR1");
+  assert.equal(contract.reports.aggregate_profile, "0.2-TA1");
   assert.equal(contract.privacy, "local_only_no_event_uploads_or_network_requests");
   assert.equal(moduleResponse.headers.get("content-type"), "text/javascript; charset=utf-8");
   assert.match(moduleResponse.headers.get("content-disposition"), /wanted-telemetry-verifier\.mjs/);

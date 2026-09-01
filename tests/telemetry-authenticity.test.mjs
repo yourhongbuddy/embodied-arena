@@ -81,6 +81,9 @@ test("binds 0.2-T1 into every field certification and the registry", async () =>
 test("publishes an exact Ed25519 key-manifest contract", () => {
   assert.equal(telemetryAuthenticityContract.version, "0.2-T1");
   assert.equal(telemetryAuthenticityContract.algorithm, "Ed25519");
+  assert.equal(telemetryAuthenticityContract.portable_verifier.version, "0.2-TS3");
+  assert.equal(telemetryAuthenticityContract.portable_verifier.aggregate_report, "0.2-TA1");
+  assert.equal(telemetryAuthenticityContract.portable_verifier.audit_handoff, "exact_audit_manifest.telemetry_shape");
   assert.equal(telemetryKeyManifestSchema.properties.algorithm.const, "Ed25519");
   assert.equal(telemetryKeyManifestSchema.properties.keys.items.properties.public_key_base64url.pattern, "^[A-Za-z0-9_-]{43}$");
 });
