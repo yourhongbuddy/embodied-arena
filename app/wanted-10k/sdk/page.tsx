@@ -63,19 +63,17 @@ await durableStore.save(wanted.checkpoint());`}</code></pre><footer><span>WEB CR
 
     <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
       <div><span className="kicker">03 / VERIFY BEFORE HANDOFF</span><h2>Fail locally.<br/><em>Before the audit does.</em></h2><p>Run the independent module against exported JSONL and the frozen public-key manifest. It verifies every signature, previous-event digest, sequence, timestamp, key-validity boundary, and required payload without uploading raw study evidence.</p><div className="sdkResources"><a href="/wanted-10k/wanted-telemetry-verifier.mjs">DOWNLOAD VERIFIER ↓</a><a href="/wanted-10k/telemetry-verifier-sdk.json">SOURCE DIGEST + CONTRACT ↗</a><a href="/wanted-10k/telemetry-key-manifest.template.json">KEY MANIFEST TEMPLATE ↓</a></div></div>
-      <div className="codeCard sdkCode"><header><span>CI CHECK / JAVASCRIPT ESM</span><i>LOCAL ONLY</i></header><pre><code>{`import { readFile } from "node:fs/promises";
+      <div className="codeCard sdkCode"><header><span>CI CHECK / NODE 22+</span><i>LOCAL ONLY</i></header><pre><code>{`node wanted-telemetry-verifier.mjs \\
+  events.jsonl telemetry-key-manifest.json
+
+# stdout: complete JSON verification report
+# exit 0: every check passed
+# exit 1: evidence failed verification
+# exit 2: usage, file, or input error
+
+# The same file remains importable JavaScript ESM:
 import { verifyTelemetryJsonl } from
-  "./wanted-telemetry-verifier.mjs";
-
-const report = await verifyTelemetryJsonl(
-  await readFile("events.jsonl", "utf8"),
-  await readFile("telemetry-key-manifest.json", "utf8")
-);
-
-if (report.status !== "pass") {
-  console.error(report.errors.join("\\n"));
-  process.exitCode = 1;
-}`}</code></pre><footer><span>NO NETWORK · NO RAW EVENT UPLOAD</span><span>0.2-TS1</span></footer></div>
+  "./wanted-telemetry-verifier.mjs";`}</code></pre><footer><span>NO NETWORK · NO RAW EVENT UPLOAD</span><span>0.2-TS2</span></footer></div>
     </div></section>
 
     <section className="sdkEvents"><div className="shell">

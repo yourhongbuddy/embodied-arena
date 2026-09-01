@@ -9,7 +9,7 @@ The benchmark treats time to permanent voluntary rejection as the primary endpoi
 - [WANTED-10K benchmark](https://embodied-arena.chrishongap.chatgpt.site/wanted-10k)
 - `/wanted-10k/protocol` — protocol and developer evidence kit
 - `/wanted-10k/sdk` — reference integration adapter
-- `/wanted-10k/wanted-telemetry-verifier.mjs` — zero-dependency local event-chain verifier
+- `/wanted-10k/wanted-telemetry-verifier.mjs` — zero-dependency local event-chain verifier and Node.js CLI
 - `/wanted-10k/certification` — certification levels and applicability
 - `/wanted-10k/leaderboard` — audited registry and ranking rules
 - `/leaderboard` — broader embodied-robot rankings

@@ -1,13 +1,13 @@
-export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS1";
+export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS2";
 
 export const telemetryVerifierSdkSource = String.raw`/**
- * WANTED-10K telemetry verifier — Protocol 0.2-TS1 / authenticity 0.2-T1
+ * WANTED-10K telemetry verifier — Protocol 0.2-TS2 / authenticity 0.2-T1
  *
  * Zero runtime dependencies. Verification is local and performs no network
  * requests. Supply one JSONL event stream and its frozen key manifest.
  */
 
-export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS1";
+export const TELEMETRY_VERIFIER_SDK_VERSION = "0.2-TS2";
 export const TELEMETRY_AUTHENTICITY_VERSION = "0.2-T1";
 export const EVENT_TYPES = Object.freeze(["DEPLOYMENT_LIFECYCLE", "ROBOT_STATE", "HUMAN_REQUEST", "ROBOT_ACTION", "HUMAN_INTERVENTION", "INCIDENT"]);
 
@@ -214,6 +214,39 @@ export async function verifyTelemetry(events, keyManifest) {
   if (!Array.isArray(events)) throw new TypeError("events must be an array");
   return verifyTelemetryJsonl(events.map(event => JSON.stringify(event)).join("\n"), keyManifest);
 }
+
+/** Node.js helper. Browser imports do not load node:fs. */
+export async function verifyTelemetryFiles(eventsPath, keyManifestPath) {
+  if (typeof eventsPath !== "string" || !eventsPath || typeof keyManifestPath !== "string" || !keyManifestPath) throw new TypeError("eventsPath and keyManifestPath are required");
+  const { readFile } = await import("node:fs/promises");
+  const [jsonl, manifest] = await Promise.all([readFile(eventsPath, "utf8"), readFile(keyManifestPath, "utf8")]);
+  return verifyTelemetryJsonl(jsonl, manifest);
+}
+
+export const CLI_EXIT_CODES = Object.freeze({ pass: 0, verification_failed: 1, usage_or_io_error: 2 });
+
+/**
+ * Run the Node.js CLI. Returns an exit code and never calls process.exit().
+ * Usage: node wanted-telemetry-verifier.mjs EVENTS.jsonl KEY-MANIFEST.json
+ */
+export async function runCli(args = [], io = {}) {
+  const stdout = typeof io.stdout === "function" ? io.stdout : value => console.log(value);
+  const stderr = typeof io.stderr === "function" ? io.stderr : value => console.error(value);
+  const usage = "Usage: node wanted-telemetry-verifier.mjs EVENTS.jsonl KEY-MANIFEST.json";
+  if (args.length === 1 && ["--help", "-h"].includes(args[0])) { stdout(usage); return CLI_EXIT_CODES.pass; }
+  if (args.length !== 2) { stderr(usage); return CLI_EXIT_CODES.usage_or_io_error; }
+  try {
+    const result = await verifyTelemetryFiles(args[0], args[1]);
+    stdout(JSON.stringify(result, null, 2));
+    return result.status === "pass" ? CLI_EXIT_CODES.pass : CLI_EXIT_CODES.verification_failed;
+  } catch (error) {
+    stderr("WANTED telemetry verifier: " + (error instanceof Error ? error.message : "unable to read or verify input"));
+    return CLI_EXIT_CODES.usage_or_io_error;
+  }
+}
+
+const directlyExecuted = typeof process !== "undefined" && Array.isArray(process.argv) && typeof process.argv[1] === "string" && import.meta.url.startsWith("file:") && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"));
+if (directlyExecuted) process.exitCode = await runCli(process.argv.slice(2));
 `;
 
 export const telemetryVerifierSdkContract = {
@@ -227,7 +260,8 @@ export const telemetryVerifierSdkContract = {
   runtime_requirements: ["Web Crypto Ed25519", "TextEncoder", "structuredClone", "atob"],
   performs_network_requests: false,
   input: ["JSONL signed event stream", "frozen telemetry key manifest"],
-  exports: ["canonicalize", "sha256Hex", "eventSigningBytes", "validateKeyManifest", "verifyTelemetryJsonl", "verifyTelemetry"],
+  exports: ["canonicalize", "sha256Hex", "eventSigningBytes", "validateKeyManifest", "verifyTelemetryJsonl", "verifyTelemetry", "verifyTelemetryFiles", "CLI_EXIT_CODES", "runCli"],
+  cli: { runtime: "Node.js 22+", usage: "node wanted-telemetry-verifier.mjs EVENTS.jsonl KEY-MANIFEST.json", stdout: "JSON verification report", stderr: "usage or input error", exit_codes: { pass: 0, verification_failed: 1, usage_or_io_error: 2 } },
   verifies: ["strict_I-JSON", "event_shape", "payload_semantics", "contiguous_sequence", "single_deployment_environment", "monotonic_UTC", "event_id_uniqueness", "RFC8785_SHA256_hash_chain", "Ed25519_signatures", "key_manifest_resolution", "key_validity", "key_revocation"],
   result: "pass_only_when_every_event_and_chain_link_verifies",
   privacy: "local_only_no_event_uploads_or_network_requests",

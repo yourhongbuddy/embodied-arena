@@ -157,11 +157,12 @@ const spec = {
     interpretation: "proves_integrity_and_registered_key_possession_not_sensor_truth_complete_capture_or_key_custody",
   },
   telemetry_verifier_sdk_profile: {
-    version: "0.2-TS1",
+    version: "0.2-TS2",
     authenticity_profile: "0.2-T1",
     format: "zero_dependency_JavaScript_ESM",
     runtime: "Web_Crypto_Ed25519",
     performs_network_requests: false,
+    cli: { runtime: "Node.js_22_plus", exit_codes: { pass: 0, verification_failed: 1, usage_or_IO_error: 2 }, stdout: "JSON_verification_report" },
     strict_input: "I-JSON_with_RFC8785_JCS",
     verification: ["event_shape", "payload_semantics", "contiguous_sequence", "single_deployment_environment", "monotonic_UTC", "event_id_uniqueness", "SHA256_previous_event_chain", "every_Ed25519_signature", "key_manifest_resolution", "key_validity_and_revocation"],
     distributed_source_digest: "SHA-256_in_telemetry_verifier_sdk_contract",
@@ -507,6 +508,7 @@ const spec = {
     secondary_nonranking_disclosures: ["revealed_preference_profile_0.2-RP1_when_run"],
   },
   changelog: {
+    "0.2-telemetry-verifier-sdk-2": ["make_the_same_verifier_module_directly_executable_in_Node_22_plus", "publish_stable_machine_exit_codes", "retain_browser_and_ESM_import_compatibility", "keep_file_IO_lazy_and_local_only"],
     "0.2-telemetry-verifier-sdk-1": ["ship_zero_dependency_local_telemetry_verifier_ESM", "enforce_strict_I-JSON_before_RFC8785_JCS", "verify_every_event_signature_chain_link_and_key_lifecycle", "bind_contract_to_distributed_source_digest"],
     "0.2-site-heterogeneity-1": ["publish_site_heterogeneity_integrity_0.2-SH1", "require_three_substantive_sites_with_no_site_above_half_of_a_ranked_cohort", "preserve_the_unweighted_environment_level_primary_estimator", "publish_site_specific_and_leave_one_site_out_sensitivity_without_extrapolation", "bind_WANTED_WILD_certification_and_registry_admission_without_creating_a_tiebreaker"],
     "0.2-sampling-stopping-1": ["publish_prospective_sampling_and_stopping_integrity_0.2-ST1", "freeze_unit_target_exposure_floor_calendar_cutoff_and_access_boundary_before_activity", "permit_outcome_blind_safety_privacy_operational_and_completeness_monitoring", "forbid_result_informed_extension_early_stop_and_outcome_adaptive_accrual", "retain_every_activated_and_overshoot_unit", "bind_every_certification_and_registry_admission"],
