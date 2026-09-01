@@ -98,6 +98,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 39 | `digitalocean-v39` | `6de6896` | Add a directly executable telemetry-verifier CLI with stable exit codes |
 | 40 | `digitalocean-v40` | `013afca` | Bind canonical stream reports and multi-stream aggregates into audit telemetry |
 | 41 | `digitalocean-v41` | `a0ba0d8` | Reconcile telemetry identities, counts, and lifecycle boundaries with exposure evidence |
+| 42 | `digitalocean-v42` | `2706ae6` | Require periodic telemetry roots witnessed on time by two independent organizations |
 
 ## Release convention
 
