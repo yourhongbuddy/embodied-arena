@@ -1,0 +1,29 @@
+{
+  "name": "Embodied Arena 10-Agent Monitor",
+  "version": "1.0.0",
+  "mode": "read-only",
+  "orchestration": "30-minute shared heartbeat with staggered specialist cadences",
+  "authority": {
+    "mayObserve": true,
+    "mayRecommend": true,
+    "mayEdit": false,
+    "mayPublish": false,
+    "mayDeploy": false,
+    "mayContactPeople": false,
+    "mayActuateRobots": false
+  },
+  "agents": [
+    { "id": "01", "name": "Availability Sentinel", "cadence": "30 minutes" },
+    { "id": "02", "name": "Route Integrity", "cadence": "1 hour" },
+    { "id": "03", "name": "Deployment Drift", "cadence": "1 hour" },
+    { "id": "04", "name": "MCP Contract Sentinel", "cadence": "1 hour" },
+    { "id": "05", "name": "Performance Observer", "cadence": "2 hours" },
+    { "id": "06", "name": "HILO Safety Auditor", "cadence": "4 hours" },
+    { "id": "07", "name": "Benchmark Data Steward", "cadence": "6 hours" },
+    { "id": "08", "name": "Accessibility & Discovery", "cadence": "12 hours" },
+    { "id": "09", "name": "Security & Privacy Watch", "cadence": "6 hours" },
+    { "id": "10", "name": "Ecosystem Evolution", "cadence": "daily at 09:00 America/Los_Angeles" }
+  ],
+  "dashboard": "/monitoring",
+  "liveProbe": "same-origin browser checks from /monitoring"
+}

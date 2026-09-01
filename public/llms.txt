@@ -7,6 +7,9 @@ Embodied Arena is a vendor-neutral robot intelligence benchmark, HILO Realtime P
 - Agent and MCP guide: /agents
 - MCP Streamable HTTP endpoint: POST /mcp
 - Machine-readable agent manifest: /agent.json
+- Monitoring dashboard: /monitoring
+- Monitoring-agent manifest: /monitoring-agents.json
+- Live read-only deployment probes run in-browser at /monitoring
 - Robot models and edge-compute explorer: /leaderboard
 - HILO Realtime Protocol: /wanted-10k/realtime
 - WANTED-10K long-horizon benchmark: /wanted-10k

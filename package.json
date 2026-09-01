@@ -13,6 +13,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "verify": "npm run lint && npm test",
     "test:mcp": "node --experimental-strip-types --test tests/mcp.test.mjs",
+    "test:monitoring": "node --experimental-strip-types --test tests/monitoring.test.mjs",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
