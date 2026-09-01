@@ -2,13 +2,14 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { safeSessionStorage } from "../experiments/browser-storage";
 import { createExperimentOutbox,EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY,type DeliveryDisposition } from "../experiments/outbox";
 import { EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES } from "../experiments/rotator";
 
 function sessionId() {
   const key = "ea_session";
-  let value = sessionStorage.getItem(key);
-  if (!value) { value = crypto.randomUUID(); sessionStorage.setItem(key,value); }
+  let value = safeSessionStorage.getItem(key);
+  if (!value) { value = crypto.randomUUID(); safeSessionStorage.setItem(key,value); }
   return value;
 }
 
@@ -33,7 +34,7 @@ export async function trackDelivery(eventType:string,path=location.pathname,meta
 export async function trackConfirmed(eventType:string,path=location.pathname,metadata:Record<string,unknown>={}) {return(await trackDelivery(eventType,path,metadata))==="accepted"}
 
 let goalOutbox:ReturnType<typeof createExperimentOutbox>|null=null;
-function experimentGoalOutbox(){return goalOutbox??=createExperimentOutbox({storage:sessionStorage,storageKey:EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY,send:event=>trackDelivery(event.eventType,event.path,event.metadata),makeId:()=>crypto.randomUUID(),now:()=>Date.now(),maxEntries:EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,maxAgeMs:EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS})}
+function experimentGoalOutbox(){return goalOutbox??=createExperimentOutbox({storage:safeSessionStorage,storageKey:EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY,send:event=>trackDelivery(event.eventType,event.path,event.metadata),makeId:()=>crypto.randomUUID(),now:()=>Date.now(),maxEntries:EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,maxAgeMs:EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS})}
 export function queueExperimentGoal(path:"/wanted-10k",metadata:Record<string,unknown>){const outbox=experimentGoalOutbox();outbox.enqueue(path,metadata);void outbox.flush()}
 export function flushExperimentGoalOutbox(){return experimentGoalOutbox().flush()}
 

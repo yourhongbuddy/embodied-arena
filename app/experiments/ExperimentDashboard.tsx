@@ -1,5 +1,6 @@
 "use client";
 import { useEffect,useState } from "react";
+import { safeSessionStorage } from "./browser-storage";
 import { EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY } from "./outbox";
 import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,ROTATOR_VERSION,WANTED_LANDING_EXPERIMENT } from "./rotator";
 
@@ -14,14 +15,14 @@ const intervalLabel=(value:Comparison["interval_position"])=>({unavailable:"UNAV
 
 export function ExperimentDashboard(){
   const[data,setData]=useState<Data|null>(null);const[failed,setFailed]=useState(false);
-  useEffect(()=>{sessionStorage.setItem("ea_experiment_operator","1");let active=true;fetch("/api/experiments").then(response=>response.ok?response.json():Promise.reject()).then(value=>{if(active)setData(value)}).catch(()=>{if(active)setFailed(true)});return()=>{active=false}},[]);
+  useEffect(()=>{safeSessionStorage.setItem("ea_experiment_operator","1");let active=true;fetch("/api/experiments").then(response=>response.ok?response.json():Promise.reject()).then(value=>{if(active)setData(value)}).catch(()=>{if(active)setFailed(true)});return()=>{active=false}},[]);
   const rows=data?.variants||WANTED_LANDING_EXPERIMENT.variants.map(variant=>({variant:variant.id,label:variant.label,weight_basis_points:variant.weight_basis_points,exposed_units:0,goal_units:0,conversion_rate:null,conversion_interval_95:null}));
   const comparisons=data?.comparisons||WANTED_LANDING_EXPERIMENT.variants.filter(variant=>variant.id!=="control").map(variant=>({variant:variant.id,label:variant.label,baseline:"control" as const,absolute_lift:null,familywise_interval_95:null,interval_position:"unavailable" as const}));
   const reset=()=>{
     localStorage.removeItem("ea_experiment_seed");
-    sessionStorage.removeItem(EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY);
-    for(let index=sessionStorage.length-1;index>=0;index--){const key=sessionStorage.key(index);if(key?.startsWith("ea_exposure:")||key?.startsWith("ea_assignment:"))sessionStorage.removeItem(key)}
-    for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key?.startsWith("ea_exposure:")||key?.startsWith("ea_experiment_unit:"))localStorage.removeItem(key)}
+    safeSessionStorage.removeItem(EXPERIMENT_GOAL_OUTBOX_STORAGE_KEY);
+    try{for(let index=sessionStorage.length-1;index>=0;index--){const key=sessionStorage.key(index);if(key?.startsWith("ea_exposure:")||key?.startsWith("ea_assignment:"))sessionStorage.removeItem(key)}}catch{void 0}
+    try{for(let index=localStorage.length-1;index>=0;index--){const key=localStorage.key(index);if(key?.startsWith("ea_exposure:")||key?.startsWith("ea_experiment_unit:"))localStorage.removeItem(key)}}catch{void 0}
     location.href="/wanted-10k";
   };
   return <div className="experimentSurface">

@@ -2,14 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
+import { nativeLocalStorage,persistentRandomUnit,safeSessionStorage } from "../experiments/browser-storage";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
-import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
+import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,validWantedVariant,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
 
 function experimentUnitId(){
   const key=`ea_experiment_unit:${WANTED_LANDING_EXPERIMENT.id}`;
-  let value=localStorage.getItem(key);
-  if(!validExperimentUnitId(value)){value=crypto.randomUUID();localStorage.setItem(key,value)}
-  return value;
+  return persistentRandomUnit(nativeLocalStorage(),key,()=>crypto.randomUUID(),validExperimentUnitId);
 }
 
 function exposureKey(assignment: WantedAssignment) {
@@ -17,21 +16,22 @@ function exposureKey(assignment: WantedAssignment) {
 }
 
 function assignmentLockKey(){return`ea_assignment:${WANTED_LANDING_EXPERIMENT.id}:${EXPERIMENT_ANALYSIS_COHORT}`}
-function lockedSessionAssignment(){try{const value=JSON.parse(sessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignment(value)?value:null}catch{return null}}
+function lockedSessionAssignment(){try{const value=JSON.parse(safeSessionStorage.getItem(assignmentLockKey())||"null");return validWantedSessionAssignment(value)?value:null}catch{return null}}
 
 export function WantedLandingExperience() {
-  const [assignment, setAssignment] = useState<WantedAssignment|null>(null);
+  const [assignment, setAssignment] = useState<WantedAssignment|null>(null),[storageUnavailable,setStorageUnavailable]=useState(false);
   const exposureId=useRef<string|null>(null),unitId=useRef<string|null>(null),shouldTrackExposure=useRef(false);
   useEffect(() => {
     const unit=experimentUnitId();
     const preview = new URLSearchParams(location.search).get("wanted_variant");
+    if(!unit){const next:WantedAssignment={experiment:WANTED_LANDING_EXPERIMENT.id,variant:validWantedVariant(preview)?preview:"control",bucket:null,mode:"preview"};const update=window.setTimeout(()=>{setStorageUnavailable(true);setAssignment(next)},0);return()=>window.clearTimeout(update)}
     const resolved = resolveWantedAssignment(unit, preview);
-    const operator=sessionStorage.getItem("ea_experiment_operator")==="1";
+    const operator=safeSessionStorage.getItem("ea_experiment_operator")==="1";
     let next:WantedAssignment=operator&&resolved.mode==="assigned"?{...resolved,mode:"preview"}:resolved;
-    if(next.mode==="assigned"){const locked=lockedSessionAssignment();next=locked??next;if(!locked)sessionStorage.setItem(assignmentLockKey(),JSON.stringify(next))}
+    if(next.mode==="assigned"){const locked=lockedSessionAssignment();next=locked??next;if(!locked)safeSessionStorage.setItem(assignmentLockKey(),JSON.stringify(next))}
     if(next.mode==="assigned"){
       const key=exposureKey(next),token=exposureTokenForAssignment(unit,next.variant);
-      unitId.current=unit;exposureId.current=token;shouldTrackExposure.current=sessionStorage.getItem(`${key}:sent`)!=="1";
+      unitId.current=unit;exposureId.current=token;shouldTrackExposure.current=safeSessionStorage.getItem(`${key}:sent`)!=="1";
     }
     const update=window.setTimeout(()=>setAssignment(next),0);
     return()=>window.clearTimeout(update);
@@ -42,8 +42,8 @@ export function WantedLandingExperience() {
     const metadata={experiment:assignment.experiment,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
     const delivery=startAcknowledgedDelivery({
       send:()=>trackConfirmed("experiment_exposure",location.pathname,metadata),
-      isAcknowledged:()=>sessionStorage.getItem(sentKey)==="1",
-      markAcknowledged:()=>{shouldTrackExposure.current=false;sessionStorage.setItem(sentKey,"1")},
+      isAcknowledged:()=>safeSessionStorage.getItem(sentKey)==="1",
+      markAcknowledged:()=>{shouldTrackExposure.current=false;safeSessionStorage.setItem(sentKey,"1")},
       retryDelaysMs:EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,
     });
     window.addEventListener("online",delivery.retryNow);
@@ -55,9 +55,9 @@ export function WantedLandingExperience() {
     if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
-  return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} aria-busy={pending}>
+  return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} data-exclusion-reason={storageUnavailable?"storage_unavailable":undefined} aria-busy={pending}>
     {pending&&<div className="variantPending" role="status"><i/><b>WANTED-10K</b><span>Assigning a stable privacy-first site version</span></div>}
-    {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>PREVIEW MODE</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
+    {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>{storageUnavailable?"STORAGE UNAVAILABLE":"PREVIEW MODE"}</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
     <div className="wantedHeroCopy" aria-hidden={pending}>
       <span className="eyebrow"><i className="liveDot"/> {variant.eyebrow}</span>
       <h1>{variant.headline[0]}<br/><em>{variant.headline[1]}</em></h1>
