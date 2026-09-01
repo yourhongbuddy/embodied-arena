@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  ["/","Scan"],["/wanted-10k","WANTED-10K"],["/wanted-10k/realtime","Realtime"],["/leaderboard","Leaderboard"],["/agents","Agents"],["/monitoring","Monitor"],["/watch","Watch"],["/atlas","Atlas"],["/campaigns","Campaigns"],["/analytics","Heartbeat"],
+  ["/scan","Scan"],["/wanted-10k","WANTED-10K"],["/wanted-10k/realtime","Realtime"],["/leaderboard","Leaderboard"],["/agents","Agents"],["/monitoring","Monitor"],["/watch","Watch"],["/atlas","Atlas"],["/campaigns","Campaigns"],["/analytics","Heartbeat"],
 ];
 
 export function SiteNav() {

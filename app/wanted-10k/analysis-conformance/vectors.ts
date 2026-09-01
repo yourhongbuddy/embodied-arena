@@ -1,6 +1,6 @@
 import type { Outcome } from "../calculator/scoring.ts";
 
-export const ANALYSIS_CONFORMANCE_VERSION = "0.2-AC1";
+export const ANALYSIS_CONFORMANCE_VERSION = "0.2-AC2";
 
 export type AnalysisConformanceRecord = {
   environment: string;
@@ -23,7 +23,7 @@ export type AnalysisConformanceVector = {
         ci95?: [number, number];
         bootstrap_valid_fraction?: number;
       }
-    | { status: "fail"; error_code: "unsupported_horizon" | "invalid_horizon_censor" };
+    | { status: "fail"; error_code: "unsupported_horizon" | "invalid_horizon_censor" | "terminal_competing_cause" };
 };
 
 const records = (
@@ -46,7 +46,7 @@ const baselineRecords = [
 
 export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = [
   {
-    id: "AC1-BASELINE",
+    id: "AC2-BASELINE",
     purpose: "Canonical 24-environment WILD example including the deterministic bootstrap interval.",
     records: baselineRecords,
     expected: {
@@ -61,7 +61,7 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     },
   },
   {
-    id: "AC1-HORIZON-REJECTION",
+    id: "AC2-HORIZON-REJECTION",
     purpose: "A rejection exactly at 10,000 hours changes post-event S(10K), but not integrated W.",
     records: baselineRecords.map((record, index) =>
       index === 0 ? { ...record, disposition: "rejected" } : { ...record },
@@ -76,7 +76,7 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     },
   },
   {
-    id: "AC1-TIED-EVENT-CENSOR",
+    id: "AC2-TIED-EVENT-CENSOR",
     purpose: "Events are applied before unrelated censoring at an identical pre-horizon time.",
     records: [
       ...records(5, "TIE-COMPLETE", 10_000, "completed"),
@@ -94,19 +94,28 @@ export const analysisConformanceVectors: readonly AnalysisConformanceVector[] = 
     },
   },
   {
-    id: "AC1-UNSUPPORTED-HORIZON",
+    id: "AC2-UNSUPPORTED-HORIZON",
     purpose: "Follow-up ends before 10,000 hours while survival remains above zero; extrapolation is forbidden.",
     records: records(20, "UNSUPPORTED", 5_000, "unrelated_censor"),
     expected: { status: "fail", error_code: "unsupported_horizon" },
   },
   {
-    id: "AC1-INVALID-HORIZON-CENSOR",
+    id: "AC2-INVALID-HORIZON-CENSOR",
     purpose: "An environment observed through 10,000 hours cannot be encoded as an unrelated censor.",
     records: [
       ...records(19, "INVALID-COMPLETE", 10_000, "completed"),
       ...records(1, "INVALID-CENSOR", 10_000, "unrelated_censor"),
     ],
     expected: { status: "fail", error_code: "invalid_horizon_censor" },
+  },
+  {
+    id: "AC2-TERMINAL-COMPETING-CAUSE",
+    purpose: "A safety, developer, or consent/privacy termination refuses primary W and can never be silently censored.",
+    records: [
+      ...records(19, "TERMINAL-COMPLETE", 10_000, "completed"),
+      ...records(1, "TERMINAL-SAFETY", 5_000, "safety_termination"),
+    ],
+    expected: { status: "fail", error_code: "terminal_competing_cause" },
   },
 ] as const;
 
@@ -185,13 +194,13 @@ export const analysisConformanceSchema = {
     pass_condition: { type: "string", minLength: 20 },
     vectors: {
       type: "array",
-      minItems: 5,
+      minItems: 6,
       items: {
         type: "object",
         additionalProperties: false,
         required: ["id", "purpose", "records", "expected"],
         properties: {
-          id: { type: "string", pattern: "^AC1-[A-Z0-9-]+$" },
+          id: { type: "string", pattern: "^AC2-[A-Z0-9-]+$" },
           purpose: { type: "string", minLength: 20 },
           records: { type: "array", minItems: 1, items: recordSchema },
           expected: {
@@ -232,7 +241,7 @@ export const analysisConformanceSchema = {
                 required: ["status", "error_code"],
                 properties: {
                   status: { const: "fail" },
-                  error_code: { enum: ["unsupported_horizon", "invalid_horizon_censor"] },
+                  error_code: { enum: ["unsupported_horizon", "invalid_horizon_censor", "terminal_competing_cause"] },
                 },
               },
             ],

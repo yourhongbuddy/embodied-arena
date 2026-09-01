@@ -28,6 +28,8 @@ test("reproduces every normative A2 analysis conformance vector", () => {
     if (vector.expected.status === "fail") {
       if (vector.expected.error_code === "invalid_horizon_censor") {
         assert.match(errors.join(" "), /observed through 10000 hours must be completed/, vector.id);
+      } else if(vector.expected.error_code === "terminal_competing_cause") {
+        assert.match(errors.join(" "),/terminal competing cause/,vector.id);
       } else {
         assert.equal(errors.length, 0, vector.id);
         const primary = score(rows);
@@ -66,14 +68,14 @@ test("reproduces every normative A2 analysis conformance vector", () => {
 });
 
 test("publishes a strict, unique, self-contained conformance pack", () => {
-  assert.equal(ANALYSIS_CONFORMANCE_VERSION, "0.2-AC1");
+  assert.equal(ANALYSIS_CONFORMANCE_VERSION, "0.2-AC2");
   assert.equal(analysisConformancePack.analysis_profile_version, "0.2-A2");
-  assert.equal(analysisConformancePack.vectors.length, 5);
+  assert.equal(analysisConformancePack.vectors.length, 6);
   assert.equal(
     new Set(analysisConformancePack.vectors.map((vector) => vector.id)).size,
     analysisConformancePack.vectors.length,
   );
   assert.equal(analysisConformanceSchema.additionalProperties, false);
-  assert.equal(analysisConformanceSchema.properties.vectors.minItems, 5);
+  assert.equal(analysisConformanceSchema.properties.vectors.minItems, 6);
   assert.equal(analysisConformanceSchema.properties.bootstrap.properties.prng.const, "pcg32_xsh_rr_64_32_seeded_v1");
 });

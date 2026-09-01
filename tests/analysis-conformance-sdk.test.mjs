@@ -13,14 +13,14 @@ import { GET as getModule } from "../app/wanted-10k/wanted-analysis-conformance.
 
 const sdk = await import(`data:text/javascript;base64,${Buffer.from(analysisConformanceSdkSource).toString("base64")}`);
 
-test("standalone analysis runner passes every canonical AC1 vector", () => {
+test("standalone analysis runner passes every canonical AC2 vector", () => {
   const report = sdk.runWantedAnalysisConformance(analysisConformancePack);
   assert.equal(report.status, "pass");
-  assert.equal(report.sdk_version, "0.2-ACS1");
-  assert.equal(report.pack_version, "0.2-AC1");
+  assert.equal(report.sdk_version, "0.2-ACS2");
+  assert.equal(report.pack_version, "0.2-AC2");
   assert.equal(report.analysis_profile_version, "0.2-A2");
-  assert.equal(report.passed_vectors, 5);
-  assert.equal(report.total_vectors, 5);
+  assert.equal(report.passed_vectors, 6);
+  assert.equal(report.total_vectors, 6);
   assert.equal(report.vectors.every(vector => vector.checks.every(check => check.passed)), true);
   assert.equal(report.interpretation, "developer_conformance_only_not_certification_audit_or_rank");
 });
@@ -31,7 +31,7 @@ test("standalone runner exposes exact numeric and refusal mismatches", () => {
   altered.vectors[3].expected.error_code = "invalid_horizon_censor";
   const report = sdk.runWantedAnalysisConformance(altered);
   assert.equal(report.status, "fail");
-  assert.equal(report.passed_vectors, 3);
+  assert.equal(report.passed_vectors, 4);
   const numeric = report.vectors[0].checks.find(check => check.field === "wanted_score");
   const refusal = report.vectors[3].checks.find(check => check.field === "error_code");
   assert.equal(numeric.passed, false);
@@ -45,14 +45,14 @@ test("standalone runner rejects drifted pack metadata before execution", () => {
   drifted.analysis_profile_version = "0.2-A1";
   drifted.bootstrap.prng = "Math.random";
   drifted.numerical_tolerance = 0.1;
-  drifted.vectors[0].id = "AC1-SUBSTITUTE";
+  drifted.vectors[0].id = "AC2-SUBSTITUTE";
   const report = sdk.runWantedAnalysisConformance(drifted);
   assert.equal(report.status, "fail");
   assert.equal(report.vectors.length, 0);
   assert.match(report.metadata_errors.join(" "), /0\.2-A2/);
   assert.match(report.metadata_errors.join(" "), /bootstrap profile/);
   assert.match(report.metadata_errors.join(" "), /1e-9/);
-  assert.match(report.metadata_errors.join(" "), /canonical AC1 vector/);
+  assert.match(report.metadata_errors.join(" "), /canonical AC2 vector/);
 });
 
 test("URL helper fetches one pack and returns the same report", async () => {
@@ -81,7 +81,7 @@ test("published runner and contract are zero-dependency and digest-bound", async
   const contract = await (await getContract()).json();
   const digest = createHash("sha256").update(source).digest("hex");
   const packDigest = createHash("sha256").update(JSON.stringify(analysisConformancePack)).digest("hex");
-  assert.equal(ANALYSIS_CONFORMANCE_SDK_VERSION, "0.2-ACS1");
+  assert.equal(ANALYSIS_CONFORMANCE_SDK_VERSION, "0.2-ACS2");
   assert.equal(source, analysisConformanceSdkSource);
   assert.equal(moduleResponse.headers.get("content-type"), "text/javascript; charset=utf-8");
   assert.equal(contract.source_sha256, digest);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BOOTSTRAP_PRNG, bootstrap, HORIZON, robustness, score, type Outcome, type Row } from "./scoring";
+import { BOOTSTRAP_PRNG, bootstrap, HORIZON, robustness, score,TERMINAL_COMPETING_CAUSES, type Outcome, type Row } from "./scoring";
 const exampleRows: Row[] = [
   { id: 1, environment: "ENV-001", hours: 10_000, outcome: "completed" },
   { id: 2, environment: "ENV-002", hours: 8_400, outcome: "rejected" },
@@ -18,10 +18,10 @@ export function ScoreCalculator() {
   const interval = bootstrapResult.interval;
   const totalHours = rows.reduce((sum,row)=>sum + row.hours,0);
   const rejections = rows.filter(row=>row.outcome === "rejected").length;
-  const terminalCauses = rows.filter(row=>["safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"].includes(row.outcome)).length;
+  const terminalCauses = rows.filter(row=>TERMINAL_COMPETING_CAUSES.includes(row.outcome)).length;
   const dataValid = result.errors.length === 0;
   const rankable = dataValid && rows.length >= 20 && totalHours >= 10_000 && result.identifiable && interval !== null && terminalCauses === 0;
-  const statisticalStatus = !dataValid ? "DATA INVALID" : !result.identifiable ? "HORIZON UNSUPPORTED" : interval === null ? "CI UNSTABLE" : terminalCauses ? "TERMINAL REVIEW" : rankable ? "THRESHOLD MET" : "PROVISIONAL";
+  const statisticalStatus = terminalCauses ? "TERMINAL REFUSAL" : !dataValid ? "DATA INVALID" : !result.identifiable ? "HORIZON UNSUPPORTED" : interval === null ? "CI UNSTABLE" : rankable ? "THRESHOLD MET" : "PROVISIONAL";
 
   const update = (id: number, patch: Partial<Row>) => setRows(current => current.map(row => row.id === id ? { ...row, ...patch } : row));
   const add = () => setRows(current => { const id=Math.max(0,...current.map(row=>row.id))+1;return [...current,{ id,environment:`ENV-${String(id).padStart(3,"0")}`,hours:0,outcome:"unrelated_censor" }]; });
@@ -30,7 +30,7 @@ export function ScoreCalculator() {
   const exportSummary = () => {
     const payload = {
       benchmark: "WANTED-10K", schema_version: "0.2", generated_at: new Date().toISOString(),
-      statistical_status: !result.identifiable ? "not_estimable_at_10000" : interval === null ? "bootstrap_support_below_95_percent" : terminalCauses ? "terminal_cause_requires_adjudication_and_rank_exclusion" : rankable ? "cohort_threshold_met" : "provisional",
+      statistical_status: terminalCauses ? "terminal_competing_cause_refuses_primary_W" : !result.identifiable ? "not_estimable_at_10000" : interval === null ? "bootstrap_support_below_95_percent" : rankable ? "cohort_threshold_met" : "provisional",
       analysis_profile_version: "0.2-A2", bootstrap: { samples: 10_000, seed: 10_000, prng: BOOTSTRAP_PRNG },
       primary: { wanted_score: result.wanted === null ? null : +result.wanted.toFixed(4), bootstrap_95_ci: interval?.map(x=>+x.toFixed(4)) ?? null, survival_at_10000: result.survival10k === null ? null : +result.survival10k.toFixed(6), horizon_identifiable: result.identifiable, bootstrap_valid_fraction: +bootstrapResult.validFraction.toFixed(4) },
       cohort: { independent_environments: rows.length, total_resident_hours: totalHours, voluntary_rejections: rejections, terminal_competing_causes: terminalCauses },
@@ -75,7 +75,7 @@ export function ScoreCalculator() {
           <div><span>INTEGRAL</span><b>{result.wanted === null ? "not estimable" : `${(result.wanted*100).toFixed(0)} wanted h`}</b></div>
           <div><span>UNIT</span><b>Environment</b></div>
         </div>
-        <p>Charging and ordinary downtime stay inside resident time. Mark only permanent, voluntary rejection as an event. W is not reported beyond the last supported follow-up unless the estimated survival curve has already reached zero.</p>
+        <p>Charging and ordinary downtime stay inside resident time. Mark only permanent, voluntary rejection as an event. A safety, developer, or consent/privacy termination refuses primary W rather than becoming a censor. W is not reported beyond the last supported follow-up unless the estimated survival curve has already reached zero.</p>
       </aside>
     </div>
     {robust.bounds && robust.influence && robust.support && <section className="calcRobustness">
@@ -90,6 +90,6 @@ export function ScoreCalculator() {
       <div className="influenceRows"><header><span>ENVIRONMENT REMOVED</span><span>W WITHOUT ENVIRONMENT</span><span>SHIFT</span></header>{robust.influence.estimates.slice(0,5).map(item=><div key={item.environment}><b>{item.environment}</b><span>{item.estimate.toFixed(3)}</span><span className={item.shift >= 0 ? "positive" : "negative"}>{item.shift >= 0 ? "+" : ""}{item.shift.toFixed(3)}</span></div>)}</div>
       <p>Bounds are deliberate stress scenarios, not replacement estimators. Leave-one-out influence is descriptive and must be reviewed when it exceeds the preregistered threshold. <a href="/wanted-10k/analysis-reproduction">Reproduce an official claim →</a></p>
     </section>}
-    <div className="calcCaution"><b>{!dataValid ? "COHORT DATA FAILS VALIDATION." : result.identifiable ? "STATISTICAL ELIGIBILITY IS NOT CERTIFICATION." : "10K HORIZON IS NOT IDENTIFIABLE."}</b><span>{!dataValid ? result.errors.join(" ") : result.identifiable ? "A qualifying cohort still needs complete intervention disclosure, robustness review, passed safety gates, preregistration, and independent audit." : "At least one observation must support 10,000 hours, or the Kaplan–Meier curve must reach zero before support ends. WANTED never extends the last observed survival level to manufacture unobserved hours."}</span></div>
+    <div className="calcCaution"><b>{terminalCauses ? "TERMINAL CAUSE BLOCKS PRIMARY W." : !dataValid ? "COHORT DATA FAILS VALIDATION." : result.identifiable ? "STATISTICAL ELIGIBILITY IS NOT CERTIFICATION." : "10K HORIZON IS NOT IDENTIFIABLE."}</b><span>{terminalCauses ? "Safety termination, developer withdrawal, and consent/privacy withdrawal remain visible terminal competing causes. Resolve the underlying certification outcome; never recode one as unrelated censoring." : !dataValid ? result.errors.join(" ") : result.identifiable ? "A qualifying cohort still needs complete intervention disclosure, robustness review, passed safety gates, preregistration, and independent audit." : "At least one observation must support 10,000 hours, or the Kaplan–Meier curve must reach zero before support ends. WANTED never extends the last observed survival level to manufacture unobserved hours."}</span></div>
   </section>;
 }

@@ -1,20 +1,20 @@
-export const ANALYSIS_CONFORMANCE_SDK_VERSION = "0.2-ACS1";
-export const ANALYSIS_CONFORMANCE_PACK_SHA256 = "9e844007c7b09a684afaa42352bde79a0a0caac32af573361d1d23f8b07ba9aa";
+export const ANALYSIS_CONFORMANCE_SDK_VERSION = "0.2-ACS2";
+export const ANALYSIS_CONFORMANCE_PACK_SHA256 = "4078ca5c53ae63f4e4e36c7109041e7b854f03dcf8865695e6c6034d327dd5d5";
 
 export const analysisConformanceSdkSource = String.raw`/**
- * WANTED-10K analysis conformance runner — 0.2-ACS1
+ * WANTED-10K analysis conformance runner — 0.2-ACS2
  *
- * Zero runtime dependencies. Executes the normative 0.2-AC1 vectors for the
+ * Zero runtime dependencies. Executes the normative 0.2-AC2 vectors for the
  * 0.2-A2 ranked-score estimator. A pass is developer conformance only; it is
  * not WANTED certification, audit approval, or leaderboard eligibility.
  */
 
-export const ANALYSIS_CONFORMANCE_SDK_VERSION = "0.2-ACS1";
-export const ANALYSIS_CONFORMANCE_PACK_VERSION = "0.2-AC1";
+export const ANALYSIS_CONFORMANCE_SDK_VERSION = "0.2-ACS2";
+export const ANALYSIS_CONFORMANCE_PACK_VERSION = "0.2-AC2";
 export const ANALYSIS_PROFILE_VERSION = "0.2-A2";
-export const ANALYSIS_CONFORMANCE_PACK_SHA256 = "9e844007c7b09a684afaa42352bde79a0a0caac32af573361d1d23f8b07ba9aa";
+export const ANALYSIS_CONFORMANCE_PACK_SHA256 = "4078ca5c53ae63f4e4e36c7109041e7b854f03dcf8865695e6c6034d327dd5d5";
 const HORIZON = 10000;
-const REQUIRED_VECTOR_IDS = ["AC1-BASELINE", "AC1-HORIZON-REJECTION", "AC1-TIED-EVENT-CENSOR", "AC1-UNSUPPORTED-HORIZON", "AC1-INVALID-HORIZON-CENSOR"];
+const REQUIRED_VECTOR_IDS = ["AC2-BASELINE", "AC2-HORIZON-REJECTION", "AC2-TIED-EVENT-CENSOR", "AC2-UNSUPPORTED-HORIZON", "AC2-INVALID-HORIZON-CENSOR", "AC2-TERMINAL-COMPETING-CAUSE"];
 const ALLOWED = new Set(["completed", "unrelated_censor", "rejected", "safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"]);
 
 function fail(code, message) {
@@ -140,13 +140,13 @@ function compare(vector, actual, tolerance) {
 export function runWantedAnalysisConformance(pack) {
   const metadataErrors = [];
   if (!pack || typeof pack !== "object" || Array.isArray(pack)) metadataErrors.push("pack must be an object");
-  if (pack?.version !== ANALYSIS_CONFORMANCE_PACK_VERSION) metadataErrors.push("pack version must be 0.2-AC1");
+  if (pack?.version !== ANALYSIS_CONFORMANCE_PACK_VERSION) metadataErrors.push("pack version must be 0.2-AC2");
   if (pack?.analysis_profile_version !== ANALYSIS_PROFILE_VERSION) metadataErrors.push("analysis profile must be 0.2-A2");
   if (pack?.horizon_hours !== HORIZON) metadataErrors.push("horizon must be 10000 hours");
   if (pack?.numerical_tolerance !== 1e-9) metadataErrors.push("numerical_tolerance must equal 1e-9");
   if (!pack?.bootstrap || pack.bootstrap.samples !== 10000 || pack.bootstrap.seed !== 10000 || pack.bootstrap.prng !== "pcg32_xsh_rr_64_32_seeded_v1" || pack.bootstrap.percentile_method !== "linear_interpolation_index_p_times_n_minus_1") metadataErrors.push("bootstrap profile is not canonical");
   const vectorIds = Array.isArray(pack?.vectors) ? pack.vectors.map(vector => vector?.id) : [];
-  if (vectorIds.length !== REQUIRED_VECTOR_IDS.length || !REQUIRED_VECTOR_IDS.every(id => vectorIds.includes(id)) || new Set(vectorIds).size !== vectorIds.length) metadataErrors.push("the five canonical AC1 vector identifiers are required exactly once");
+  if (vectorIds.length !== REQUIRED_VECTOR_IDS.length || !REQUIRED_VECTOR_IDS.every(id => vectorIds.includes(id)) || new Set(vectorIds).size !== vectorIds.length) metadataErrors.push("the six canonical AC2 vector identifiers are required exactly once");
   if (Array.isArray(pack?.vectors) && !pack.vectors.every(vector => vector && typeof vector === "object" && !Array.isArray(vector) && typeof vector.purpose === "string" && Array.isArray(vector.records) && vector.expected && ["pass", "fail"].includes(vector.expected.status))) metadataErrors.push("every vector requires purpose, records, and a pass or fail expectation");
   if (metadataErrors.length) return { status: "fail", sdk_version: ANALYSIS_CONFORMANCE_SDK_VERSION, pack_version: pack?.version ?? null, analysis_profile_version: pack?.analysis_profile_version ?? null, metadata_errors: metadataErrors, vectors: [] };
   const vectors = pack.vectors.map(vector => compare(vector, execute(vector, pack.bootstrap), pack.numerical_tolerance));
@@ -180,7 +180,7 @@ export const analysisConformanceSdkContract = {
   version: ANALYSIS_CONFORMANCE_SDK_VERSION,
   protocol_version: "0.2",
   analysis_profile_version: "0.2-A2",
-  conformance_pack_version: "0.2-AC1",
+  conformance_pack_version: "0.2-AC2",
   module: "/wanted-10k/wanted-analysis-conformance.mjs",
   vectors: "/wanted-10k/analysis-conformance-vectors.json",
   vector_pack_sha256: ANALYSIS_CONFORMANCE_PACK_SHA256,

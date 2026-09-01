@@ -13,7 +13,7 @@ const contract = {
     leave_one_environment_out: "Recalculate W after removing each independent environment; publish every identifiable shift and count exclusions that destroy 10K identifiability.",
     tail_support: ["at_risk_9000", "at_risk_10000", "horizon_rejections", "retained_at_10000", "unrelated_early_censors", "terminal_early_exits", "voluntary_rejections"],
   },
-  invalid_data: ["duplicate_environment_identifier", "resident_hours_outside_0_10000", "administrative_completion_before_10000", "unknown_disposition"],
+  invalid_data: ["duplicate_environment_identifier", "resident_hours_outside_0_10000", "administrative_completion_before_10000", "terminal_competing_cause", "unknown_disposition"],
   preregister: ["maximum_acceptable_leave_one_out_shift_w_points", "material_robot_version_strata", "missing_data_rule", "subgroup_reporting", "censoring_sensitivity_profile"],
   anti_gaming: ["primary_W_cannot_be_replaced_by_a_bound", "publish_both_bounds_even_when_unfavorable", "count_unidentifiable_leave_one_out_exclusions", "do_not_pool_materially_incompatible_robot_versions", "never_reclassify_terminal_causes_as_unrelated_censoring"],
 };

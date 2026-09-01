@@ -19,4 +19,10 @@ export const monitorAgents: readonly MonitorAgent[] = [
   { id: "10", name: "Ecosystem Evolution", cadence: "Daily · 09:00 PT", mode: "scheduled", description: "Authoritative changes in MCP, Realtime, robot models, Jetson, and embodied benchmarks." },
 ] as const;
 
-export const monitoredPaths = ["/", "/leaderboard", "/wanted-10k", "/wanted-10k/realtime", "/agents", "/agent.json", "/llms.txt", "/mcp"] as const;
+export const monitoredPaths = ["/", "/scan", "/leaderboard", "/wanted-10k", "/wanted-10k/realtime", "/agents", "/agent.json", "/llms.txt", "/mcp"] as const;
+
+export function monitoringPathsForDate(date = new Date()) {
+  const dailyPath = dailyExperienceForDate(date).path;
+  return [dailyPath, ...monitoredPaths.filter((path) => path !== dailyPath)] as const;
+}
+import { dailyExperienceForDate } from "../daily-rotation.ts";

@@ -3,6 +3,7 @@ export type Row = { id: number; environment: string; hours: number; outcome: Out
 export const HORIZON = 10_000;
 export const BOOTSTRAP_PRNG = "pcg32_xsh_rr_64_32_seeded_v1";
 const outcomes: Outcome[] = ["completed", "unrelated_censor", "rejected", "safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"];
+export const TERMINAL_COMPETING_CAUSES: readonly Outcome[] = ["safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"];
 
 export function validateRows(rows: Row[]) {
   const errors: string[] = [];
@@ -15,6 +16,7 @@ export function validateRows(rows: Row[]) {
     identifiers.add(label);
     if (!Number.isFinite(row.hours) || row.hours < 0 || row.hours > HORIZON) errors.push(`Row ${index + 1}: resident hours must be between 0 and ${HORIZON}.`);
     if (!outcomes.includes(row.outcome)) errors.push(`Row ${index + 1}: unrecognized outcome.`);
+    if (TERMINAL_COMPETING_CAUSES.includes(row.outcome)) errors.push(`Row ${index + 1}: terminal competing cause ${row.outcome} blocks primary W and ranked analysis.`);
     if (row.outcome === "completed" && row.hours !== HORIZON) errors.push(`Row ${index + 1}: completion requires exactly ${HORIZON} resident hours.`);
     if (row.outcome === "unrelated_censor" && row.hours === HORIZON) errors.push(`Row ${index + 1}: an environment observed through ${HORIZON} hours must be completed unless a rejection or terminal competing cause occurred at the horizon.`);
   });
@@ -98,7 +100,7 @@ export function robustness(rows: Row[]) {
   const horizonRejections = rows.filter(row => row.outcome === "rejected" && row.hours === HORIZON).length;
   const retainedAt10000 = rows.filter(row => row.outcome === "completed" && row.hours === HORIZON).length;
   const unrelatedEarly = rows.filter(row => row.outcome === "unrelated_censor" && row.hours < HORIZON).length;
-  const terminalEarly = rows.filter(row => ["safety_termination", "developer_withdrawal", "consent_privacy_withdrawal"].includes(row.outcome) && row.hours < HORIZON).length;
+  const terminalEarly = rows.filter(row => TERMINAL_COMPETING_CAUSES.includes(row.outcome) && row.hours < HORIZON).length;
   return {
     errors,
     bounds: { lower, observed: observed.wanted, upper, width: lower === null || upper === null ? null : upper - lower, early_exits: unrelatedEarly + terminalEarly },

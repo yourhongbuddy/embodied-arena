@@ -75,7 +75,9 @@ test("preserves unsupported site tails as null without extrapolation", () => {
 test("rejects invalid endpoints, raw site labels, and unbound evidence", () => {
   const terminal = clone(siteHeterogeneityTemplate);
   terminal.records[0].disposition = "safety_termination";
-  assert.equal(gate(assessSiteHeterogeneity(terminal), "SH3").passed, false);
+  const terminalResult = assessSiteHeterogeneity(terminal);
+  assert.equal(terminalResult.status, "failed");
+  assert.match(terminalResult.errors.join(" "), /terminal competing cause/i);
 
   const rawLabel = clone(siteHeterogeneityTemplate);
   rawLabel.records[0].site_id = "123 Main Street";

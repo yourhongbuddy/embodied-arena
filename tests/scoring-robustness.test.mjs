@@ -53,3 +53,13 @@ test("rejects invalid completion records and preserves bootstrap resampling", ()
   const resampled = bootstrap([...fragile, { id: 4, environment: "ENV-D", hours: 10000, outcome: "completed" }], 1000);
   assert.ok(resampled.validFraction > 0);
 });
+
+test("refuses primary W for every terminal competing cause",()=>{
+  for(const outcome of ["safety_termination","developer_withdrawal","consent_privacy_withdrawal"]){
+    const rows=[{id:1,environment:"ENV-A",hours:10000,outcome:"completed"},{id:2,environment:"ENV-B",hours:5000,outcome}];
+    assert.match(validateRows(rows).join(" "),/terminal competing cause/);
+    assert.equal(score(rows).wanted,null);
+    assert.equal(bootstrap(rows,1000).interval,null);
+    assert.equal(robustness(rows).bounds,null);
+  }
+});
