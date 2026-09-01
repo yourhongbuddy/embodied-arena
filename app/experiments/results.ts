@@ -1,13 +1,38 @@
 import { EXPERIMENT_DECISION_GATE,WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
 
 export type RawExperimentRow={variant:string;exposed_units:number;goal_units:number};
-export type RawReceiptIntegrityRow={issued_receipts:number;issued_units:number;exposed_receipts:number;unexposed_receipts:number;expired_unexposed_receipts:number;duplicate_identity_receipts:number};
+export type RawReceiptIntegrityVariantRow={variant:string;issued_receipts:number;issued_units:number;exposed_receipts:number;exposed_units:number;unexposed_receipts:number;expired_unexposed_receipts:number;duplicate_session_unit_receipts:number};
 export const BONFERRONI_TWO_COMPARISON_Z=2.241402727604947;
 
-export function summarizeReceiptIntegrity(row:Partial<RawReceiptIntegrityRow>|null|undefined){
-  const integer=(value:unknown)=>Number.isInteger(Number(value))&&Number(value)>=0?Number(value):0;
-  const issuedReceipts=integer(row?.issued_receipts),issuedUnits=integer(row?.issued_units),exposedReceipts=Math.min(issuedReceipts,integer(row?.exposed_receipts)),unexposedReceipts=Math.min(issuedReceipts-exposedReceipts,integer(row?.unexposed_receipts)),expiredUnexposedReceipts=Math.min(unexposedReceipts,integer(row?.expired_unexposed_receipts)),duplicateIdentityReceipts=Math.min(issuedReceipts,integer(row?.duplicate_identity_receipts));
-  return{profile:"0.22-RD1",window_days:30,issued_receipts:issuedReceipts,issued_units:issuedUnits,exposed_receipts:exposedReceipts,unexposed_receipts:unexposedReceipts,active_unexposed_receipts:unexposedReceipts-expiredUnexposedReceipts,expired_unexposed_receipts:expiredUnexposedReceipts,duplicate_identity_receipts:duplicateIdentityReceipts,receipt_to_exposure_rate:issuedReceipts?exposedReceipts/issuedReceipts:null,status:issuedReceipts?"descriptive":"insufficient",counts_rejected_requests:false,proves_human_traffic:false,interpretation:"receipt issuance and accepted exposure funnel only; does not count rejected requests or identify human users"} as const;
+const integer=(value:unknown)=>Number.isInteger(Number(value))&&Number(value)>=0?Number(value):0;
+const insufficientCheck={method:"pearson_chi_square_df_2",alert_threshold:.001,status:"insufficient",chi_square:null,p_value:null} as const;
+
+function allocationCheck(observed:number[]){
+  const total=observed.reduce((sum,value)=>sum+value,0),expected=WANTED_LANDING_EXPERIMENT.variants.map(variant=>total*variant.weight_basis_points/10_000);
+  if(!total||Math.min(...expected)<5)return insufficientCheck;
+  const chiSquare=observed.reduce((sum,value,index)=>sum+(value-expected[index])**2/expected[index],0),pValue=Math.exp(-chiSquare/2);
+  return{method:"pearson_chi_square_df_2",alert_threshold:.001,status:pValue<.001?"alert":"pass",chi_square:chiSquare,p_value:pValue} as const;
+}
+
+function deliveryBalanceCheck(rows:{issued_units:number;exposed_units:number}[]){
+  const issued=rows.reduce((sum,row)=>sum+row.issued_units,0),exposed=rows.reduce((sum,row)=>sum+row.exposed_units,0),unexposed=issued-exposed;
+  if(!issued||!exposed||!unexposed)return insufficientCheck;
+  const exposedRate=exposed/issued,expected=rows.flatMap(row=>[row.issued_units*exposedRate,row.issued_units*(1-exposedRate)]);
+  if(Math.min(...expected)<5)return insufficientCheck;
+  const observed=rows.flatMap(row=>[row.exposed_units,row.issued_units-row.exposed_units]);
+  const chiSquare=observed.reduce((sum,value,index)=>sum+(value-expected[index])**2/expected[index],0),pValue=Math.exp(-chiSquare/2);
+  return{method:"pearson_chi_square_homogeneity_df_2",alert_threshold:.001,status:pValue<.001?"alert":"pass",chi_square:chiSquare,p_value:pValue} as const;
+}
+
+export function summarizeReceiptIntegrity(rawRows:Partial<RawReceiptIntegrityVariantRow>[]|null|undefined){
+  const found=new Map((rawRows??[]).map(row=>[row.variant,row]));
+  const variants=WANTED_LANDING_EXPERIMENT.variants.map(variant=>{
+    const row=found.get(variant.id),issuedReceipts=integer(row?.issued_receipts),issuedUnits=Math.min(issuedReceipts,integer(row?.issued_units)),exposedReceipts=Math.min(issuedReceipts,integer(row?.exposed_receipts)),exposedUnits=Math.min(issuedUnits,integer(row?.exposed_units)),unexposedReceipts=Math.min(issuedReceipts-exposedReceipts,integer(row?.unexposed_receipts)),expiredUnexposedReceipts=Math.min(unexposedReceipts,integer(row?.expired_unexposed_receipts)),duplicateSessionUnitReceipts=Math.min(issuedReceipts,integer(row?.duplicate_session_unit_receipts));
+    return{variant:variant.id,label:variant.label,issued_receipts:issuedReceipts,issued_units:issuedUnits,exposed_receipts:exposedReceipts,exposed_units:exposedUnits,unexposed_receipts:unexposedReceipts,active_unexposed_receipts:unexposedReceipts-expiredUnexposedReceipts,expired_unexposed_receipts:expiredUnexposedReceipts,duplicate_session_unit_receipts:duplicateSessionUnitReceipts,receipt_to_exposure_rate:issuedReceipts?exposedReceipts/issuedReceipts:null,unit_to_exposure_rate:issuedUnits?exposedUnits/issuedUnits:null} as const;
+  });
+  const total=(field:keyof typeof variants[number])=>variants.reduce((sum,row)=>sum+(typeof row[field]==="number"?row[field] as number:0),0);
+  const issuedReceipts=total("issued_receipts"),issuedUnits=total("issued_units"),exposedReceipts=total("exposed_receipts"),exposedUnits=total("exposed_units"),unexposedReceipts=total("unexposed_receipts"),expiredUnexposedReceipts=total("expired_unexposed_receipts");
+  return{profile:"0.23-RD2",window_days:30,issued_receipts:issuedReceipts,issued_units:issuedUnits,exposed_receipts:exposedReceipts,exposed_units:exposedUnits,unexposed_receipts:unexposedReceipts,active_unexposed_receipts:unexposedReceipts-expiredUnexposedReceipts,expired_unexposed_receipts:expiredUnexposedReceipts,duplicate_session_unit_receipts:total("duplicate_session_unit_receipts"),receipt_to_exposure_rate:issuedReceipts?exposedReceipts/issuedReceipts:null,unit_to_exposure_rate:issuedUnits?exposedUnits/issuedUnits:null,issuance_sample_ratio_mismatch:allocationCheck(variants.map(row=>row.issued_units)),unit_delivery_balance:deliveryBalanceCheck(variants),variants,status:issuedReceipts?"descriptive":"insufficient",counts_rejected_requests:false,proves_human_traffic:false,interpretation:"version-level server receipt issuance and accepted exposure delivery diagnostics only; does not count rejected requests or identify human users"} as const;
 }
 
 export function wilsonInterval(successes:number,total:number,z=1.959963984540054){
