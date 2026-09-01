@@ -10,7 +10,7 @@ The benchmark treats time to permanent voluntary rejection as the primary endpoi
 - `/wanted-10k/protocol` — protocol and developer evidence kit
 - `/wanted-10k/sdk` — reference integration adapter
 - `/wanted-10k/wanted-telemetry-verifier.mjs` — zero-dependency event verifier, multi-stream aggregator, exposure reconciliation, and audit-summary handoff
-- `/wanted-10k/root-commitment-witness` — independent periodic-root chronology, two-organization Ed25519 quorum, and anti-backfill contract
+- `/wanted-10k/root-commitment-witness` — no-upload local verifier for periodic-root chronology, two-organization Ed25519 quorum, and anti-backfill integrity
 - `/wanted-10k/certification` — certification levels and applicability
 - `/wanted-10k/leaderboard` — audited registry and ranking rules
 - `/leaderboard` — broader embodied-robot rankings

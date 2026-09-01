@@ -54,6 +54,8 @@ test("publishes a strict eligibility-only machine contract",()=>{
   assert.equal(rootCommitmentWitnessContract.ranking_effect,"eligibility_only_never_score_or_tiebreaker");
   assert.equal(rootCommitmentWitnessContract.witness_quorum.minimum_organizations_per_root,2);
   assert.equal(rootCommitmentWitnessContract.publication_delay.maximum_hours,24);
+  assert.equal(rootCommitmentWitnessContract.local_verifier.performs_network_requests,false);
+  assert.equal(rootCommitmentWitnessContract.local_verifier.pasted_manifest_uploads,false);
   assert.equal(rootCommitmentWitnessSchema.additionalProperties,false);
   assert.equal(rootCommitmentWitnessSchema.properties.protocol.properties.minimum_independent_witnesses.minimum,2);
 });

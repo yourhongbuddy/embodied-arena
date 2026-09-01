@@ -177,6 +177,7 @@ const spec = {
     quorum: { minimum_independent_organizations_per_root: 2, sponsor_controlled_witnesses_permitted: false },
     publication_delay: { maximum_hours: 24, origin: "root_covers_through_at" },
     cryptography: { canonicalization: "RFC8785_JCS", hash: "SHA-256", algorithm: "Ed25519", signature_scope: "receipt_without_signature" },
+    local_verifier: { route: "/wanted-10k/root-commitment-witness", runtime: "browser_Web_Crypto", pasted_manifest_uploads: false, exported_result: "aggregate_gates_and_counts_only" },
     verification: ["canonical_root_collection_digest", "complete_periodic_cadence", "registered_witness_key", "key_validity_and_revocation", "receipt_identity_and_root_binding", "bounded_publication_delay", "two_organization_signature_quorum", "public_log_index_and_independent_assurance"],
     interpretation: "proves_periodic_multi_party_disclosure_before_outcome_analysis_not_sensor_truth_or_complete_event_capture",
   },
