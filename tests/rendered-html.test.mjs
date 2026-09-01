@@ -100,6 +100,21 @@ test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   assert.match(protocolHtml, /PREPARE AUDIT PACK/);
 });
 
+test("publishes a stable privacy-first site version rotator",async()=>{
+  const [pageResponse,contractResponse,resultResponse]=await Promise.all([request("/experiments"),request("/experiments.json","application/json"),request("/api/experiments","application/json")]);
+  for(const response of [pageResponse,contractResponse,resultResponse])assert.equal(response.status,200);
+  const pageHtml=await pageResponse.text();
+  assert.match(pageHtml,/Test the framing/);assert.match(pageHtml,/PRESENTATION ONLY/);assert.match(pageHtml,/wanted_variant=control/);assert.match(pageHtml,/wanted_variant=proof/);assert.match(pageHtml,/wanted_variant=developer/);
+  const [contract,results]=await Promise.all([contractResponse.json(),resultResponse.json()]);
+  assert.equal(contract.version,"0.1-R1");assert.equal(contract.assignment.stable_per_device,true);assert.equal(contract.safety_boundary.changes_score,false);assert.equal(contract.experiments[0].variants.reduce((sum,variant)=>sum+variant.weight_basis_points,0),10_000);
+  assert.equal(results.experiment,"wanted_landing_v1");assert.equal(results.variants.length,3);assert.equal(["ready","unavailable"].includes(results.status),true);
+  const baseUrl=await standaloneServer();
+  const invalid=await fetch(new URL("api/analytics",baseUrl),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sessionId:"bad",eventType:"experiment_exposure",path:"/wanted-10k"})});
+  assert.equal(invalid.status,400);
+  const accepted=await fetch(new URL("api/analytics",baseUrl),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sessionId:"session_test_001",eventType:"experiment_exposure",path:"/wanted-10k",metadata:{experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned"}})});
+  assert.equal(accepted.status,204);
+});
+
 test("publishes the vendor-neutral HILO Realtime protocol", async () => {
   const [response,contractResponse,schemaResponse,templateResponse] = await Promise.all([request("/wanted-10k/realtime"),request("/wanted-10k/realtime.json"),request("/wanted-10k/realtime.schema.json"),request("/wanted-10k/realtime.template.json")]);
   assert.equal(response.status, 200);assert.equal(contractResponse.status,200);assert.equal(schemaResponse.status,200);assert.equal(templateResponse.status,200);

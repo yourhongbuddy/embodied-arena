@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SiteNav } from "../components/SiteNav";
+import { WantedLandingExperience } from "./WantedLandingExperience";
 
 export const metadata: Metadata = {
   title: "WANTED-10K — The Longitudinal Robot Benchmark",
@@ -38,40 +39,7 @@ export default function Wanted10K() {
   return <main className="wantedPage">
     <SiteNav />
 
-    <section className="wantedHero shell">
-      <div className="wantedHeroCopy">
-        <span className="eyebrow"><i className="liveDot"/> OPEN TECHNICAL SPEC · VERSION 0.2</span>
-        <h1>Still wanted<br/><em>after 10,000 hours?</em></h1>
-        <p>Most benchmarks ask whether a robot can complete a task. WANTED-10K asks whether people continue choosing the robot after novelty fades, hardware ages, routines change, and mistakes accumulate.</p>
-        <div className="wantedActions">
-          <a className="primary" href="/wanted-10k/realtime">Open HILO Realtime <span>→</span></a>
-          <a className="primary" href="/wanted-10k/protocol">Open protocol kit <span>→</span></a>
-          <a className="secondary" href="/wanted-10k/sdk">Integrate a robot</a>
-          <a className="secondary" href="/wanted-10k/preflight">Preflight a policy</a>
-          <a className="secondary" href="/wanted-10k/exposure-ledger">Verify resident hours</a>
-          <a className="secondary" href="/wanted-10k/calculator">Calculate a cohort</a>
-          <a className="secondary" href="/wanted-10k/analysis-reproduction">Reproduce a score</a>
-          <a className="secondary" href="/wanted-10k/leaderboard">Audited registry</a>
-          <a className="secondary" href="/wanted-10k/evidence">Research basis</a>
-        </div>
-        <div className="wantedProof">
-          <div><strong>10,000</strong><span>RESIDENT HOURS</span></div>
-          <div><strong>20+</strong><span>INDEPENDENT SITES</span></div>
-          <div><strong>1</strong><span>PRIMARY SCORE</span></div>
-          <div><strong>0</strong><span>SAFETY TRADE-OFFS</span></div>
-        </div>
-      </div>
-      <div className="survivalCard" aria-label="Illustrative robot retention survival curve">
-        <header><span>RETENTION / KAPLAN–MEIER</span><b>Ŝ(t)</b></header>
-        <div className="curvePlot">
-          <span className="y y1">100%</span><span className="y y2">50%</span><span className="y y3">0%</span>
-          <span className="x x1">0h</span><span className="x x2">5K</span><span className="x x3">10K</span>
-          <i className="curveStep s1"/><i className="curveStep s2"/><i className="curveStep s3"/><i className="curveStep s4"/><i className="curveStep s5"/>
-          <i className="censor c1">+</i><i className="censor c2">+</i><i className="censor c3">+</i>
-        </div>
-        <footer><span>AREA UNDER RETENTION CURVE</span><strong>W = 74.6</strong><small>ILLUSTRATIVE</small></footer>
-      </div>
-    </section>
+    <WantedLandingExperience />
 
     <div className="wantedTicker"><div>TIME UNTIL VOLUNTARY REJECTION <b>×</b> SAFETY AS A GATE <b>×</b> INTERVENTIONS DISCLOSED <b>×</b> REAL ENVIRONMENTS <b>×</b> CENSORING HANDLED <b>×</b> TIME UNTIL VOLUNTARY REJECTION <b>×</b></div></div>
 
