@@ -112,6 +112,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 53 | `digitalocean-v53` | `8d174b6` | Require short-lived same-session server receipts for counted experiment traffic |
 | 54 | `digitalocean-v54` | `03bec09` | Add indexed receipt-to-exposure integrity diagnostics for the site rotator |
 | 55 | `digitalocean-v55` | `a81fb8e` | Diagnose assignment allocation and accepted-exposure delivery by site version |
+| 56 | `digitalocean-v56` | `ff218c0` | Restrict version-delivery diagnostics to matured first-receipt browser-unit cohorts |
 
 ## Release convention
 
