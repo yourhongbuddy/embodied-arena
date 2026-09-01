@@ -76,6 +76,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 17 | `digitalocean-v17` | `9bb6b10` | Bind goals to rendered experiment exposure tokens |
 | 18 | `digitalocean-v18` | `1733591` | Retry experiment exposures until storage acknowledges receipt |
 | 19 | `digitalocean-v19` | `a9e559c` | Preserve experiment goals through navigation with a bounded session outbox |
+| 20 | `digitalocean-v20` | `0605f77` | Lock one variant per session and exclude cross-variant contamination |
 
 ## Release convention
 
