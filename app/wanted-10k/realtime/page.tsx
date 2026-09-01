@@ -131,7 +131,7 @@ export default function RealtimeProtocolPage() {
         <div className="rtSectionHead"><div><span className="kicker">04 / REALTIME ARENA</span><h2>Same world.<br/><em>Different intelligence.</em></h2></div><p>Realtime Arena is the controlled comparison surface inside HILO: identical episode manifests, robot bridge, safety kernel, exposure rules, and evidence contract across reference implementations.</p></div>
         <div className="arenaTable" role="table" aria-label="Realtime Arena comparison dimensions">
           <header role="row"><span>DIMENSION</span><span>HELD OR MEASURED</span><span>REPORTING RULE</span></header>
-          {arenaRows.map(row=><article role="row" key={row[0]}>{row.map(cell=><span role="cell" key={cell}>{cell}</span>)}</article>)}
+          {arenaRows.map(row=><div className="arenaRow" role="row" key={row[0]}>{row.map(cell=><span role="cell" key={cell}>{cell}</span>)}</div>)}
         </div>
         <div className="neutralityCallout"><span>REFERENCE ≠ STANDARD</span><p><b>GPT-Realtime-2.1 is entry A, not the arena.</b> OpenAI, open-weight, on-device, hybrid, and future realtime systems can all compete when they implement the same typed action boundary and HILO event contract.</p></div>
       </div>

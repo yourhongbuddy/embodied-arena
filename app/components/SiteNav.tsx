@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
@@ -9,8 +10,8 @@ const links = [
 export function SiteNav() {
   const pathname = usePathname();
   return <nav className="nav shell" aria-label="Primary navigation">
-    <a className="brand" href="/"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b></span></a>
-    <div className="navLinks routeLinks">{links.map(([href,label])=><a className={pathname===href||(href!=="/"&&pathname.startsWith(`${href}/`))?"current":""} href={href} key={href}>{label}</a>)}</div>
+    <Link className="brand" href="/"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b></span></Link>
+    <div className="navLinks routeLinks">{links.map(([href,label])=><Link className={pathname===href||(href!=="/"&&pathname.startsWith(`${href}/`))?"current":""} href={href} key={href}>{label}</Link>)}</div>
     <span className="localPill">PRIVATE BETA</span>
   </nav>;
 }

@@ -266,7 +266,7 @@ function policyEvolutionAuditSummary(target: "WANTED_LAB" | "WANTED_WILD" | "WAN
   source.claimed = reproducePolicyEvolution(source.environments, source.artifacts, source.changes, source.deployment_segments, baseline);
   const assessment = assessPolicyEvolution(source);
   if (!assessment.summary || assessment.status !== "passed") throw new Error(`Synthetic ${target} policy-evolution profile must pass.`);
-  const { artifact_exposure: _artifactExposure, ...summary } = assessment.summary;
+  const summary = Object.fromEntries(Object.entries(assessment.summary).filter(([key]) => key !== "artifact_exposure"));
   return { ...summary, manifest_uri: source.evidence.controlled_policy_register_uri, manifest_sha256: source.evidence.controlled_policy_register_sha256, baseline_artifact_sha256: baseline, exposure_integrity_sha256: source.upstream_bindings.exposure_integrity_sha256, telemetry_authenticity_sha256: source.upstream_bindings.telemetry_authenticity_sha256, preregistration_sha256: source.upstream_bindings.preregistration_sha256, qualified_assessor: source.assessor.name, assessor_attested: source.assessor.attested };
 }
 function privacyIntegrityAuditSummary(target: "WANTED_LAB" | "WANTED_WILD" | "WANTED_10K") {
