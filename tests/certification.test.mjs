@@ -103,6 +103,7 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
   assert.equal(wild.projection.sampling_actual_exposure_hours, 120000);
   assert.equal(wild.projection.sampling_unscheduled_primary_analyses, 0);
   assert.equal(wild.projection.root_envelope_integrity_verified, true);
+  assert.equal(wild.projection.root_envelope_verification_profile, "0.2-REB1");
   assert.equal(wild.projection.root_envelope_count, 1000);
   assert.equal(wild.projection.root_commitment_witness_verified, true);
   assert.equal(wild.projection.root_commitment_count, 1000);
@@ -153,6 +154,10 @@ test("machine contracts encode target applicability and rankability", () => {
   assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("root_envelope_0.2-RE1"), true);
   assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("root_envelope_0.2-RE1"), true);
   assert.equal(certificationProfile.targets.PREQUALIFIED.not_applicable.includes("root_envelope_0.2-RE1"), true);
+  assert.equal(certificationProfile.targets.WANTED_WILD.requires.includes("root_envelope_batch_0.2-REB1"), true);
+  assert.equal(certificationProfile.targets.WANTED_LAB.requires.includes("root_envelope_batch_0.2-REB1"), true);
+  assert.equal(certificationProfile.targets.WANTED_10K.requires.includes("root_envelope_batch_0.2-REB1"), true);
+  assert.equal(certificationProfile.targets.PREQUALIFIED.not_applicable.includes("root_envelope_batch_0.2-REB1"), true);
   assert.equal(certificationProfile.ranking.site_heterogeneity_metrics_change_rank, false);
   assert.equal(certificationProfile.ranking.root_envelope_metrics_change_rank, false);
   assert.equal(certificationProfile.targets.WANTED_10K.rankable, false);
@@ -182,4 +187,7 @@ test("requires signed root-envelope integrity for every field target", async () 
   const typeConfusion=clone(auditManifestTemplates.WANTED_WILD);
   typeConfusion.root_envelope_integrity.root_count="1000";
   assert.equal((await assess(typeConfusion)).gates.find(gate=>gate.id==="G5").status,"fail");
+  const legacySeriesOnly=clone(auditManifestTemplates.WANTED_WILD);
+  delete legacySeriesOnly.root_envelope_integrity.verification_profile;
+  assert.equal((await assess(legacySeriesOnly)).gates.find(gate=>gate.id==="G5").status,"fail");
 });
