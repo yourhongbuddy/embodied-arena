@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteNav } from "../../components/SiteNav";
 import { RolloutConfigCompilerLab } from "./RolloutConfigCompilerLab";
+import { RolloutBucketConformance } from "./RolloutBucketConformance";
 import { RolloutRuntimeInspector } from "./RolloutRuntimeInspector";
 import { RolloutSimulatorLab } from "./RolloutSimulatorLab";
 
@@ -26,6 +27,7 @@ export default function RolloutSimulatorPage() {
       <RolloutSimulatorLab />
       <RolloutConfigCompilerLab />
       <RolloutRuntimeInspector />
+      <RolloutBucketConformance />
       <section className="experimentBoundary">
         <div className="shell">
           <b>PREPRODUCTION SIMULATION ONLY</b>

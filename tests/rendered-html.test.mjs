@@ -1004,6 +1004,16 @@ test("publishes the primary-score robustness contract", async () => {
   assert.equal(spec.robustness_profile.bounds_are_rankable_scores, false);
 });
 
+test("serves the exhaustive rollout bucket proof and developer artifacts", async () => {
+  const [pageResponse,moduleResponse,contractResponse,schemaResponse,referenceResponse]=await Promise.all([request("/experiments/rollout-simulator"),request("/experiments/wanted-rollout-bucket-conformance.mjs"),request("/experiments/rollout-bucket-conformance.json","application/json"),request("/experiments/rollout-bucket-conformance.schema.json","application/json"),request("/experiments/rollout-bucket-conformance.reference.json","application/json")]);
+  for(const response of [pageResponse,moduleResponse,contractResponse,schemaResponse,referenceResponse])assert.equal(response.status,200);
+  const [html,source,contract,schema,reference]=await Promise.all([pageResponse.text(),moduleResponse.text(),contractResponse.json(),schemaResponse.json(),referenceResponse.json()]);
+  assert.match(html,/EXHAUSTIVE 10,000-BUCKET PROOF/);assert.match(html,/NO GAPS · NO OVERLAPS/);assert.match(html,/MONOTONE NESTING/);assert.match(html,/100% CONTROL ROLLBACK/);
+  assert.match(moduleResponse.headers.get("content-type"),/text\/javascript/);assert.doesNotMatch(source,/\bfetch\s*\(/);assert.doesNotMatch(source,/process\.env(?:\.|\[)/);assert.match(source,/verifyRolloutBucketConformance/);
+  assert.equal(contract.version,"0.46-RBC1");assert.equal(contract.certificate_profile,"0.46-RBCERT1");assert.equal(contract.buckets_enumerated,10000);assert.equal(contract.runtime_dependencies,0);assert.equal(contract.reads_user_identifiers,false);assert.equal(contract.uses_live_traffic,false);assert.equal(contract.changes_live_allocation,false);assert.equal(contract.changes_live_phase,false);assert.equal(contract.deploys,false);assert.equal(contract.source_sha256,createHash("sha256").update(source).digest("hex"));
+  assert.equal(schema.additionalProperties,false);assert.equal(schema.properties.compiler_bundle.additionalProperties,false);assert.equal(schema.properties.manifest.additionalProperties,false);assert.equal(reference.synthetic,true);assert.equal(reference.expected.status,"pass");assert.deepEqual(reference.expected.certificate.phases.map(phase=>phase.exact_selected_buckets),[500,2500,5000,10000]);assert.equal(reference.expected.certificate.rollback.exact_control_buckets,10000);
+});
+
 test("publishes the aggregate certification audit contract", async () => {
   const [pageResponse, schemaResponse, templateResponse, specResponse] = await Promise.all([
     request("/wanted-10k/audit"),
