@@ -113,6 +113,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 54 | `digitalocean-v54` | `03bec09` | Add indexed receipt-to-exposure integrity diagnostics for the site rotator |
 | 55 | `digitalocean-v55` | `a81fb8e` | Diagnose assignment allocation and accepted-exposure delivery by site version |
 | 56 | `digitalocean-v56` | `ff218c0` | Restrict version-delivery diagnostics to matured first-receipt browser-unit cohorts |
+| 57 | `digitalocean-v57` | `80122a6` | Add marginal Wilson uncertainty intervals to matured version-delivery diagnostics |
 
 ## Release convention
 
