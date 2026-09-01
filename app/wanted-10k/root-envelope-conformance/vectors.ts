@@ -1,0 +1,28 @@
+import { rootEnvelopeTemplate } from "../root-envelope/template.ts";
+
+export const ROOT_ENVELOPE_BATCH_CONFORMANCE_VERSION="0.2-REBC1";
+
+type Expected={status:"pass"|"fail";top_level_error_count:number;failed_deployment_ids:string[];summary:{deployment_count:number;root_count:number;expected_root_count:number;verified_envelopes:number;verified_signed_prefixes:number;missing_envelopes:number;invalid_envelopes:number;prefix_binding_failures:number;key_manifest_mismatches:number;chain_failures:number;cadence_failures:number}};
+type MutableBatch={profile_version:string;target_certification:string;deployments:Array<{deployment_id:string;activation_at:string;observation_end_at:string;commitment_interval_hours:number;events:Array<Record<string,unknown>>;key_manifest:Record<string,unknown>;roots:Array<{root_commitment_uri:string;envelope:Record<string,unknown>;[key:string]:unknown}>;[key:string]:unknown}>;[key:string]:unknown};
+type Definition={id:string;purpose:string;expected:Expected;mutate?:(batch:MutableBatch)=>void};
+const summary=(overrides:Partial<Expected["summary"]>={}):Expected["summary"]=>({deployment_count:2,root_count:4,expected_root_count:4,verified_envelopes:4,verified_signed_prefixes:4,missing_envelopes:0,invalid_envelopes:0,prefix_binding_failures:0,key_manifest_mismatches:0,chain_failures:0,cadence_failures:0,...overrides});
+const expected=(status:"pass"|"fail",failed_deployment_ids:string[]=[],overrides:Partial<Expected["summary"]>={},top_level_error_count=0):Expected=>({status,top_level_error_count,failed_deployment_ids,summary:summary(overrides)});
+
+const definitions:Definition[]=[
+  {id:"REBC1-CANONICAL",purpose:"Accept two independent deployments, four signed root envelopes, and the exact RC1 collection projection.",expected:expected("pass")},
+  {id:"REBC1-MISSING-ROOT",purpose:"Reject one missing due root and report the missing and cadence counts without invalidating the remaining envelopes.",expected:expected("fail",["dep_demo_001"],{root_count:3,verified_envelopes:3,verified_signed_prefixes:3,missing_envelopes:1,cadence_failures:1}),mutate:batch=>{batch.deployments[0].roots.pop();}},
+  {id:"REBC1-TAMPERED-EVENT",purpose:"Reject changed signed telemetry and classify both dependent envelopes as prefix-binding failures.",expected:expected("fail",["dep_demo_001"],{verified_envelopes:2,verified_signed_prefixes:2,invalid_envelopes:2,prefix_binding_failures:2}),mutate:batch=>{(batch.deployments[0].events[2].payload as Record<string,unknown>).request_type="privacy";}},
+  {id:"REBC1-KEY-MANIFEST-DRIFT",purpose:"Reject a changed frozen key manifest and count both key and signed-prefix mismatches.",expected:expected("fail",["dep_demo_001"],{verified_envelopes:2,verified_signed_prefixes:2,invalid_envelopes:2,prefix_binding_failures:2,key_manifest_mismatches:2}),mutate:batch=>{batch.deployments[0].key_manifest.key_manifest_id="changed-key-manifest";}},
+  {id:"REBC1-BROKEN-ROOT-CHAIN",purpose:"Reject a substituted previous-root commitment while retaining every unaffected envelope.",expected:expected("fail",["dep_demo_001"],{verified_envelopes:3,verified_signed_prefixes:3,invalid_envelopes:1,prefix_binding_failures:1,chain_failures:1}),mutate:batch=>{batch.deployments[0].roots[1].envelope.previous_root_commitment_sha256="ab".repeat(32);}},
+  {id:"REBC1-SHIFTED-CADENCE",purpose:"Reject a root moved off its exact due timestamp.",expected:expected("fail",["dep_demo_001"],{verified_envelopes:3,verified_signed_prefixes:3,invalid_envelopes:1,prefix_binding_failures:1,cadence_failures:1}),mutate:batch=>{batch.deployments[0].roots[1].envelope.covers_through_at="2026-08-28T20:01:00.000Z";}},
+  {id:"REBC1-NON-HTTPS-ROOT",purpose:"Reject a root record that cannot bind an HTTPS commitment location while retaining cryptographic prefix validity.",expected:expected("fail",["dep_demo_001"],{verified_envelopes:3,verified_signed_prefixes:3,invalid_envelopes:1}),mutate:batch=>{batch.deployments[0].roots[0].root_commitment_uri="http://example.org/root.json";}},
+  {id:"REBC1-DUPLICATE-TOPOLOGY",purpose:"Reject duplicate deployment and environment identities even when both copied envelope series verify cryptographically.",expected:expected("fail",["dep_demo_001"],{},2),mutate:batch=>{batch.deployments[1]=structuredClone(batch.deployments[0]);}},
+  {id:"REBC1-PROFILE-DRIFT",purpose:"Reject a batch that does not freeze the 0.2-REB1 verification profile.",expected:expected("fail",[],{},1),mutate:batch=>{batch.profile_version="0.2-REB0";}},
+  {id:"REBC1-UNEXPECTED-ROOT-FIELD",purpose:"Reject an extensible root record that could create ambiguous commitment semantics.",expected:expected("fail",["dep_demo_001"],{verified_envelopes:3,verified_signed_prefixes:3,invalid_envelopes:1}),mutate:batch=>{batch.deployments[0].roots[0].unexpected=true;}},
+];
+
+export async function rootEnvelopeBatchConformancePack(){
+  const template=await rootEnvelopeTemplate(2),vectors=[];
+  for(const definition of definitions){const batch=structuredClone(template.batch_input) as unknown as MutableBatch;definition.mutate?.(batch);vectors.push({id:definition.id,purpose:definition.purpose,batch,expected:definition.expected});}
+  return{name:"WANTED Root-Envelope Batch Conformance Vectors",version:ROOT_ENVELOPE_BATCH_CONFORMANCE_VERSION,protocol_version:"0.2",profile_version:"0.2-REB1",root_envelope_profile:"0.2-RE1",verifier_sdk_minimum_version:"0.4-RES3",pass_condition:"every_vector_matches_expected_status_topology_and_exact_counter_projection",interpretation:"developer_conformance_only_not_certification_evidence_truth_or_witness_independence",vectors};
+}
