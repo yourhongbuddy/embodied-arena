@@ -1,0 +1,3 @@
+import { rootWitnessTemplateFor } from "../root-commitment-witness/template.ts";
+
+export async function GET(){const manifest=await rootWitnessTemplateFor("WANTED_LAB"),signed_receipt=manifest.deployments[0].roots[0].receipts[0],unsigned_receipt=structuredClone(signed_receipt),signature=unsigned_receipt.signature;delete (unsigned_receipt as Partial<typeof signed_receipt>).signature;return Response.json({profile_version:"0.2-RIS1",notice:"Synthetic interoperability example only. The published site never receives production private keys or receipts.",witness_registry_key:manifest.witness_registry.keys[0],unsigned_receipt,signature,signed_receipt},{headers:{"cache-control":"public, max-age=3600"}});}

@@ -82,6 +82,17 @@ import { verifyTelemetryJsonl } from
       <div className="adapterMap"><b>COMMON MAPPINGS</b><span>ROS 2 node → helper calls</span><span>Isaac / MuJoCo callbacks → helper calls</span><span>Operator console → intervention + incident</span><span>Participant UI → request</span></div>
     </div></section>
 
+    <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
+      <div><span className="kicker">04 / INDEPENDENT ROOT WITNESSES</span><h2>Roots observed.<br/><em>Keys stay sovereign.</em></h2><p>Independent witness organizations can now create one RC1 receipt through the same no-export signing pattern. The helper prepares canonical bytes, accepts a caller-owned HSM callback, or supports an air-gapped prepare/attach workflow without ever reading a private key.</p><div className="sdkResources"><a href="/wanted-10k/root-commitment-witness/issuance">WITNESS ISSUANCE GUIDE →</a><a href="/wanted-10k/wanted-root-witness-receipt.mjs">RECEIPT HELPER ↓</a><a href="/wanted-10k/root-witness-receipt-sdk.json">RECEIPT SDK CONTRACT ↗</a><a href="/wanted-10k/root-witness-receipt.template.json">SYNTHETIC RECEIPT EXAMPLE ↓</a></div></div>
+      <div className="codeCard sdkCode"><header><span>KEY-CUSTODY BOUNDARY</span><i>WITNESS-OWNED</i></header><pre><code>{`prepare → canonical bytes + digest
+sign    → witness HSM / TPM / KMS
+attach  → signature self-verification
+verify  → registered key + lifecycle
+
+No private-key flag. No network request.
+One receipt still requires full RC1 quorum.`}</code></pre><footer><span>0.2-RIS1 · RFC 8785 · ED25519</span><span>LOCAL ONLY</span></footer></div>
+    </div></section>
+
     <section className="restartSection"><div className="shell">
       <div className="sectionHead wantedHead"><div><span className="kicker">05 / 10,000-HOUR CONTINUITY</span><h2>Restarts happen.<br/><em>Evidence must survive.</em></h2></div><p>A benchmark this long cannot depend on process memory. Persist the checkpoint after every accepted event and test crash recovery before human exposure.</p></div>
       <div className="restartRules"><article><b>ONE WRITER</b><p>Only one process may issue the next sequence for a deployment. Fail over with a lease or fencing token.</p></article><article><b>ACCEPT, THEN ADVANCE</b><p>The SDK advances sequence and chain state only after the sink acknowledges the event.</p></article><article><b>DURABLE CHECKPOINT</b><p>Store next_sequence, previous_event_hash, and last_occurred_at before another event can be emitted.</p></article><article><b>RECONCILE RESTARTS</b><p>After a crash, recover the collector’s accepted tail before emitting. Event IDs make retries idempotent.</p></article></div>
