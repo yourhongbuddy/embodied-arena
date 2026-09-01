@@ -100,6 +100,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 41 | `digitalocean-v41` | `a0ba0d8` | Reconcile telemetry identities, counts, and lifecycle boundaries with exposure evidence |
 | 42 | `digitalocean-v42` | `2706ae6` | Require periodic telemetry roots witnessed on time by two independent organizations |
 | 43 | `digitalocean-v43` | `78d9c89` | Add a no-upload browser workspace for cryptographic root-witness verification |
+| 44 | `digitalocean-v44` | `57c3b10` | Ship a zero-dependency RC1 verifier module with direct Node CLI |
 
 ## Release convention
 
