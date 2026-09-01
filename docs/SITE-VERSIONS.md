@@ -84,6 +84,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 25 | `digitalocean-v25` | `905ceb4` | Align experiment assignment, telemetry, and analysis to one anonymous unit |
 | 26 | `digitalocean-v26` | `4e8f3e9` | Recompute assigned variants and exposure tokens during event ingestion |
 | 27 | `digitalocean-v27` | `3051587` | Gate continuously monitored experiment results as descriptive only |
+| 28 | `digitalocean-v28` | `1a1d88c` | Separate analysis cohorts from compatible software releases |
 
 ## Release convention
 
