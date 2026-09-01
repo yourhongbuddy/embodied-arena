@@ -71,6 +71,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 12 | `digitalocean-v12` | `9455b73` | Add privacy-first site version rotator |
 | 13 | `digitalocean-v13` | `041c92c` | Add auditable site experiment measurement |
 | 14 | `digitalocean-v14` | `ca5d20d` | Fix empty experiment dashboard rows and enforce warning-free rendering |
+| 15 | `digitalocean-v15` | `f4c6dfb` | Add bounded, schema-valid experiment analytics ingestion |
 
 ## Release convention
 
