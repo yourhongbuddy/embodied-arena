@@ -1,7 +1,7 @@
 import { getD1 } from "../../../db/d1.ts";
 import { ANALYTICS_RETENTION_QUERY } from "../../experiments/ingestion.ts";
 import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,ROTATOR_VERSION,WANTED_LANDING_EXPERIMENT } from "../../experiments/rotator.ts";
-import { summarizeExperiment,type RawExperimentRow } from "../../experiments/results.ts";
+import { summarizeExperiment,summarizeReceiptIntegrity,type RawExperimentRow,type RawReceiptIntegrityRow } from "../../experiments/results.ts";
 
 export const experimentResultsQuery=`WITH exposure_tokens AS (
   SELECT json_extract(metadata,'$.unit_id') unit_id,json_extract(metadata,'$.variant') variant,json_extract(metadata,'$.exposure_id') exposure_token
@@ -64,16 +64,43 @@ SELECT COALESCE(SUM(variant_count>1),0) cross_variant_units,
        COALESCE(SUM(variant_count=1 AND exposure_token_count>1),0) multi_token_units
 FROM unit_integrity`;
 
+export const experimentReceiptIntegrityQuery=`WITH current_receipts AS (
+  SELECT receipt_id,session_id,unit_id,expires_at
+  FROM experiment_assignment_receipts
+  WHERE expires_at>=? AND issued_at<=?
+    AND experiment=? AND analysis_cohort=?
+    AND treatment_fingerprint=? AND presentation_fingerprint=?
+), exposure_receipts AS (
+  SELECT json_extract(metadata,'$.assignment_receipt') receipt_id
+  FROM analytics_events
+  WHERE created_at>=datetime('now','-30 days')
+    AND event_type='experiment_exposure' AND path='/wanted-10k'
+    AND json_extract(metadata,'$.experiment')=?
+    AND json_extract(metadata,'$.analysis_cohort')=?
+    AND json_extract(metadata,'$.treatment_fingerprint')=?
+    AND json_extract(metadata,'$.presentation_fingerprint')=?
+    AND json_extract(metadata,'$.assignment_mode')='assigned'
+  GROUP BY json_extract(metadata,'$.assignment_receipt')
+)
+SELECT COUNT(*) issued_receipts,COUNT(DISTINCT r.unit_id) issued_units,
+       COALESCE(SUM(e.receipt_id IS NOT NULL),0) exposed_receipts,
+       COALESCE(SUM(e.receipt_id IS NULL),0) unexposed_receipts,
+       COALESCE(SUM(e.receipt_id IS NULL AND r.expires_at<=?),0) expired_unexposed_receipts,
+       COUNT(*)-COUNT(DISTINCT r.session_id||'|'||r.unit_id) duplicate_identity_receipts
+FROM current_receipts r LEFT JOIN exposure_receipts e ON e.receipt_id=r.receipt_id`;
+
 const emptySummary=()=>summarizeExperiment([]);
 
 export async function GET() {
   try {
     const db=await getD1();
     await db.prepare(ANALYTICS_RETENTION_QUERY).run();
-    const[result,integrity]=await Promise.all([
+    const receiptNow=new Date().toISOString(),receiptCutoff=new Date(Date.parse(receiptNow)-29*86_400_000).toISOString();
+    const[result,integrity,receiptIntegrity]=await Promise.all([
       db.prepare(experimentResultsQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).all<RawExperimentRow>(),
       db.prepare(experimentIntegrityQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).first<{cross_variant_units:number;multi_token_units:number}>(),
+      db.prepare(experimentReceiptIntegrityQuery).bind(receiptCutoff,receiptNow,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,receiptNow).first<RawReceiptIntegrityRow>(),
     ]);
-    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:Number(integrity?.cross_variant_units||0),multi_token_units_excluded:Number(integrity?.multi_token_units||0),...summarizeExperiment(result.results)},{headers:{"cache-control":"no-store"}});
-  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:0,multi_token_units_excluded:0,...emptySummary()},{headers:{"cache-control":"no-store"}}); }
+    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,receipt_integrity:summarizeReceiptIntegrity(receiptIntegrity),implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:Number(integrity?.cross_variant_units||0),multi_token_units_excluded:Number(integrity?.multi_token_units||0),...summarizeExperiment(result.results)},{headers:{"cache-control":"no-store"}});
+  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,receipt_integrity:summarizeReceiptIntegrity(null),implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:0,multi_token_units_excluded:0,...emptySummary()},{headers:{"cache-control":"no-store"}}); }
 }

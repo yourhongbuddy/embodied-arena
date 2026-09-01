@@ -4,8 +4,8 @@ import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { assignWantedVariant, canonicalTreatmentJson,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_PRESENTATION_IDENTITY,EXPERIMENT_PRESENTATION_NORMALIZATION,EXPERIMENT_PRESENTATION_PROFILE,EXPERIMENT_PRESENTATION_SOURCES,EXPERIMENT_TREATMENT_FINGERPRINT,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validExperimentUnitId,validWantedSessionAssignment,validWantedSessionAssignmentForUnit, validWantedVariant, WANTED_LANDING_EXPERIMENT,WANTED_LANDING_TREATMENT_IDENTITY } from "../app/experiments/rotator.ts";
-import { BONFERRONI_TWO_COMPARISON_Z,newcombeRiskDifference,summarizeExperiment,wilsonInterval } from "../app/experiments/results.ts";
-import { experimentIntegrityQuery,experimentResultsQuery } from "../app/api/experiments/route.ts";
+import { BONFERRONI_TWO_COMPARISON_Z,newcombeRiskDifference,summarizeExperiment,summarizeReceiptIntegrity,wilsonInterval } from "../app/experiments/results.ts";
+import { experimentIntegrityQuery,experimentReceiptIntegrityQuery,experimentResultsQuery } from "../app/api/experiments/route.ts";
 import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent,validExposureToken } from "../app/experiments/ingestion.ts";
 import { startAcknowledgedDelivery } from "../app/experiments/delivery.ts";
 import { createExperimentOutbox } from "../app/experiments/outbox.ts";
@@ -240,6 +240,11 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.ingestion.server_recomputes_exposure_token,true);
   assert.equal(experimentRotatorContract.ingestion.automated_fabrication_resistance,false);
   assert.equal(experimentRotatorContract.ingestion.decision_use_without_edge_abuse_control,false);
+  assert.equal(experimentRotatorContract.receipt_diagnostics.profile,"0.22-RD1");
+  assert.equal(experimentRotatorContract.receipt_diagnostics.thresholds,null);
+  assert.equal(experimentRotatorContract.receipt_diagnostics.decision_effect,"none");
+  assert.equal(experimentRotatorContract.receipt_diagnostics.counts_rejected_requests,false);
+  assert.equal(experimentRotatorContract.receipt_diagnostics.proves_human_traffic,false);
   assert.equal(experimentRotatorContract.safety_boundary.presentation_only,true);
   assert.equal(experimentRotatorContract.safety_boundary.changes_score,false);
   assert.equal(experimentRotatorContract.safety_boundary.changes_certification,false);
@@ -322,7 +327,7 @@ test("executes the matched-exposure query against SQLite",()=>{
   const db=new DatabaseSync(":memory:");
   db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT,event_type TEXT,path TEXT,metadata TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
   const insert=db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)");
-  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.21-R21",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,presentation=EXPERIMENT_PRESENTATION_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,presentation_fingerprint:presentation,assignment_receipt:"77777777-7777-4777-8777-777777777777",unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
+  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.22-R22",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,presentation=EXPERIMENT_PRESENTATION_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,presentation_fingerprint:presentation,assignment_receipt:"77777777-7777-4777-8777-777777777777",unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
   const controlUnit=unitForVariant("control"),controlToken=exposureTokenForAssignment(controlUnit,"control");
   event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_goal",variant:"control",unit:controlUnit,goal:"primary_cta"});
   const proofUnit=unitForVariant("proof"),proofToken=exposureTokenForAssignment(proofUnit,"proof");
@@ -330,7 +335,7 @@ test("executes the matched-exposure query against SQLite",()=>{
   const developerUnit=unitForVariant("developer"),developerToken=exposureTokenForAssignment(developerUnit,"developer");
   event({session:"wrong_token_session",eventType:"experiment_exposure",variant:"developer",unit:developerUnit});event({session:"wrong_token_session",eventType:"experiment_goal",variant:"developer",unit:developerUnit,token:"44444444-4444-4444-8444-444444444444",goal:"primary_cta"});
   event({session:"preview_session",eventType:"experiment_exposure",variant:"control",unit:controlUnit,mode:"preview"});event({session:"preview_session",eventType:"experiment_goal",variant:"control",unit:controlUnit,mode:"preview",goal:"primary_cta"});
-  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.22-R22"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.22-R22",goal:"primary_cta"});
+  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.23-R23"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.23-R23",goal:"primary_cta"});
   const wrongCohortUnit=unitForVariant("control",3);event({session:"wrong_cohort",eventType:"experiment_exposure",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1"});event({session:"wrong_cohort",eventType:"experiment_goal",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1",goal:"primary_cta"});
   const wrongFingerprintUnit=unitForVariant("control",4);event({session:"wrong_fingerprint",eventType:"experiment_exposure",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000"});event({session:"wrong_fingerprint",eventType:"experiment_goal",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000",goal:"primary_cta"});
   const wrongPresentationUnit=unitForVariant("proof",3);event({session:"wrong_presentation",eventType:"experiment_exposure",variant:"proof",unit:wrongPresentationUnit,presentation:"sha256:0000000000000000000000000000000000000000000000000000000000000000"});event({session:"wrong_presentation",eventType:"experiment_goal",variant:"proof",unit:wrongPresentationUnit,presentation:"sha256:0000000000000000000000000000000000000000000000000000000000000000",goal:"primary_cta"});
@@ -347,9 +352,31 @@ test("executes the matched-exposure query against SQLite",()=>{
   db.close();
 });
 
+test("reports the indexed receipt-to-exposure funnel without inventing rejected traffic",async()=>{
+  const db=new DatabaseSync(":memory:");
+  for(const file of ["../drizzle/0000_remarkable_mongoose.sql","../drizzle/0001_lyrical_vermin.sql"]){const migration=readFileSync(new URL(file,import.meta.url),"utf8").split("--> statement-breakpoint").join("");db.exec(migration)}
+  const d1=d1FromSqlite(db),now=new Date(),sessionA="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",sessionB="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",sessionC="cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const unitA=unitForVariant("control",5),unitB=unitForVariant("proof",5),unitC=unitForVariant("developer",5);
+  const receipts=[
+    createAssignmentReceiptRecord(unitA,sessionA,"10000000-0000-4000-8000-000000000001",new Date(now.getTime()-3_600_000).toISOString()),
+    createAssignmentReceiptRecord(unitB,sessionB,"10000000-0000-4000-8000-000000000002",new Date(now.getTime()-3_600_000).toISOString()),
+    createAssignmentReceiptRecord(unitC,sessionC,"10000000-0000-4000-8000-000000000003",new Date(now.getTime()-2*86_400_000).toISOString()),
+    createAssignmentReceiptRecord(unitB,sessionB,"10000000-0000-4000-8000-000000000004",new Date(now.getTime()-1_800_000).toISOString()),
+  ];
+  for(const receipt of receipts)await storeAssignmentReceipt(d1,receipt);
+  db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)").run(sessionA,"experiment_exposure","/wanted-10k",JSON.stringify({experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_mode:"assigned",assignment_receipt:receipts[0].receipt_id}));
+  const nowIso=now.toISOString(),cutoff=new Date(now.getTime()-29*86_400_000).toISOString(),parameters=[cutoff,nowIso,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,nowIso];
+  const raw=db.prepare(experimentReceiptIntegrityQuery).get(...parameters),summary=summarizeReceiptIntegrity(raw);
+  assert.deepEqual({...raw},{issued_receipts:4,issued_units:3,exposed_receipts:1,unexposed_receipts:3,expired_unexposed_receipts:1,duplicate_identity_receipts:1});
+  assert.deepEqual(summary,{profile:"0.22-RD1",window_days:30,issued_receipts:4,issued_units:3,exposed_receipts:1,unexposed_receipts:3,active_unexposed_receipts:2,expired_unexposed_receipts:1,duplicate_identity_receipts:1,receipt_to_exposure_rate:.25,status:"descriptive",counts_rejected_requests:false,proves_human_traffic:false,interpretation:"receipt issuance and accepted exposure funnel only; does not count rejected requests or identify human users"});
+  const plan=db.prepare(`EXPLAIN QUERY PLAN ${experimentReceiptIntegrityQuery}`).all(...parameters).map(row=>String(row.detail)).join(" ");
+  assert.match(plan,/idx_experiment_assignment_receipts_expires_at/);assert.match(plan,/idx_analytics_event_path/);
+  assert.equal(summarizeReceiptIntegrity(null).receipt_to_exposure_rate,null);assert.equal(summarizeReceiptIntegrity({issued_receipts:1,exposed_receipts:4}).exposed_receipts,1);db.close();
+});
+
 test("accepts only current, internal, schema-valid experiment events",()=>{
   const unit=unitForVariant("control"),token=exposureTokenForAssignment(unit,"control");
-  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:"66666666-6666-4666-8666-666666666666",unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.21-R21",exposure_id:token};
+  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:"66666666-6666-4666-8666-666666666666",unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.22-R22",exposure_id:token};
   assert.equal(validExperimentUnitId(exposure.unit_id),true);assert.equal(validExperimentUnitId("shared-user"),false);
   assert.equal(validExposureToken(exposure.exposure_id),true);assert.equal(validExposureToken("1"),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);

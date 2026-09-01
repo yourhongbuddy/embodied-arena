@@ -1,7 +1,14 @@
 import { EXPERIMENT_DECISION_GATE,WANTED_LANDING_EXPERIMENT } from "./rotator.ts";
 
 export type RawExperimentRow={variant:string;exposed_units:number;goal_units:number};
+export type RawReceiptIntegrityRow={issued_receipts:number;issued_units:number;exposed_receipts:number;unexposed_receipts:number;expired_unexposed_receipts:number;duplicate_identity_receipts:number};
 export const BONFERRONI_TWO_COMPARISON_Z=2.241402727604947;
+
+export function summarizeReceiptIntegrity(row:Partial<RawReceiptIntegrityRow>|null|undefined){
+  const integer=(value:unknown)=>Number.isInteger(Number(value))&&Number(value)>=0?Number(value):0;
+  const issuedReceipts=integer(row?.issued_receipts),issuedUnits=integer(row?.issued_units),exposedReceipts=Math.min(issuedReceipts,integer(row?.exposed_receipts)),unexposedReceipts=Math.min(issuedReceipts-exposedReceipts,integer(row?.unexposed_receipts)),expiredUnexposedReceipts=Math.min(unexposedReceipts,integer(row?.expired_unexposed_receipts)),duplicateIdentityReceipts=Math.min(issuedReceipts,integer(row?.duplicate_identity_receipts));
+  return{profile:"0.22-RD1",window_days:30,issued_receipts:issuedReceipts,issued_units:issuedUnits,exposed_receipts:exposedReceipts,unexposed_receipts:unexposedReceipts,active_unexposed_receipts:unexposedReceipts-expiredUnexposedReceipts,expired_unexposed_receipts:expiredUnexposedReceipts,duplicate_identity_receipts:duplicateIdentityReceipts,receipt_to_exposure_rate:issuedReceipts?exposedReceipts/issuedReceipts:null,status:issuedReceipts?"descriptive":"insufficient",counts_rejected_requests:false,proves_human_traffic:false,interpretation:"receipt issuance and accepted exposure funnel only; does not count rejected requests or identify human users"} as const;
+}
 
 export function wilsonInterval(successes:number,total:number,z=1.959963984540054){
   if(!Number.isInteger(successes)||!Number.isInteger(total)||successes<0||total<1||successes>total)return null;
