@@ -95,6 +95,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 36 | `digitalocean-v36` | `5824f48` | Canonicalize environment identities across browser, Python, and standalone scorers |
 | 37 | `digitalocean-v37` | `6a7dd3c` | Enforce annotated, contiguous, monotonic release history |
 | 38 | `digitalocean-v38` | `85c5326` | Ship a zero-dependency local verifier for signed telemetry streams |
+| 39 | `digitalocean-v39` | `6de6896` | Add a directly executable telemetry-verifier CLI with stable exit codes |
 
 ## Release convention
 
