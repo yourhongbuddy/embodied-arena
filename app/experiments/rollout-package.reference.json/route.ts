@@ -1,0 +1,2 @@
+import{experimentRolloutReferencePackage,verifyExperimentRolloutPackage}from"../rollout-package.ts";
+export async function GET(){const package_bundle=experimentRolloutReferencePackage();return Response.json({synthetic:true,package:package_bundle,expected:await verifyExperimentRolloutPackage(package_bundle),interpretation:"Conformance vector only. The approval, candidate artifact, digests, authority, and rollout are synthetic and authorize no live allocation change or deployment."},{headers:{"cache-control":"public, max-age=3600"}})}

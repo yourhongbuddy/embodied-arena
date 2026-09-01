@@ -1,0 +1,6 @@
+import type{Metadata}from"next";
+import{SiteNav}from"../../components/SiteNav";
+import{RolloutLab}from"./RolloutLab";
+import"../experiments.css";
+export const metadata:Metadata={title:"Artifact-Bound Rollout Lab — Embodied Arena",description:"Verify a WANTED staged-rollout package that binds approval, candidate artifact, cohort reset, safety gates, and rollback.",alternates:{canonical:"/experiments/rollout-lab"},robots:{index:false,follow:false}};
+export default function RolloutLabPage(){return <main className="experimentsPage rolloutLabPage"><SiteNav/><section className="designLabHero shell"><div><span className="eyebrow"><i className="liveDot"/> ARTIFACT-BOUND ROLLOUT LAB</span><h1>The approval is not<br/><em>the artifact.</em></h1></div><p>Verify that one signed decision is bound to the exact candidate manifest, frozen treatment and presentation, a mandatory C9 cohort reset, manual staged allocation, hard halt gates, and a bounded rollback.</p></section><RolloutLab/><section className="experimentBoundary"><div className="shell"><b>PACKAGE REVIEW, NOT EXECUTION</b><p>A passing synthetic vector proves verifier conformance only. This lab cannot authenticate source-archive bytes, change R36/C8, publish, deploy, advance a phase, or resume after rollback.</p><a href="/experiments/approval-lab">BACK TO APPROVAL →</a></div></section></main>}
