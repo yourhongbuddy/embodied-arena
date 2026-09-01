@@ -66,6 +66,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 7 | `digitalocean-v07` | `a08dca6` | Define exact-horizon analysis reproduction accounting |
 | 8 | `digitalocean-v08` | `f37f542` | Validate the ten-agent monitoring console and release harness |
 | 9 | `digitalocean-v09` | `52544f2` | Publish normative A2 analysis conformance vectors |
+| 10 | `digitalocean-v10` | `4097257` | Add the digest-pinned executable analysis conformance runner |
 
 ## Release convention
 
