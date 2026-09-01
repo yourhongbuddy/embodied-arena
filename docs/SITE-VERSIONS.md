@@ -90,6 +90,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 31 | `digitalocean-v31` | `ee65083` | Exclude unstable storage assignments without breaking the site |
 | 32 | `digitalocean-v32` | `8b7bf88` | Honor browser privacy choices before experiment eligibility |
 | 33 | `digitalocean-v33` | `2aef98a` | Purge local experiment state when analytics is disabled |
+| 34 | `digitalocean-v34` | `bae26a3` | Rotate site experiences daily and refuse primary W for terminal competing causes |
 
 ## Release convention
 
