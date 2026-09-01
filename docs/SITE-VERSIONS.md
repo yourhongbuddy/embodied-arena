@@ -128,6 +128,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 69 | `digitalocean-v69` | `7d554e2` | Add a deterministic fixed-close decision policy, local lab, strict schema, and portable verifier CLI |
 | 70 | `digitalocean-v70` | `e3ca83c` | Bind fixed-close policy evidence to a signed analysis-custodian record and independently pinned trust root |
 | 71 | `digitalocean-v71` | `c3cac4a` | Add no-key-custody accountable approval for one evidence-matched, time-bounded site-version action |
+| 72 | `digitalocean-v72` | `094f2a8` | Add an artifact-bound R37/C9 staged-rollout package with manual gates and bounded rollback, without changing live R36/C8 |
 
 ## Release convention
 
