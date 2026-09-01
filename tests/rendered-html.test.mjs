@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 const projectRoot = dirname(fileURLToPath(new URL("../package.json", import.meta.url)));
 let serverProcess;
 let serverPromise;
+let serverOutput = "";
 
 async function availablePort() {
   return new Promise((resolve, reject) => {
@@ -33,7 +34,6 @@ async function standaloneServer() {
     serverPromise = (async () => {
       const port = await availablePort();
       const baseUrl = `http://127.0.0.1:${port}/`;
-      let output = "";
       serverProcess = spawn(process.execPath, ["dist/standalone/server.js"], {
         cwd: projectRoot,
         env: { ...process.env, HOST: "127.0.0.1", PORT: String(port) },
@@ -41,11 +41,11 @@ async function standaloneServer() {
       });
       for (const stream of [serverProcess.stdout, serverProcess.stderr]) {
         stream.setEncoding("utf8");
-        stream.on("data", chunk => { output = `${output}${chunk}`.slice(-8_000); });
+        stream.on("data", chunk => { serverOutput = `${serverOutput}${chunk}`.slice(-8_000); });
       }
       for (let attempt = 0; attempt < 100; attempt += 1) {
         if (serverProcess.exitCode !== null) {
-          throw new Error(`Standalone server exited with code ${serverProcess.exitCode}.\n${output}`);
+          throw new Error(`Standalone server exited with code ${serverProcess.exitCode}.\n${serverOutput}`);
         }
         try {
           const response = await fetch(new URL("robots.txt", baseUrl), {
@@ -58,7 +58,7 @@ async function standaloneServer() {
         await delay(50);
       }
       serverProcess.kill("SIGTERM");
-      throw new Error(`Standalone server did not become ready.\n${output}`);
+      throw new Error(`Standalone server did not become ready.\n${serverOutput}`);
     })();
   }
   return serverPromise;
@@ -70,10 +70,12 @@ async function request(path, accept = "text/html") {
 }
 
 after(async () => {
-  if (!serverProcess || serverProcess.exitCode !== null) return;
-  serverProcess.kill("SIGTERM");
-  await Promise.race([once(serverProcess, "exit"), delay(2_000)]);
-  if (serverProcess.exitCode === null) serverProcess.kill("SIGKILL");
+  if (serverProcess && serverProcess.exitCode === null) {
+    serverProcess.kill("SIGTERM");
+    await Promise.race([once(serverProcess, "exit"), delay(2_000)]);
+    if (serverProcess.exitCode === null) serverProcess.kill("SIGKILL");
+  }
+  assert.doesNotMatch(serverOutput,/Each child in a list should have a unique/);
 });
 
 test("server-renders the WANTED-10K benchmark and protocol kit", async () => {

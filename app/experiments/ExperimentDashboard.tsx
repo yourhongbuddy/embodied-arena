@@ -9,7 +9,7 @@ type Data={status:"ready"|"unavailable";experiment:string;window_days:number;pri
 export function ExperimentDashboard(){
   const[data,setData]=useState<Data|null>(null);const[failed,setFailed]=useState(false);
   useEffect(()=>{sessionStorage.setItem("ea_experiment_operator","1");let active=true;fetch("/api/experiments").then(response=>response.ok?response.json():Promise.reject()).then(value=>{if(active)setData(value)}).catch(()=>{if(active)setFailed(true)});return()=>{active=false}},[]);
-  const rows=data?.variants||WANTED_LANDING_EXPERIMENT.variants.map(variant=>({...variant,exposed_sessions:0,goal_sessions:0,conversion_rate:null,conversion_interval_95:null}));
+  const rows=data?.variants||WANTED_LANDING_EXPERIMENT.variants.map(variant=>({variant:variant.id,label:variant.label,weight_basis_points:variant.weight_basis_points,exposed_sessions:0,goal_sessions:0,conversion_rate:null,conversion_interval_95:null}));
   const reset=()=>{
     localStorage.removeItem("ea_experiment_seed");
     for(let index=sessionStorage.length-1;index>=0;index--){const key=sessionStorage.key(index);if(key?.startsWith("ea_exposure:"))sessionStorage.removeItem(key)}
