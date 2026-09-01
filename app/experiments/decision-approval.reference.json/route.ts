@@ -1,0 +1,2 @@
+import{experimentDecisionApprovalReferenceBundle,verifyExperimentDecisionApproval}from"../decision-approval.ts";
+export async function GET(){const bundle=experimentDecisionApprovalReferenceBundle();return Response.json({synthetic:true,bundle,expected:await verifyExperimentDecisionApproval(bundle),interpretation:"Cryptographic conformance vector only. The example.org decision authority, record, key, approval, and action are synthetic and authorize no real rollout."},{headers:{"cache-control":"public, max-age=3600"}})}

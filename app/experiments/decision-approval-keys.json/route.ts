@@ -1,0 +1,2 @@
+import{EXPERIMENT_DECISION_AUTHORITY_KEY_MANIFEST,EXPERIMENT_DECISION_AUTHORITY_KEY_MANIFEST_SHA256}from"../decision-approval.ts";
+export function GET(){return Response.json({synthetic:true,canonical_key_manifest_sha256:EXPERIMENT_DECISION_AUTHORITY_KEY_MANIFEST_SHA256,key_manifest:EXPERIMENT_DECISION_AUTHORITY_KEY_MANIFEST,interpretation:"Synthetic trust root only. Production review requires independently pinning the accountable decision authority key-manifest digest."},{headers:{"cache-control":"public, max-age=3600"}})}
