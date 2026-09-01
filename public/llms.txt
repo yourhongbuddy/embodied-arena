@@ -16,6 +16,7 @@ Embodied Arena is a vendor-neutral robot intelligence benchmark, HILO Realtime P
 - OpenAPI document: /wanted-10k/openapi.json
 - Benchmark specification: /wanted-10k/spec.json
 - Normative analysis conformance vectors: /wanted-10k/analysis-conformance-vectors.json
+- Zero-dependency analysis conformance runner: /wanted-10k/wanted-analysis-conformance.mjs
 
 ## Interpretation rules
 

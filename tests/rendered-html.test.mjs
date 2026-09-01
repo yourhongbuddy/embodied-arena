@@ -671,18 +671,26 @@ test("ships the robustness analysis in the dependency-free Python reference", as
   assert.match(source, /retained_at_10000/);
 });
 
-test("publishes normative A2 analysis conformance vectors", async () => {
-  const [vectorsResponse, schemaResponse, contractResponse, specResponse] = await Promise.all([
+test("publishes normative A2 analysis conformance vectors and executable runner", async () => {
+  const [vectorsResponse, schemaResponse, contractResponse, runnerResponse, runnerContractResponse, pageResponse, openapiResponse, specResponse] = await Promise.all([
     request("/wanted-10k/analysis-conformance-vectors.json", "application/json"),
     request("/wanted-10k/analysis-conformance-vectors.schema.json", "application/json"),
     request("/wanted-10k/analysis-reproduction.json", "application/json"),
+    request("/wanted-10k/wanted-analysis-conformance.mjs", "text/javascript"),
+    request("/wanted-10k/analysis-conformance-sdk.json", "application/json"),
+    request("/wanted-10k/analysis-reproduction"),
+    request("/wanted-10k/openapi.json", "application/json"),
     request("/wanted-10k/spec.json", "application/json"),
   ]);
-  for (const response of [vectorsResponse, schemaResponse, contractResponse, specResponse]) assert.equal(response.status, 200);
-  const [vectors, schema, contract, spec] = await Promise.all([
+  for (const response of [vectorsResponse, schemaResponse, contractResponse, runnerResponse, runnerContractResponse, pageResponse, openapiResponse, specResponse]) assert.equal(response.status, 200);
+  const [vectors, schema, contract, runnerSource, runnerContract, pageHtml, openapi, spec] = await Promise.all([
     vectorsResponse.json(),
     schemaResponse.json(),
     contractResponse.json(),
+    runnerResponse.text(),
+    runnerContractResponse.json(),
+    pageResponse.text(),
+    openapiResponse.json(),
     specResponse.json(),
   ]);
   assert.equal(vectors.version, "0.2-AC1");
@@ -691,8 +699,19 @@ test("publishes normative A2 analysis conformance vectors", async () => {
   assert.equal(schema.properties.version.const, "0.2-AC1");
   assert.equal(contract.conformance_profile, "0.2-AC1");
   assert.equal(contract.conformance_vectors, "/wanted-10k/analysis-conformance-vectors.json");
+  assert.match(runnerSource, /runWantedAnalysisConformance/);
+  assert.equal(runnerContract.version, "0.2-ACS1");
+  assert.equal(runnerContract.source_sha256, createHash("sha256").update(runnerSource).digest("hex"));
+  assert.equal(runnerContract.vector_pack_sha256, createHash("sha256").update(JSON.stringify(vectors)).digest("hex"));
+  assert.match(pageHtml, /Import once/);
+  assert.match(pageHtml, /href="\/wanted-10k\/wanted-analysis-conformance\.mjs"/);
+  assert.equal(openapi["x-wanted-analysis-conformance"].runner_version, "0.2-ACS1");
+  assert.equal(openapi["x-wanted-analysis-conformance"].vector_pack_sha256, runnerContract.vector_pack_sha256);
   assert.equal(spec.analysis_conformance_profile.version, "0.2-AC1");
+  assert.equal(spec.analysis_conformance_profile.runner_version, "0.2-ACS1");
+  assert.equal(spec.analysis_conformance_profile.vector_pack_sha256, runnerContract.vector_pack_sha256);
   assert.equal(spec.developer_resources.analysis_conformance_vectors, "/wanted-10k/analysis-conformance-vectors.json");
+  assert.equal(spec.developer_resources.analysis_conformance_runner, "/wanted-10k/wanted-analysis-conformance.mjs");
 });
 
 test("serves the local conformance checker and corrected score lab", async () => {

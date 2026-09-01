@@ -44,6 +44,8 @@ const kit = [
   ["ANALYSIS TEMPLATE", "Start from a passing synthetic 24-environment claim with exact primary, uncertainty, and robustness outputs.", "/wanted-10k/analysis-reproduction.template.json", "DOWNLOAD JSON ↓"],
   ["ANALYSIS CONFORMANCE VECTORS", "Run five normative 0.2-AC1 edge cases with exact outputs for the A2 estimator, tie rule, horizon boundary, and refusal paths.", "/wanted-10k/analysis-conformance-vectors.json", "DOWNLOAD VECTORS ↓"],
   ["ANALYSIS CONFORMANCE SCHEMA", "Validate the complete vector pack before using it to qualify an independent SDK or analysis implementation.", "/wanted-10k/analysis-conformance-vectors.schema.json", "OPEN SCHEMA ↗"],
+  ["ANALYSIS CONFORMANCE RUNNER", "Execute the entire 0.2-AC1 pack with a zero-dependency ESM module and receive field-level mismatch reports.", "/wanted-10k/wanted-analysis-conformance.mjs", "DOWNLOAD RUNNER ↓"],
+  ["ANALYSIS RUNNER CONTRACT", "Pin runner version 0.2-ACS1, exported functions, source digest, vector-pack digest, and the non-certification boundary.", "/wanted-10k/analysis-conformance-sdk.json", "OPEN CONTRACT ↗"],
   ["FIELD SAFETY CASE", "Evaluate seven non-compensatory gates for scope, stop authority, protective functions, incidents, security, operations, and independent assessment.", "/wanted-10k/safety", "OPEN SAFETY LAB →"],
   ["SAFETY MANIFEST SCHEMA", "Validate the strict deployment-scoped evidence object behind every WANTED field safety decision.", "/wanted-10k/safety-manifest.schema.json", "OPEN SCHEMA ↗"],
   ["SAFETY MANIFEST TEMPLATE", "Start from a complete synthetic 0.2-S1 case with assessed limits, incident closure, security controls, and artifact bindings.", "/wanted-10k/safety-manifest.template.json", "DOWNLOAD JSON ↓"],

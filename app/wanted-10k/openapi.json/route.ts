@@ -41,6 +41,7 @@ const openapi = {
   },
   "x-wanted-certification": { contract: "/wanted-10k/certification.json", audit_schema: "/wanted-10k/audit-manifest.schema.json", target_templates: "/wanted-10k/certification-templates.json", local_readiness_verifier: "/wanted-10k/audit" },
   "x-wanted-audit-verifier": { module: "/wanted-10k/wanted-audit-verifier.mjs", contract: "/wanted-10k/audit-verifier-sdk.json", performs_network_requests: false },
+  "x-wanted-analysis-conformance": { profile: "0.2-AC1", runner_version: "0.2-ACS1", module: "/wanted-10k/wanted-analysis-conformance.mjs", contract: "/wanted-10k/analysis-conformance-sdk.json", vectors: "/wanted-10k/analysis-conformance-vectors.json", vector_pack_sha256: "9e844007c7b09a684afaa42352bde79a0a0caac32af573361d1d23f8b07ba9aa", ranking_effect: "none" },
   "x-wanted-exposure-ledger": "/wanted-10k/exposure-ledger.json",
   "x-wanted-telemetry-authenticity": "/wanted-10k/telemetry-authenticity.json",
   "x-wanted-key-manifest-schema": "/wanted-10k/telemetry-key-manifest.schema.json",
