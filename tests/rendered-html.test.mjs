@@ -108,13 +108,17 @@ test("publishes a stable privacy-first site version rotator",async()=>{
   const pageHtml=await pageResponse.text();
   assert.match(pageHtml,/Test the framing/);assert.match(pageHtml,/PRESENTATION ONLY/);assert.match(pageHtml,/wanted_variant=control/);assert.match(pageHtml,/wanted_variant=proof/);assert.match(pageHtml,/wanted_variant=developer/);
   const [contract,results]=await Promise.all([contractResponse.json(),resultResponse.json()]);
-  assert.equal(contract.version,"0.2-R2");assert.equal(contract.assignment.stable_per_device,true);assert.equal(contract.safety_boundary.changes_score,false);assert.equal(contract.inference.winner_declaration,false);assert.equal(contract.experiments[0].variants.reduce((sum,variant)=>sum+variant.weight_basis_points,0),10_000);
+  assert.equal(contract.version,"0.3-R3");assert.equal(contract.assignment.stable_per_device,true);assert.equal(contract.privacy.event_retention_days,35);assert.equal(contract.safety_boundary.changes_score,false);assert.equal(contract.inference.winner_declaration,false);assert.equal(contract.experiments[0].variants.reduce((sum,variant)=>sum+variant.weight_basis_points,0),10_000);
   assert.equal(results.experiment,"wanted_landing_v1");assert.equal(results.variants.length,3);assert.equal(results.sample_ratio_mismatch.status,"insufficient");assert.equal(["ready","unavailable"].includes(results.status),true);
   const baseUrl=await standaloneServer();
   const invalid=await fetch(new URL("api/analytics",baseUrl),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sessionId:"bad",eventType:"experiment_exposure",path:"/wanted-10k"})});
   assert.equal(invalid.status,400);
-  const accepted=await fetch(new URL("api/analytics",baseUrl),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sessionId:"session_test_001",eventType:"experiment_exposure",path:"/wanted-10k",metadata:{experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned"}})});
+  const accepted=await fetch(new URL("api/analytics",baseUrl),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sessionId:"session_test_001",eventType:"experiment_exposure",path:"/wanted-10k",metadata:{experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned",rotator_version:"0.3-R3"}})});
   assert.equal(accepted.status,204);
+  const forged=await fetch(new URL("api/analytics",baseUrl),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sessionId:"session_test_001",eventType:"experiment_exposure",path:"/wanted-10k",metadata:{experiment:"wanted_landing_v1",variant:"winner",assignment_mode:"assigned",rotator_version:"0.3-R3"}})});
+  assert.equal(forged.status,400);
+  const wrongType=await fetch(new URL("api/analytics",baseUrl),{method:"POST",body:"{}"});assert.equal(wrongType.status,415);
+  const oversized=await fetch(new URL("api/analytics",baseUrl),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({padding:"x".repeat(9_000)})});assert.equal(oversized.status,413);
 });
 
 test("publishes the vendor-neutral HILO Realtime protocol", async () => {

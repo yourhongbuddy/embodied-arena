@@ -62,7 +62,7 @@ export function WantedLandingExperience() {
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
   const variant = content[displayAssignment.variant];
   const goal = (goalName: string, href: string) => {
-    if (assignment?.mode === "assigned") track("experiment_goal", location.pathname, { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode });
+    if (assignment?.mode === "assigned") track("experiment_goal", location.pathname, { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION });
   };
   return <section className={`wantedHero shell wantedVariant wantedVariant--${displayAssignment.variant}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={displayAssignment.variant}>
     {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>PREVIEW MODE</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}

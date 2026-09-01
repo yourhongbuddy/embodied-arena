@@ -4,6 +4,7 @@ import test from "node:test";
 import { assignWantedVariant, experimentRotatorContract, resolveWantedAssignment, validWantedVariant, WANTED_LANDING_EXPERIMENT } from "../app/experiments/rotator.ts";
 import { summarizeExperiment,wilsonInterval } from "../app/experiments/results.ts";
 import { experimentResultsQuery } from "../app/api/experiments/route.ts";
+import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent } from "../app/experiments/ingestion.ts";
 
 test("publishes a complete deterministic allocation",()=>{
   assert.equal(WANTED_LANDING_EXPERIMENT.variants.reduce((sum,variant)=>sum+variant.weight_basis_points,0),10_000);
@@ -31,6 +32,7 @@ test("accepts only named preview variants and keeps previews out of assigned buc
 test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.privacy.persistent_identifier,"device_local_only");
   assert.equal(experimentRotatorContract.privacy.IP_storage,false);
+  assert.equal(experimentRotatorContract.privacy.event_retention_days,ANALYTICS_RETENTION_DAYS);
   assert.equal(experimentRotatorContract.counting.preview_mode_included,false);
   assert.equal(experimentRotatorContract.counting.operator_mode_included,false);
   assert.equal(experimentRotatorContract.inference.winner_declaration,false);
@@ -76,4 +78,21 @@ test("executes the matched-exposure query against SQLite",()=>{
   assert.deepEqual({...found.get("proof")},{variant:"proof",exposed_sessions:1,goal_sessions:0});
   assert.deepEqual({...found.get("developer")},{variant:"developer",exposed_sessions:1,goal_sessions:0});
   db.close();
+});
+
+test("accepts only current, internal, schema-valid experiment events",()=>{
+  const exposure={experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned",rotator_version:"0.3-R3"};
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,variant:"invented"}),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.2-R2"}),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/analytics",exposure),false);
+  assert.equal(validExperimentEvent("experiment_goal","/wanted-10k",{...exposure,goal:"primary_cta",destination:"/wanted-10k/protocol"}),true);
+  assert.equal(validExperimentEvent("experiment_goal","/wanted-10k",{...exposure,goal:"primary_cta",destination:"https://example.com"}),false);
+});
+
+test("deletes analytics older than the bounded retention window",()=>{
+  assert.equal(ANALYTICS_RETENTION_DAYS,35);
+  const db=new DatabaseSync(":memory:");db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY,created_at TEXT NOT NULL)");
+  db.prepare("INSERT INTO analytics_events VALUES (?,datetime('now',?))").run(1,"-36 days");db.prepare("INSERT INTO analytics_events VALUES (?,datetime('now',?))").run(2,"-34 days");
+  db.exec(ANALYTICS_RETENTION_QUERY);assert.deepEqual(db.prepare("SELECT id FROM analytics_events ORDER BY id").all().map(row=>row.id),[2]);db.close();
 });
