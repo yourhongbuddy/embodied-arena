@@ -64,9 +64,11 @@ export function WantedLandingExperience() {
   const goal = (goalName: string, href: string) => {
     if (assignment?.mode === "assigned") track("experiment_goal", location.pathname, { experiment: assignment.experiment, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION });
   };
-  return <section className={`wantedHero shell wantedVariant wantedVariant--${displayAssignment.variant}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={displayAssignment.variant}>
+  const pending=assignment===null;
+  return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} aria-busy={pending}>
+    {pending&&<div className="variantPending" role="status"><i/><b>WANTED-10K</b><span>Assigning a stable privacy-first site version</span></div>}
     {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>PREVIEW MODE</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
-    <div className="wantedHeroCopy">
+    <div className="wantedHeroCopy" aria-hidden={pending}>
       <span className="eyebrow"><i className="liveDot"/> {variant.eyebrow}</span>
       <h1>{variant.headline}</h1>
       <p>{variant.intro}</p>
@@ -76,7 +78,7 @@ export function WantedLandingExperience() {
       </div>
       <div className="wantedProof">{variant.proof.map(([value,label])=><div key={label}><strong>{value}</strong><span>{label}</span></div>)}</div>
     </div>
-    <div className="survivalCard" aria-label="Illustrative robot retention survival curve">
+    <div className="survivalCard" aria-label="Illustrative robot retention survival curve" aria-hidden={pending}>
       <header><span>{variant.cardLabel}</span><b>Ŝ(t)</b></header>
       <div className="curvePlot">
         <span className="y y1">100%</span><span className="y y2">50%</span><span className="y y3">0%</span>

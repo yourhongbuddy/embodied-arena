@@ -35,6 +35,7 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.privacy.event_retention_days,ANALYTICS_RETENTION_DAYS);
   assert.equal(experimentRotatorContract.counting.preview_mode_included,false);
   assert.equal(experimentRotatorContract.counting.operator_mode_included,false);
+  assert.equal(experimentRotatorContract.assignment.pre_assignment_presentation,"neutral_noninteractive");
   assert.equal(experimentRotatorContract.inference.winner_declaration,false);
   assert.equal(experimentRotatorContract.safety_boundary.presentation_only,true);
   assert.equal(experimentRotatorContract.safety_boundary.changes_score,false);
@@ -81,10 +82,10 @@ test("executes the matched-exposure query against SQLite",()=>{
 });
 
 test("accepts only current, internal, schema-valid experiment events",()=>{
-  const exposure={experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned",rotator_version:"0.3-R3"};
+  const exposure={experiment:"wanted_landing_v1",variant:"control",assignment_mode:"assigned",rotator_version:"0.4-R4"};
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,variant:"invented"}),false);
-  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.2-R2"}),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.3-R3"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/analytics",exposure),false);
   assert.equal(validExperimentEvent("experiment_goal","/wanted-10k",{...exposure,goal:"primary_cta",destination:"/wanted-10k/protocol"}),true);
   assert.equal(validExperimentEvent("experiment_goal","/wanted-10k",{...exposure,goal:"primary_cta",destination:"https://example.com"}),false);

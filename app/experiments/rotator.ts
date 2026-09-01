@@ -1,4 +1,4 @@
-export const ROTATOR_VERSION = "0.3-R3";
+export const ROTATOR_VERSION = "0.4-R4";
 
 export const WANTED_LANDING_EXPERIMENT = {
   id: "wanted_landing_v1",
@@ -52,7 +52,7 @@ export function resolveWantedAssignment(seed: string, previewOverride?: string |
 export const experimentRotatorContract = {
   version: ROTATOR_VERSION,
   privacy: { persistent_identifier: "device_local_only", transmitted_identifier: "ephemeral_session_only", IP_storage: false, fingerprinting: false, third_party_analytics: false, event_retention_days: 35, deletion_mechanism: "delete_before_each_accepted_insert" },
-  assignment: { algorithm: "FNV1a_32", modulus: 10_000, stable_per_device: true, query_override: "wanted_variant", invalid_override: "ignored" },
+  assignment: { algorithm: "FNV1a_32", modulus: 10_000, stable_per_device: true, query_override: "wanted_variant", invalid_override: "ignored", pre_assignment_presentation: "neutral_noninteractive" },
   counting: { exposure: "once_per_session_per_experiment_variant", goal: "distinct_exposed_sessions_with_later_matching_primary_cta", preview_mode_included: false, operator_mode_included: false, reporting_window_days: 30 },
   inference: { conversion_interval: "wilson_score_95_percent", sample_ratio_mismatch: "pearson_chi_square_df_2", sample_ratio_alert_p_below: 0.001, winner_declaration: false },
   ingestion: { maximum_body_bytes: 8192, content_type: "application/json", experiment_id_required: true, current_rotator_version_required: true, same_variant_goal_required: true },
