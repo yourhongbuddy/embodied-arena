@@ -1,6 +1,6 @@
-export const ROTATOR_VERSION = "0.14-R14";
-export const EXPERIMENT_ANALYSIS_COHORT = "wanted_landing_v1-C1";
-export const EXPERIMENT_ANALYSIS_COHORT_START_VERSION = "0.14-R14";
+export const ROTATOR_VERSION = "0.15-R15";
+export const EXPERIMENT_ANALYSIS_COHORT = "wanted_landing_v1-C2";
+export const EXPERIMENT_ANALYSIS_COHORT_START_VERSION = "0.15-R15";
 export const EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS = [2_000,10_000,30_000] as const;
 export const EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES=20;
 export const EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS=86_400_000;
@@ -24,6 +24,38 @@ export const WANTED_LANDING_EXPERIMENT = {
 export type WantedVariant = typeof WANTED_LANDING_EXPERIMENT.variants[number]["id"];
 export type AssignmentMode = "assigned" | "preview";
 export type WantedAssignment = { experiment: typeof WANTED_LANDING_EXPERIMENT.id; variant: WantedVariant; bucket: number | null; mode: AssignmentMode };
+export type WantedTreatment={eyebrow:string;headline:readonly[string,string];intro:string;primary:{label:string;href:string};proof:readonly(readonly[string,string])[];cardLabel:string};
+
+export const WANTED_LANDING_TREATMENTS={
+  control:{eyebrow:"OPEN TECHNICAL SPEC · VERSION 0.2",headline:["Still wanted","after 10,000 hours?"],intro:"Most benchmarks ask whether a robot can complete a task. WANTED-10K asks whether people continue choosing the robot after novelty fades, hardware ages, routines change, and mistakes accumulate.",primary:{label:"Open protocol kit",href:"/wanted-10k/protocol"},proof:[["10,000","RESIDENT HOURS"],["20+","INDEPENDENT ENVIRONMENTS"],["1","PRIMARY SCORE"],["0","SAFETY TRADE-OFFS"]],cardLabel:"RETENTION / KAPLAN–MEIER"},
+  proof:{eyebrow:"ONE SCORE · NON-COMPENSATORY SAFETY · INDEPENDENT AUDIT",headline:["One score for","what happens after the demo."],intro:"WANTED turns continued coexistence into a survival endpoint: time until a person permanently and voluntarily rejects the robot. Every burden stays visible, every safety gate stays absolute, and unsupported tails stay unscored.",primary:{label:"Inspect the evidence chain",href:"/wanted-10k/protocol"},proof:[["W","NORMALIZED RMST"],["10K","FIXED HORIZON"],["95%","CLUSTER CI"],["L4=0","HARD SAFETY GATE"]],cardLabel:"PRIMARY ESTIMATOR / NORMALIZED RMST"},
+  developer:{eyebrow:"VENDOR-NEUTRAL · SIX EVENTS · ZERO RUNTIME DEPENDENCIES",headline:["Ten thousand hours.","One integration contract."],intro:"Keep the robot's native stack. Add six signed event types, a continuous resident clock, and a reproducible endpoint table. WANTED supplies the schemas, reference adapter, local verifiers, and immutable audit handoff.",primary:{label:"Integrate a robot",href:"/wanted-10k/sdk"},proof:[["6","EVENT TYPES"],["1","ORDERED CHAIN"],["0","RUNTIME DEPENDENCIES"],["100%","AUDIT BINDING"]],cardLabel:"REFERENCE OUTPUT / RETENTION CURVE"},
+} as const satisfies Record<WantedVariant,WantedTreatment>;
+
+export const WANTED_LANDING_SECONDARY_ACTIONS=[
+  ["Open HILO Realtime","/wanted-10k/realtime"],["Preflight a policy","/wanted-10k/preflight"],["Verify resident hours","/wanted-10k/exposure-ledger"],["Calculate a cohort","/wanted-10k/calculator"],["Reproduce a score","/wanted-10k/analysis-reproduction"],["Audited registry","/wanted-10k/leaderboard"],["Research basis","/wanted-10k/evidence"],
+] as const;
+
+export const WANTED_LANDING_TREATMENT_IDENTITY={
+  experiment_id:WANTED_LANDING_EXPERIMENT.id,
+  audience:WANTED_LANDING_EXPERIMENT.audience,
+  assignment_unit:WANTED_LANDING_EXPERIMENT.assignment_unit,
+  allocation_basis_points:WANTED_LANDING_EXPERIMENT.allocation_basis_points,
+  salt:WANTED_LANDING_EXPERIMENT.salt,
+  variants:WANTED_LANDING_EXPERIMENT.variants,
+  primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,
+  treatments:WANTED_LANDING_TREATMENTS,
+  secondary_actions:WANTED_LANDING_SECONDARY_ACTIONS,
+} as const;
+
+export function canonicalTreatmentJson(value:unknown):string{
+  if(value===null||typeof value!=="object")return JSON.stringify(value)??"null";
+  if(Array.isArray(value))return`[${value.map(canonicalTreatmentJson).join(",")}]`;
+  const record=value as Record<string,unknown>;
+  return`{${Object.keys(record).sort().map(key=>`${JSON.stringify(key)}:${canonicalTreatmentJson(record[key])}`).join(",")}}`;
+}
+
+export const EXPERIMENT_TREATMENT_FINGERPRINT="sha256:7bce1b31ec607901f180fa99b4ccac6577b54baeee0140b8bb02e591305dda13";
 
 export function fnv1a32(value: string) {
   let hash = 0x811c9dc5;
@@ -87,13 +119,13 @@ export const EXPERIMENT_DECISION_GATE={
 
 export const experimentRotatorContract = {
   version: ROTATOR_VERSION,
-  analysis_cohort: { id: EXPERIMENT_ANALYSIS_COHORT, starts_at_implementation_version: EXPERIMENT_ANALYSIS_COHORT_START_VERSION, legacy_versions_included: [], aggregation_key: "analysis_cohort", implementation_revision_changes_reset_cohort: false, assignment_or_treatment_change_requires_new_cohort: true, allocation_change_requires_new_cohort: true },
+  analysis_cohort: { id: EXPERIMENT_ANALYSIS_COHORT, starts_at_implementation_version: EXPERIMENT_ANALYSIS_COHORT_START_VERSION, legacy_versions_included: [], treatment_fingerprint: EXPERIMENT_TREATMENT_FINGERPRINT, fingerprint_algorithm: "sha256_canonical_json", aggregation_keys: ["analysis_cohort","treatment_fingerprint"], implementation_revision_changes_reset_cohort: false, assignment_or_treatment_change_requires_new_cohort: true, allocation_change_requires_new_cohort: true, measurement_contract_change_requires_new_cohort: true, previous_cohorts: [{id:"wanted_landing_v1-C1",starts_at_implementation_version:"0.14-R14",ends_at_implementation_version:"0.14-R14",current_aggregation:false,reason_closed:"treatment_fingerprint_measurement_contract_added"}] },
   privacy: { persistent_identifier: "experiment_scoped_random_assignment_id", transmitted_identifier: "experiment_unit_session_and_exposure_token", assignment_id_contains_user_attributes: false, separate_device_identifier: false, unit_id_scope: WANTED_LANDING_EXPERIMENT.id, unit_id_cross_experiment_linkage: false, IP_storage: false, fingerprinting: false, third_party_analytics: false, event_retention_days: 35, deletion_mechanism: "delete_before_each_accepted_insert_and_results_read", deletion_triggers: ["accepted_insert","analytics_summary_read","experiment_results_read"] },
   assignment: { unit: "experiment_scoped_anonymous_browser_unit", assignment_material: "random_experiment_scoped_unit_id", server_recomputable: true, analysis_unit_matches_assignment_unit: true, algorithm: "FNV1a_32", modulus: 10_000, stable_per_device: true, stable_per_session: true, session_lock_scope: "analysis_cohort_experiment", one_assigned_variant_per_session: true, one_assigned_variant_per_unit: true, query_override: "wanted_variant", invalid_override: "ignored", pre_assignment_presentation: "neutral_noninteractive" },
   delivery: { exposure_transport: "acknowledged_fetch_keepalive", exposure_token: "deterministic_unit_variant_analysis_cohort_binding", exposure_token_server_recomputable: true, exposure_token_implementation_revision_bound: false, acknowledgement: "x-analytics-status=accepted", retry_delays_ms: EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS, retry_when_online: true, session_marker_after_acknowledgement: true, session_marker_scope: "analysis_cohort_experiment_variant", goal_transport: "acknowledged_fetch_keepalive_with_session_outbox", goal_outbox_scope: "session_only", goal_outbox_max_entries: EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES, goal_outbox_max_age_ms: EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS, goal_retry_on_route_change: true, goal_retry_when_online: true, rejected_goal_events_discarded: true },
   counting: { unit: "experiment_scoped_anonymous_browser_unit", exposure: "one_unique_exposure_token_per_experiment_unit", goal: "distinct_exposed_units_with_matching_exposure_token_primary_cta", event_path: "/wanted-10k", query_path_required: true, duplicate_sessions_and_receipts_with_same_unit_token_deduplicated: true, one_exposure_token_per_counted_unit: true, receipt_order_dependency: false, cross_variant_units_excluded: true, multi_token_units_excluded: true, integrity_exclusions_disclosed: true, preview_mode_included: false, operator_mode_included: false, reporting_window_days: 30 },
   inference: { monitoring_window: "rolling_30_day_continuously_viewed", conversion_interval: "wilson_score_95_percent", effect_measure: "absolute_conversion_rate_difference_vs_control", effect_interval: "newcombe_wilson", multiple_comparison_control: "bonferroni_two_comparisons_familywise_95_percent", repeated_look_adjustment: "none", confidence_intervals_support_stopping: false, preregistered_stopping_rule: false, interval_labels_are_directional_decisions: false, decision_gate: EXPERIMENT_DECISION_GATE, automatic_decision: false, sample_ratio_mismatch: "pearson_chi_square_df_2", sample_ratio_alert_p_below: 0.001, winner_declaration: false },
-  ingestion: { maximum_body_bytes: 8192, content_type: "application/json", experiment_id_required: true, experiment_unit_id_required: true, analysis_cohort_required: true, current_rotator_version_required: true, assigned_mode_only: true, server_recomputes_variant: true, server_recomputes_exposure_token: true, same_variant_goal_required: true, matching_exposure_token_required: true, traffic_authentication: "none", automated_fabrication_resistance: false, decision_use_without_edge_abuse_control: false },
+  ingestion: { maximum_body_bytes: 8192, content_type: "application/json", experiment_id_required: true, experiment_unit_id_required: true, analysis_cohort_required: true, treatment_fingerprint_required: true, current_rotator_version_required: true, assigned_mode_only: true, server_recomputes_variant: true, server_recomputes_exposure_token: true, same_variant_goal_required: true, matching_exposure_token_required: true, traffic_authentication: "none", automated_fabrication_resistance: false, decision_use_without_edge_abuse_control: false },
   safety_boundary: { changes_benchmark_content: false, changes_score: false, changes_certification: false, changes_registry_rank: false, presentation_only: true },
   experiments: [WANTED_LANDING_EXPERIMENT],
 } as const;

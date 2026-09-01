@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import { assignWantedVariant, EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validExperimentUnitId,validWantedSessionAssignment, validWantedVariant, WANTED_LANDING_EXPERIMENT } from "../app/experiments/rotator.ts";
+import { assignWantedVariant, canonicalTreatmentJson,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,EXPERIMENT_TREATMENT_FINGERPRINT,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validExperimentUnitId,validWantedSessionAssignment, validWantedVariant, WANTED_LANDING_EXPERIMENT,WANTED_LANDING_TREATMENT_IDENTITY } from "../app/experiments/rotator.ts";
 import { BONFERRONI_TWO_COMPARISON_Z,newcombeRiskDifference,summarizeExperiment,wilsonInterval } from "../app/experiments/results.ts";
 import { experimentIntegrityQuery,experimentResultsQuery } from "../app/api/experiments/route.ts";
 import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent,validExposureToken } from "../app/experiments/ingestion.ts";
@@ -18,6 +19,13 @@ test("publishes a complete deterministic allocation",()=>{
   const unit=unitForVariant(first.variant);const token=exposureTokenForAssignment(unit,first.variant);
   assert.equal(validExposureToken(token),true);assert.equal(exposureTokenForAssignment(unit,first.variant),token);
   assert.throws(()=>exposureTokenForAssignment(unit,first.variant==="control"?"proof":"control"),/does not match/);
+});
+
+test("freezes the complete allocation and rendered treatment identity",()=>{
+  const computed=`sha256:${createHash("sha256").update(canonicalTreatmentJson(WANTED_LANDING_TREATMENT_IDENTITY)).digest("hex")}`;
+  assert.equal(computed,EXPERIMENT_TREATMENT_FINGERPRINT);
+  assert.equal(experimentRotatorContract.analysis_cohort.treatment_fingerprint,computed);
+  assert.deepEqual(experimentRotatorContract.analysis_cohort.aggregation_keys,["analysis_cohort","treatment_fingerprint"]);
 });
 
 test("approximates the declared allocation without an unassigned bucket",()=>{
@@ -47,11 +55,13 @@ test("accepts only complete assigned session locks",()=>{
 
 test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.analysis_cohort.id,EXPERIMENT_ANALYSIS_COHORT);
-  assert.equal(experimentRotatorContract.analysis_cohort.starts_at_implementation_version,"0.14-R14");
+  assert.equal(experimentRotatorContract.analysis_cohort.starts_at_implementation_version,"0.15-R15");
   assert.deepEqual(experimentRotatorContract.analysis_cohort.legacy_versions_included,[]);
   assert.equal(experimentRotatorContract.analysis_cohort.implementation_revision_changes_reset_cohort,false);
   assert.equal(experimentRotatorContract.analysis_cohort.assignment_or_treatment_change_requires_new_cohort,true);
   assert.equal(experimentRotatorContract.analysis_cohort.allocation_change_requires_new_cohort,true);
+  assert.equal(experimentRotatorContract.analysis_cohort.measurement_contract_change_requires_new_cohort,true);
+  assert.deepEqual(experimentRotatorContract.analysis_cohort.previous_cohorts,[{id:"wanted_landing_v1-C1",starts_at_implementation_version:"0.14-R14",ends_at_implementation_version:"0.14-R14",current_aggregation:false,reason_closed:"treatment_fingerprint_measurement_contract_added"}]);
   assert.equal(experimentRotatorContract.privacy.persistent_identifier,"experiment_scoped_random_assignment_id");
   assert.equal(experimentRotatorContract.privacy.assignment_id_contains_user_attributes,false);
   assert.equal(experimentRotatorContract.privacy.separate_device_identifier,false);
@@ -95,6 +105,7 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.inference.winner_declaration,false);
   assert.equal(experimentRotatorContract.ingestion.assigned_mode_only,true);
   assert.equal(experimentRotatorContract.ingestion.analysis_cohort_required,true);
+  assert.equal(experimentRotatorContract.ingestion.treatment_fingerprint_required,true);
   assert.equal(experimentRotatorContract.ingestion.server_recomputes_variant,true);
   assert.equal(experimentRotatorContract.ingestion.server_recomputes_exposure_token,true);
   assert.equal(experimentRotatorContract.ingestion.automated_fabrication_resistance,false);
@@ -172,6 +183,7 @@ test("attributes goals across repeated sessions through one experiment unit and 
   assert.match(experimentResultsQuery,/json_extract\(g\.metadata,'\$\.exposure_id'\)=e\.exposure_token/);
   assert.match(experimentResultsQuery,/json_extract\(g\.metadata,'\$\.goal'\)='primary_cta'/);
   assert.match(experimentResultsQuery,/json_extract\(metadata,'\$\.analysis_cohort'\)=\?/);
+  assert.match(experimentResultsQuery,/json_extract\(metadata,'\$\.treatment_fingerprint'\)=\?/);
   assert.doesNotMatch(experimentResultsQuery,/rotator_version/);
 });
 
@@ -179,7 +191,7 @@ test("executes the matched-exposure query against SQLite",()=>{
   const db=new DatabaseSync(":memory:");
   db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT,event_type TEXT,path TEXT,metadata TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
   const insert=db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)");
-  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.14-R14",cohort=EXPERIMENT_ANALYSIS_COHORT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
+  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.15-R15",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
   const controlUnit=unitForVariant("control"),controlToken=exposureTokenForAssignment(controlUnit,"control");
   event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_goal",variant:"control",unit:controlUnit,goal:"primary_cta"});
   const proofUnit=unitForVariant("proof"),proofToken=exposureTokenForAssignment(proofUnit,"proof");
@@ -187,31 +199,34 @@ test("executes the matched-exposure query against SQLite",()=>{
   const developerUnit=unitForVariant("developer"),developerToken=exposureTokenForAssignment(developerUnit,"developer");
   event({session:"wrong_token_session",eventType:"experiment_exposure",variant:"developer",unit:developerUnit});event({session:"wrong_token_session",eventType:"experiment_goal",variant:"developer",unit:developerUnit,token:"44444444-4444-4444-8444-444444444444",goal:"primary_cta"});
   event({session:"preview_session",eventType:"experiment_exposure",variant:"control",unit:controlUnit,mode:"preview"});event({session:"preview_session",eventType:"experiment_goal",variant:"control",unit:controlUnit,mode:"preview",goal:"primary_cta"});
-  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.15-R15"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.15-R15",goal:"primary_cta"});
-  const wrongCohortUnit=unitForVariant("control",3);event({session:"wrong_cohort",eventType:"experiment_exposure",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C0"});event({session:"wrong_cohort",eventType:"experiment_goal",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C0",goal:"primary_cta"});
+  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.16-R16"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.16-R16",goal:"primary_cta"});
+  const wrongCohortUnit=unitForVariant("control",3);event({session:"wrong_cohort",eventType:"experiment_exposure",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1"});event({session:"wrong_cohort",eventType:"experiment_goal",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1",goal:"primary_cta"});
+  const wrongFingerprintUnit=unitForVariant("control",4);event({session:"wrong_fingerprint",eventType:"experiment_exposure",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000"});event({session:"wrong_fingerprint",eventType:"experiment_goal",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000",goal:"primary_cta"});
   const crossUnit=unitForVariant("control",1);event({session:"cross_variant_session_a",eventType:"experiment_exposure",variant:"control",unit:crossUnit});event({session:"cross_variant_session_a",eventType:"experiment_goal",variant:"control",unit:crossUnit,goal:"primary_cta"});event({session:"cross_variant_session_b",eventType:"experiment_exposure",variant:"developer",unit:crossUnit,token:"88888888-8888-4888-8888-888888888888"});event({session:"cross_variant_session_b",eventType:"experiment_goal",variant:"developer",unit:crossUnit,token:"88888888-8888-4888-8888-888888888888",goal:"primary_cta"});
   const multiUnit=unitForVariant("proof",1);event({session:"multi_token_session_a",eventType:"experiment_exposure",variant:"proof",unit:multiUnit});event({session:"multi_token_session_a",eventType:"experiment_goal",variant:"proof",unit:multiUnit,goal:"primary_cta"});event({session:"multi_token_session_b",eventType:"experiment_exposure",variant:"proof",unit:multiUnit,token:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"});event({session:"multi_token_session_b",eventType:"experiment_goal",variant:"proof",unit:multiUnit,token:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",goal:"primary_cta"});
   const wrongPathUnit=unitForVariant("proof",2);event({session:"wrong_path_session",eventType:"experiment_exposure",variant:"proof",unit:wrongPathUnit,path:"/wanted-10k/evidence"});event({session:"wrong_path_session",eventType:"experiment_goal",variant:"proof",unit:wrongPathUnit,path:"/wanted-10k/evidence",goal:"primary_cta"});
   assert.equal(validExposureToken(controlToken)&&validExposureToken(proofToken)&&validExposureToken(developerToken),true);
-  const rows=db.prepare(experimentResultsQuery).all("wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,"wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT);
+  const rows=db.prepare(experimentResultsQuery).all("wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,"wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT);
   const found=new Map(rows.map(row=>[row.variant,row]));
   assert.deepEqual({...found.get("control")},{variant:"control",exposed_units:2,goal_units:2});
   assert.deepEqual({...found.get("proof")},{variant:"proof",exposed_units:1,goal_units:1});
   assert.deepEqual({...found.get("developer")},{variant:"developer",exposed_units:1,goal_units:0});
-  assert.deepEqual({...db.prepare(experimentIntegrityQuery).get("wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT)},{cross_variant_units:1,multi_token_units:1});
+  assert.deepEqual({...db.prepare(experimentIntegrityQuery).get("wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT)},{cross_variant_units:1,multi_token_units:1});
   db.close();
 });
 
 test("accepts only current, internal, schema-valid experiment events",()=>{
   const unit=unitForVariant("control"),token=exposureTokenForAssignment(unit,"control");
-  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.14-R14",exposure_id:token};
+  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.15-R15",exposure_id:token};
   assert.equal(validExperimentUnitId(exposure.unit_id),true);assert.equal(validExperimentUnitId("shared-user"),false);
   assert.equal(validExposureToken(exposure.exposure_id),true);assert.equal(validExposureToken("1"),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,variant:"invented"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,rotator_version:"0.8-R8"}),false);
-  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,analysis_cohort:"wanted_landing_v1-C0"}),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,analysis_cohort:"wanted_landing_v1-C1"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",Object.fromEntries(Object.entries(exposure).filter(([key])=>key!=="analysis_cohort"))),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,treatment_fingerprint:"sha256:wrong"}),false);
+  assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",Object.fromEntries(Object.entries(exposure).filter(([key])=>key!=="treatment_fingerprint"))),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,unit_id:"invented"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,exposure_id:"invented"}),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",{...exposure,exposure_id:"11111111-1111-4111-8111-111111111111"}),false);

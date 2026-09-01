@@ -3,38 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { queueExperimentGoal,trackConfirmed } from "../components/AnalyticsHeartbeat";
 import { startAcknowledgedDelivery } from "../experiments/delivery";
-import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT, type WantedAssignment, type WantedVariant } from "../experiments/rotator";
-
-const content: Record<WantedVariant, { eyebrow: string; headline: React.ReactNode; intro: string; primary: { label: string; href: string }; proof: [string,string][]; cardLabel: string }> = {
-  control: {
-    eyebrow: "OPEN TECHNICAL SPEC · VERSION 0.2",
-    headline: <>Still wanted<br/><em>after 10,000 hours?</em></>,
-    intro: "Most benchmarks ask whether a robot can complete a task. WANTED-10K asks whether people continue choosing the robot after novelty fades, hardware ages, routines change, and mistakes accumulate.",
-    primary: { label: "Open protocol kit", href: "/wanted-10k/protocol" },
-    proof: [["10,000","RESIDENT HOURS"],["20+","INDEPENDENT ENVIRONMENTS"],["1","PRIMARY SCORE"],["0","SAFETY TRADE-OFFS"]],
-    cardLabel: "RETENTION / KAPLAN–MEIER",
-  },
-  proof: {
-    eyebrow: "ONE SCORE · NON-COMPENSATORY SAFETY · INDEPENDENT AUDIT",
-    headline: <>One score for<br/><em>what happens after the demo.</em></>,
-    intro: "WANTED turns continued coexistence into a survival endpoint: time until a person permanently and voluntarily rejects the robot. Every burden stays visible, every safety gate stays absolute, and unsupported tails stay unscored.",
-    primary: { label: "Inspect the evidence chain", href: "/wanted-10k/protocol" },
-    proof: [["W","NORMALIZED RMST"],["10K","FIXED HORIZON"],["95%","CLUSTER CI"],["L4=0","HARD SAFETY GATE"]],
-    cardLabel: "PRIMARY ESTIMATOR / NORMALIZED RMST",
-  },
-  developer: {
-    eyebrow: "VENDOR-NEUTRAL · SIX EVENTS · ZERO RUNTIME DEPENDENCIES",
-    headline: <>Ten thousand hours.<br/><em>One integration contract.</em></>,
-    intro: "Keep the robot's native stack. Add six signed event types, a continuous resident clock, and a reproducible endpoint table. WANTED supplies the schemas, reference adapter, local verifiers, and immutable audit handoff.",
-    primary: { label: "Integrate a robot", href: "/wanted-10k/sdk" },
-    proof: [["6","EVENT TYPES"],["1","ORDERED CHAIN"],["0","RUNTIME DEPENDENCIES"],["100%","AUDIT BINDING"]],
-    cardLabel: "REFERENCE OUTPUT / RETENTION CURVE",
-  },
-};
-
-const secondaryActions = [
-  ["Open HILO Realtime", "/wanted-10k/realtime"], ["Preflight a policy", "/wanted-10k/preflight"], ["Verify resident hours", "/wanted-10k/exposure-ledger"], ["Calculate a cohort", "/wanted-10k/calculator"], ["Reproduce a score", "/wanted-10k/analysis-reproduction"], ["Audited registry", "/wanted-10k/leaderboard"], ["Research basis", "/wanted-10k/evidence"],
-];
+import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_TREATMENT_FINGERPRINT,exposureTokenForAssignment,resolveWantedAssignment, ROTATOR_VERSION,validExperimentUnitId,validWantedSessionAssignment,WANTED_LANDING_EXPERIMENT,WANTED_LANDING_SECONDARY_ACTIONS,WANTED_LANDING_TREATMENTS, type WantedAssignment } from "../experiments/rotator";
 
 function experimentUnitId(){
   const key=`ea_experiment_unit:${WANTED_LANDING_EXPERIMENT.id}`;
@@ -70,7 +39,7 @@ export function WantedLandingExperience() {
   useEffect(()=>{
     if(assignment?.mode!=="assigned"||!unitId.current||!exposureId.current||!shouldTrackExposure.current)return;
     const token=exposureId.current,sentKey=`${exposureKey(assignment)}:sent`;
-    const metadata={experiment:assignment.experiment,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
+    const metadata={experiment:assignment.experiment,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unitId.current,variant:assignment.variant,assignment_mode:assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:token};
     const delivery=startAcknowledgedDelivery({
       send:()=>trackConfirmed("experiment_exposure",location.pathname,metadata),
       isAcknowledged:()=>sessionStorage.getItem(sentKey)==="1",
@@ -81,9 +50,9 @@ export function WantedLandingExperience() {
     return()=>{delivery.cancel();window.removeEventListener("online",delivery.retryNow)};
   },[assignment]);
   const displayAssignment: WantedAssignment = assignment ?? {experiment:WANTED_LANDING_EXPERIMENT.id,variant:"control",bucket:null,mode:"assigned"};
-  const variant = content[displayAssignment.variant];
+  const variant = WANTED_LANDING_TREATMENTS[displayAssignment.variant];
   const goal = (goalName: string, href: string) => {
-    if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
+    if (assignment?.mode === "assigned"&&unitId.current&&exposureId.current) queueExperimentGoal("/wanted-10k", { experiment: assignment.experiment, analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,unit_id:unitId.current, variant: assignment.variant, goal: goalName, destination: href, assignment_mode: assignment.mode,rotator_version:ROTATOR_VERSION,exposure_id:exposureId.current });
   };
   const pending=assignment===null;
   return <section className={`wantedHero shell wantedVariant wantedVariant--${assignment?.variant??"pending"}`} data-experiment={WANTED_LANDING_EXPERIMENT.id} data-variant={assignment?.variant??"pending"} aria-busy={pending}>
@@ -91,11 +60,11 @@ export function WantedLandingExperience() {
     {assignment?.mode === "preview" && <div className="variantPreview" role="status"><b>PREVIEW MODE</b><span>{assignment.variant.toUpperCase()} · excluded from experiment results</span><a href="/experiments">ROTATOR →</a></div>}
     <div className="wantedHeroCopy" aria-hidden={pending}>
       <span className="eyebrow"><i className="liveDot"/> {variant.eyebrow}</span>
-      <h1>{variant.headline}</h1>
+      <h1>{variant.headline[0]}<br/><em>{variant.headline[1]}</em></h1>
       <p>{variant.intro}</p>
       <div className="wantedActions">
         <a className="primary" href={variant.primary.href} onClick={()=>goal("primary_cta",variant.primary.href)}>{variant.primary.label} <span>→</span></a>
-        {secondaryActions.map(([label,href])=><a className="secondary" href={href} key={href} onClick={()=>goal(`secondary_${href.split("/").pop()}`,href)}>{label}</a>)}
+        {WANTED_LANDING_SECONDARY_ACTIONS.map(([label,href])=><a className="secondary" href={href} key={href} onClick={()=>goal(`secondary_${href.split("/").pop()}`,href)}>{label}</a>)}
       </div>
       <div className="wantedProof">{variant.proof.map(([value,label])=><div key={label}><strong>{value}</strong><span>{label}</span></div>)}</div>
     </div>
