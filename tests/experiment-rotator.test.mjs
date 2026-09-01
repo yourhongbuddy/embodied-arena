@@ -3,9 +3,9 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
-import { assignWantedVariant, canonicalTreatmentJson,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_PRESENTATION_IDENTITY,EXPERIMENT_PRESENTATION_NORMALIZATION,EXPERIMENT_PRESENTATION_PROFILE,EXPERIMENT_PRESENTATION_SOURCES,EXPERIMENT_TREATMENT_FINGERPRINT,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validExperimentUnitId,validWantedSessionAssignment,validWantedSessionAssignmentForUnit, validWantedVariant, WANTED_LANDING_EXPERIMENT,WANTED_LANDING_TREATMENT_IDENTITY } from "../app/experiments/rotator.ts";
+import { assignWantedVariant, canonicalTreatmentJson,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_DECISION_GATE,EXPERIMENT_EXPOSURE_RETRY_DELAYS_MS,EXPERIMENT_GOAL_OUTBOX_MAX_AGE_MS,EXPERIMENT_GOAL_OUTBOX_MAX_ENTRIES,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_PRESENTATION_IDENTITY,EXPERIMENT_PRESENTATION_NORMALIZATION,EXPERIMENT_PRESENTATION_PROFILE,EXPERIMENT_PRESENTATION_SOURCES,EXPERIMENT_REPORTING_WINDOW_DAYS,EXPERIMENT_TREATMENT_FINGERPRINT,experimentRotatorContract,exposureTokenForAssignment, resolveWantedAssignment,validExperimentUnitId,validWantedSessionAssignment,validWantedSessionAssignmentForUnit, validWantedVariant, WANTED_LANDING_EXPERIMENT,WANTED_LANDING_TREATMENT_IDENTITY } from "../app/experiments/rotator.ts";
 import { BONFERRONI_TWO_COMPARISON_Z,newcombeRiskDifference,summarizeExperiment,summarizeReceiptIntegrity,wilsonInterval } from "../app/experiments/results.ts";
-import { experimentIntegrityQuery,experimentReceiptIntegrityQuery,experimentResultsQuery } from "../app/api/experiments/route.ts";
+import { experimentAnalysisWindow,experimentIntegrityQuery,experimentReceiptIntegrityQuery,experimentResultsQuery } from "../app/api/experiments/route.ts";
 import { ANALYTICS_RETENTION_DAYS,ANALYTICS_RETENTION_QUERY,validExperimentEvent,validExposureToken } from "../app/experiments/ingestion.ts";
 import { startAcknowledgedDelivery } from "../app/experiments/delivery.ts";
 import { createExperimentOutbox } from "../app/experiments/outbox.ts";
@@ -25,6 +25,13 @@ test("publishes a complete deterministic allocation",()=>{
   const unit=unitForVariant(first.variant);const token=exposureTokenForAssignment(unit,first.variant);
   assert.equal(validExposureToken(token),true);assert.equal(exposureTokenForAssignment(unit,first.variant),token);
   assert.throws(()=>exposureTokenForAssignment(unit,first.variant==="control"?"proof":"control"),/does not match/);
+});
+
+test("freezes one exact inclusive server-UTC analysis window",()=>{
+  const window=experimentAnalysisWindow("2026-09-01T12:34:56.789Z");
+  assert.deepEqual(window,{profile:"0.27-AW1",clock:"server_utc",precision:"whole_seconds",started_at:"2026-08-02T12:34:56.000Z",ended_at:"2026-09-01T12:34:56.000Z",start_inclusive:true,end_inclusive:true,duration_days:30});
+  assert.equal(Date.parse(window.ended_at)-Date.parse(window.started_at),30*86_400_000);
+  assert.throws(()=>experimentAnalysisWindow("not-a-time"),/valid analysis timestamp/);
 });
 
 test("requires persistent storage before creating a counted browser unit",()=>{
@@ -139,14 +146,14 @@ test("accepts only complete assigned session locks",()=>{
 
 test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.analysis_cohort.id,EXPERIMENT_ANALYSIS_COHORT);
-  assert.equal(experimentRotatorContract.analysis_cohort.starts_at_implementation_version,"0.21-R21");
+  assert.equal(experimentRotatorContract.analysis_cohort.starts_at_implementation_version,"0.27-R27");
   assert.deepEqual(experimentRotatorContract.analysis_cohort.legacy_versions_included,[]);
   assert.equal(experimentRotatorContract.analysis_cohort.implementation_revision_changes_reset_cohort,false);
   assert.equal(experimentRotatorContract.analysis_cohort.rendered_source_changes_require_new_cohort,true);
   assert.equal(experimentRotatorContract.analysis_cohort.assignment_or_treatment_change_requires_new_cohort,true);
   assert.equal(experimentRotatorContract.analysis_cohort.allocation_change_requires_new_cohort,true);
   assert.equal(experimentRotatorContract.analysis_cohort.measurement_contract_change_requires_new_cohort,true);
-  assert.deepEqual(experimentRotatorContract.analysis_cohort.previous_cohorts,[{id:"wanted_landing_v1-C1",starts_at_implementation_version:"0.14-R14",ends_at_implementation_version:"0.14-R14",current_aggregation:false,reason_closed:"treatment_fingerprint_measurement_contract_added"},{id:"wanted_landing_v1-C2",starts_at_implementation_version:"0.15-R15",ends_at_implementation_version:"0.17-R17",current_aggregation:false,reason_closed:"browser_privacy_choice_eligibility_contract_added"},{id:"wanted_landing_v1-C3",starts_at_implementation_version:"0.18-R18",ends_at_implementation_version:"0.18-R18",current_aggregation:false,reason_closed:"site_opt_out_unit_purge_changes_regeneration_contract"},{id:"wanted_landing_v1-C4",starts_at_implementation_version:"0.19-R19",ends_at_implementation_version:"0.19-R19",current_aggregation:false,reason_closed:"rendered_source_fingerprint_added"},{id:"wanted_landing_v1-C5",starts_at_implementation_version:"0.20-R20",ends_at_implementation_version:"0.20-R20",current_aggregation:false,reason_closed:"server_assignment_receipt_added"}]);
+  assert.deepEqual(experimentRotatorContract.analysis_cohort.previous_cohorts,[{id:"wanted_landing_v1-C1",starts_at_implementation_version:"0.14-R14",ends_at_implementation_version:"0.14-R14",current_aggregation:false,reason_closed:"treatment_fingerprint_measurement_contract_added"},{id:"wanted_landing_v1-C2",starts_at_implementation_version:"0.15-R15",ends_at_implementation_version:"0.17-R17",current_aggregation:false,reason_closed:"browser_privacy_choice_eligibility_contract_added"},{id:"wanted_landing_v1-C3",starts_at_implementation_version:"0.18-R18",ends_at_implementation_version:"0.18-R18",current_aggregation:false,reason_closed:"site_opt_out_unit_purge_changes_regeneration_contract"},{id:"wanted_landing_v1-C4",starts_at_implementation_version:"0.19-R19",ends_at_implementation_version:"0.19-R19",current_aggregation:false,reason_closed:"rendered_source_fingerprint_added"},{id:"wanted_landing_v1-C5",starts_at_implementation_version:"0.20-R20",ends_at_implementation_version:"0.20-R20",current_aggregation:false,reason_closed:"server_assignment_receipt_added"},{id:"wanted_landing_v1-C6",starts_at_implementation_version:"0.21-R21",ends_at_implementation_version:"0.26-R26",current_aggregation:false,reason_closed:"explicit_server_utc_analysis_window_boundaries_added"}]);
   assert.equal(experimentRotatorContract.privacy.persistent_identifier,"experiment_scoped_random_assignment_id");
   assert.equal(experimentRotatorContract.privacy.assignment_id_contains_user_attributes,false);
   assert.equal(experimentRotatorContract.privacy.separate_device_identifier,false);
@@ -204,6 +211,15 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.assignment.one_assigned_variant_per_session,true);
   assert.equal(experimentRotatorContract.assignment.session_lock_revalidated_against_persistent_unit,true);
   assert.equal(experimentRotatorContract.assignment.invalid_session_lock_behavior,"replace_with_recomputed_assignment");
+  assert.equal(EXPERIMENT_REPORTING_WINDOW_DAYS,30);
+  assert.equal(experimentRotatorContract.counting.reporting_window_days,EXPERIMENT_REPORTING_WINDOW_DAYS);
+  assert.equal(experimentRotatorContract.counting.reporting_window.clock,"server_utc");
+  assert.equal(experimentRotatorContract.counting.reporting_window.timestamp_source,"one_route_handler_snapshot");
+  assert.equal(experimentRotatorContract.counting.reporting_window.timestamp_precision,"whole_seconds_matching_d1_current_timestamp");
+  assert.equal(experimentRotatorContract.counting.reporting_window.start_inclusive,true);
+  assert.equal(experimentRotatorContract.counting.reporting_window.end_inclusive,true);
+  assert.equal(experimentRotatorContract.counting.reporting_window.all_event_queries_share_boundaries,true);
+  assert.equal(experimentRotatorContract.counting.reporting_window.sqlite_now_functions_used,false);
   assert.equal(experimentRotatorContract.inference.multiple_comparison_control,"bonferroni_two_comparisons_familywise_95_percent");
   assert.equal(experimentRotatorContract.inference.monitoring_window,"rolling_30_day_continuously_viewed");
   assert.equal(experimentRotatorContract.inference.repeated_look_adjustment,"none");
@@ -240,7 +256,8 @@ test("freezes a privacy-first presentation-only boundary",()=>{
   assert.equal(experimentRotatorContract.ingestion.server_recomputes_exposure_token,true);
   assert.equal(experimentRotatorContract.ingestion.automated_fabrication_resistance,false);
   assert.equal(experimentRotatorContract.ingestion.decision_use_without_edge_abuse_control,false);
-  assert.equal(experimentRotatorContract.receipt_diagnostics.profile,"0.26-RD5");
+  assert.equal(experimentRotatorContract.receipt_diagnostics.profile,"0.27-RD6");
+  assert.equal(experimentRotatorContract.receipt_diagnostics.analysis_window,"shared_top_level_server_utc_window");
   assert.equal(experimentRotatorContract.receipt_diagnostics.grouping,"assigned_version");
   assert.equal(experimentRotatorContract.receipt_diagnostics.unit_receipt_basis,"first_retained_receipt_per_unit");
   assert.equal(experimentRotatorContract.receipt_diagnostics.delivery_balance_basis,"matured_browser_units_only");
@@ -319,6 +336,11 @@ test("detects gross allocation drift",()=>{
 });
 
 test("attributes goals across repeated sessions through one experiment unit and exposure token",()=>{
+  assert.match(experimentResultsQuery,/WHERE created_at >= datetime\(\?\) AND created_at <= datetime\(\?\)/);
+  assert.match(experimentResultsQuery,/WHERE g\.created_at >= datetime\(\?\) AND g\.created_at <= datetime\(\?\)/);
+  assert.equal((experimentIntegrityQuery.match(/created_at >= datetime\(\?\) AND created_at <= datetime\(\?\)/g)||[]).length,1);
+  assert.equal((experimentReceiptIntegrityQuery.match(/created_at>=datetime\(\?\) AND created_at<=datetime\(\?\)/g)||[]).length,1);
+  assert.doesNotMatch(`${experimentResultsQuery}${experimentIntegrityQuery}${experimentReceiptIntegrityQuery}`,/datetime\('now'/);
   assert.match(experimentResultsQuery,/HAVING COUNT\(DISTINCT variant\)=1 AND COUNT\(DISTINCT exposure_token\)=1/);
   assert.match(experimentResultsQuery,/path='\/wanted-10k'/);
   assert.match(experimentResultsQuery,/g\.path='\/wanted-10k'/);
@@ -336,7 +358,7 @@ test("executes the matched-exposure query against SQLite",()=>{
   const db=new DatabaseSync(":memory:");
   db.exec("CREATE TABLE analytics_events (id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT,event_type TEXT,path TEXT,metadata TEXT,created_at TEXT DEFAULT CURRENT_TIMESTAMP)");
   const insert=db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)");
-  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.26-R26",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,presentation=EXPERIMENT_PRESENTATION_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,presentation_fingerprint:presentation,assignment_receipt:"77777777-7777-4777-8777-777777777777",unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
+  const event=({session,eventType,variant,unit,token=exposureTokenForAssignment(unit,assignWantedVariant(unit).variant),mode="assigned",goal,version="0.27-R27",cohort=EXPERIMENT_ANALYSIS_COHORT,fingerprint=EXPERIMENT_TREATMENT_FINGERPRINT,presentation=EXPERIMENT_PRESENTATION_FINGERPRINT,path="/wanted-10k"})=>insert.run(session,eventType,path,JSON.stringify({experiment:"wanted_landing_v1",analysis_cohort:cohort,treatment_fingerprint:fingerprint,presentation_fingerprint:presentation,assignment_receipt:"77777777-7777-4777-8777-777777777777",unit_id:unit,variant,assignment_mode:mode,rotator_version:version,exposure_id:token,...goal&&{goal}}));
   const controlUnit=unitForVariant("control"),controlToken=exposureTokenForAssignment(controlUnit,"control");
   event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_a",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_exposure",variant:"control",unit:controlUnit});event({session:"matched_session_b",eventType:"experiment_goal",variant:"control",unit:controlUnit,goal:"primary_cta"});
   const proofUnit=unitForVariant("proof"),proofToken=exposureTokenForAssignment(proofUnit,"proof");
@@ -344,27 +366,33 @@ test("executes the matched-exposure query against SQLite",()=>{
   const developerUnit=unitForVariant("developer"),developerToken=exposureTokenForAssignment(developerUnit,"developer");
   event({session:"wrong_token_session",eventType:"experiment_exposure",variant:"developer",unit:developerUnit});event({session:"wrong_token_session",eventType:"experiment_goal",variant:"developer",unit:developerUnit,token:"44444444-4444-4444-8444-444444444444",goal:"primary_cta"});
   event({session:"preview_session",eventType:"experiment_exposure",variant:"control",unit:controlUnit,mode:"preview"});event({session:"preview_session",eventType:"experiment_goal",variant:"control",unit:controlUnit,mode:"preview",goal:"primary_cta"});
-  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.27-R27"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.27-R27",goal:"primary_cta"});
+  const compatibleReleaseUnit=unitForVariant("control",2);event({session:"compatible_release",eventType:"experiment_exposure",variant:"control",unit:compatibleReleaseUnit,version:"0.28-R28"});event({session:"compatible_release",eventType:"experiment_goal",variant:"control",unit:compatibleReleaseUnit,version:"0.28-R28",goal:"primary_cta"});
   const wrongCohortUnit=unitForVariant("control",3);event({session:"wrong_cohort",eventType:"experiment_exposure",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1"});event({session:"wrong_cohort",eventType:"experiment_goal",variant:"control",unit:wrongCohortUnit,cohort:"wanted_landing_v1-C1",goal:"primary_cta"});
   const wrongFingerprintUnit=unitForVariant("control",4);event({session:"wrong_fingerprint",eventType:"experiment_exposure",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000"});event({session:"wrong_fingerprint",eventType:"experiment_goal",variant:"control",unit:wrongFingerprintUnit,fingerprint:"sha256:0000000000000000000000000000000000000000000000000000000000000000",goal:"primary_cta"});
   const wrongPresentationUnit=unitForVariant("proof",3);event({session:"wrong_presentation",eventType:"experiment_exposure",variant:"proof",unit:wrongPresentationUnit,presentation:"sha256:0000000000000000000000000000000000000000000000000000000000000000"});event({session:"wrong_presentation",eventType:"experiment_goal",variant:"proof",unit:wrongPresentationUnit,presentation:"sha256:0000000000000000000000000000000000000000000000000000000000000000",goal:"primary_cta"});
   const crossUnit=unitForVariant("control",1);event({session:"cross_variant_session_a",eventType:"experiment_exposure",variant:"control",unit:crossUnit});event({session:"cross_variant_session_a",eventType:"experiment_goal",variant:"control",unit:crossUnit,goal:"primary_cta"});event({session:"cross_variant_session_b",eventType:"experiment_exposure",variant:"developer",unit:crossUnit,token:"88888888-8888-4888-8888-888888888888"});event({session:"cross_variant_session_b",eventType:"experiment_goal",variant:"developer",unit:crossUnit,token:"88888888-8888-4888-8888-888888888888",goal:"primary_cta"});
   const multiUnit=unitForVariant("proof",1);event({session:"multi_token_session_a",eventType:"experiment_exposure",variant:"proof",unit:multiUnit});event({session:"multi_token_session_a",eventType:"experiment_goal",variant:"proof",unit:multiUnit,goal:"primary_cta"});event({session:"multi_token_session_b",eventType:"experiment_exposure",variant:"proof",unit:multiUnit,token:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"});event({session:"multi_token_session_b",eventType:"experiment_goal",variant:"proof",unit:multiUnit,token:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",goal:"primary_cta"});
   const wrongPathUnit=unitForVariant("proof",2);event({session:"wrong_path_session",eventType:"experiment_exposure",variant:"proof",unit:wrongPathUnit,path:"/wanted-10k/evidence"});event({session:"wrong_path_session",eventType:"experiment_goal",variant:"proof",unit:wrongPathUnit,path:"/wanted-10k/evidence",goal:"primary_cta"});
+  const futureUnit=unitForVariant("control",6);event({session:"future_session",eventType:"experiment_exposure",variant:"control",unit:futureUnit});event({session:"future_session",eventType:"experiment_goal",variant:"control",unit:futureUnit,goal:"primary_cta"});
+  const oldUnit=unitForVariant("control",7);event({session:"old_session",eventType:"experiment_exposure",variant:"control",unit:oldUnit});event({session:"old_session",eventType:"experiment_goal",variant:"control",unit:oldUnit,goal:"primary_cta"});
   assert.equal(validExposureToken(controlToken)&&validExposureToken(proofToken)&&validExposureToken(developerToken),true);
-  const rows=db.prepare(experimentResultsQuery).all("wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,"wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT);
+  const analysisWindow=experimentAnalysisWindow(new Date(Date.now()+1_000).toISOString());
+  db.prepare("UPDATE analytics_events SET created_at=datetime(?) WHERE session_id=?").run(new Date(Date.parse(analysisWindow.ended_at)+1_000).toISOString(),"future_session");
+  db.prepare("UPDATE analytics_events SET created_at=datetime(?) WHERE session_id=?").run(new Date(Date.parse(analysisWindow.started_at)-1_000).toISOString(),"old_session");
+  const resultParameters=[analysisWindow.started_at,analysisWindow.ended_at,"wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,analysisWindow.started_at,analysisWindow.ended_at,"wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT];
+  const rows=db.prepare(experimentResultsQuery).all(...resultParameters);
   const found=new Map(rows.map(row=>[row.variant,row]));
   assert.deepEqual({...found.get("control")},{variant:"control",exposed_units:2,goal_units:2});
   assert.deepEqual({...found.get("proof")},{variant:"proof",exposed_units:1,goal_units:1});
   assert.deepEqual({...found.get("developer")},{variant:"developer",exposed_units:1,goal_units:0});
-  assert.deepEqual({...db.prepare(experimentIntegrityQuery).get("wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT)},{cross_variant_units:1,multi_token_units:1});
+  assert.deepEqual({...db.prepare(experimentIntegrityQuery).get(analysisWindow.started_at,analysisWindow.ended_at,"wanted_landing_v1",EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT)},{cross_variant_units:1,multi_token_units:1});
   db.close();
 });
 
 test("reports the indexed receipt-to-exposure funnel without inventing rejected traffic",async()=>{
   const db=new DatabaseSync(":memory:");
   for(const file of ["../drizzle/0000_remarkable_mongoose.sql","../drizzle/0001_lyrical_vermin.sql"]){const migration=readFileSync(new URL(file,import.meta.url),"utf8").split("--> statement-breakpoint").join("");db.exec(migration)}
-  const d1=d1FromSqlite(db),now=new Date(),sessionA="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",sessionB="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",sessionC="cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const d1=d1FromSqlite(db),now=new Date(Date.now()+1_000),sessionA="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",sessionB="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",sessionC="cccccccc-cccc-4ccc-8ccc-cccccccccccc";
   const unitA=unitForVariant("control",5),unitB=unitForVariant("proof",5),unitC=unitForVariant("developer",5);
   const receipts=[
     createAssignmentReceiptRecord(unitA,sessionA,"10000000-0000-4000-8000-000000000001",new Date(now.getTime()-3_600_000).toISOString()),
@@ -374,15 +402,18 @@ test("reports the indexed receipt-to-exposure funnel without inventing rejected 
   ];
   for(const receipt of receipts)await storeAssignmentReceipt(d1,receipt);
   db.prepare("INSERT INTO analytics_events (session_id,event_type,path,metadata) VALUES (?,?,?,?)").run(sessionA,"experiment_exposure","/wanted-10k",JSON.stringify({experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_mode:"assigned",assignment_receipt:receipts[0].receipt_id}));
-  const nowIso=now.toISOString(),cutoff=new Date(now.getTime()-29*86_400_000).toISOString(),parameters=[cutoff,nowIso,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,nowIso,nowIso,nowIso];
+  const analysisWindow=experimentAnalysisWindow(now.toISOString()),cutoff=new Date(Date.parse(analysisWindow.started_at)+86_400_000).toISOString(),parameters=[cutoff,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,analysisWindow.ended_at,analysisWindow.ended_at,analysisWindow.ended_at];
   const raw=db.prepare(experimentReceiptIntegrityQuery).all(...parameters),summary=summarizeReceiptIntegrity(raw);
   const byVariant=new Map(raw.map(row=>[row.variant,{...row}]));
   assert.deepEqual(byVariant.get("control"),{variant:"control",issued_receipts:1,issued_units:1,exposed_receipts:1,exposed_units:1,matured_units:0,matured_exposed_units:0,unexposed_receipts:0,expired_unexposed_receipts:0,duplicate_session_unit_receipts:0});
   assert.deepEqual(byVariant.get("proof"),{variant:"proof",issued_receipts:2,issued_units:1,exposed_receipts:0,exposed_units:0,matured_units:0,matured_exposed_units:0,unexposed_receipts:2,expired_unexposed_receipts:0,duplicate_session_unit_receipts:1});
   assert.deepEqual(byVariant.get("developer"),{variant:"developer",issued_receipts:1,issued_units:1,exposed_receipts:0,exposed_units:0,matured_units:1,matured_exposed_units:0,unexposed_receipts:1,expired_unexposed_receipts:1,duplicate_session_unit_receipts:0});
-  assert.equal(summary.profile,"0.26-RD5");assert.equal(summary.receipt_followup_hours,24);assert.equal(summary.issued_receipts,4);assert.equal(summary.issued_units,3);assert.equal(summary.exposed_receipts,1);assert.equal(summary.exposed_units,1);assert.equal(summary.matured_units,1);assert.equal(summary.matured_exposed_units,0);assert.equal(summary.pending_maturity_units,2);assert.equal(summary.matured_unit_delivery_rate,0);assert.equal(summary.matured_unit_delivery_interval_95.low,0);assert.equal(summary.matured_unit_delivery_interval_95.high>0&&summary.matured_unit_delivery_interval_95.high<1,true);assert.equal(summary.unexposed_receipts,3);assert.equal(summary.active_unexposed_receipts,2);assert.equal(summary.expired_unexposed_receipts,1);assert.equal(summary.duplicate_session_unit_receipts,1);assert.equal(summary.receipt_to_exposure_rate,.25);assert.equal(summary.unit_to_exposure_rate,1/3);assert.equal(summary.variants.length,3);assert.equal(summary.delivery_rate_comparisons.length,2);assert.equal(summary.delivery_rate_comparisons.every(row=>row.interval_position==="unavailable"),true);assert.equal(summary.issuance_sample_ratio_mismatch.status,"insufficient");assert.equal(summary.unit_delivery_balance.status,"insufficient");assert.equal(summary.counts_rejected_requests,false);assert.equal(summary.proves_human_traffic,false);
+  assert.equal(summary.profile,"0.27-RD6");assert.equal(summary.receipt_followup_hours,24);assert.equal(summary.issued_receipts,4);assert.equal(summary.issued_units,3);assert.equal(summary.exposed_receipts,1);assert.equal(summary.exposed_units,1);assert.equal(summary.matured_units,1);assert.equal(summary.matured_exposed_units,0);assert.equal(summary.pending_maturity_units,2);assert.equal(summary.matured_unit_delivery_rate,0);assert.equal(summary.matured_unit_delivery_interval_95.low,0);assert.equal(summary.matured_unit_delivery_interval_95.high>0&&summary.matured_unit_delivery_interval_95.high<1,true);assert.equal(summary.unexposed_receipts,3);assert.equal(summary.active_unexposed_receipts,2);assert.equal(summary.expired_unexposed_receipts,1);assert.equal(summary.duplicate_session_unit_receipts,1);assert.equal(summary.receipt_to_exposure_rate,.25);assert.equal(summary.unit_to_exposure_rate,1/3);assert.equal(summary.variants.length,3);assert.equal(summary.delivery_rate_comparisons.length,2);assert.equal(summary.delivery_rate_comparisons.every(row=>row.interval_position==="unavailable"),true);assert.equal(summary.issuance_sample_ratio_mismatch.status,"insufficient");assert.equal(summary.unit_delivery_balance.status,"insufficient");assert.equal(summary.counts_rejected_requests,false);assert.equal(summary.proves_human_traffic,false);
   const plan=db.prepare(`EXPLAIN QUERY PLAN ${experimentReceiptIntegrityQuery}`).all(...parameters).map(row=>String(row.detail)).join(" ");
   assert.match(plan,/idx_experiment_assignment_receipts_expires_at/);assert.match(plan,/idx_analytics_event_path/);
+  const resultParameters=[analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT];
+  const resultPlan=db.prepare(`EXPLAIN QUERY PLAN ${experimentResultsQuery}`).all(...resultParameters).map(row=>String(row.detail)).join(" "),integrityPlan=db.prepare(`EXPLAIN QUERY PLAN ${experimentIntegrityQuery}`).all(analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).map(row=>String(row.detail)).join(" ");
+  assert.match(resultPlan,/idx_analytics_event_path/);assert.match(integrityPlan,/idx_analytics_event_path/);
   const balanced=summarizeReceiptIntegrity(WANTED_LANDING_EXPERIMENT.variants.map(variant=>({variant:variant.id,issued_receipts:100,issued_units:100,exposed_receipts:80,exposed_units:80,matured_units:100,matured_exposed_units:80,unexposed_receipts:20,expired_unexposed_receipts:10,duplicate_session_unit_receipts:0})));
   assert.equal(balanced.issuance_sample_ratio_mismatch.status,"pass");assert.equal(balanced.unit_delivery_balance.status,"pass");assert.equal(balanced.matured_unit_delivery_interval_95.low<.8&&balanced.matured_unit_delivery_interval_95.high>.8,true);assert.equal(balanced.variants.every(row=>row.matured_unit_delivery_interval_95.low<.8&&row.matured_unit_delivery_interval_95.high>.8),true);assert.equal(balanced.delivery_rate_comparisons.every(row=>row.absolute_delivery_rate_difference===0&&row.familywise_interval_95.low<0&&row.familywise_interval_95.high>0&&row.interval_position==="includes_zero"),true);
   const activeSkew=summarizeReceiptIntegrity(WANTED_LANDING_EXPERIMENT.variants.map((variant,index)=>({variant:variant.id,issued_receipts:100,issued_units:100,exposed_receipts:index?64:99,exposed_units:index?64:99,matured_units:80,matured_exposed_units:64,unexposed_receipts:index?36:1,expired_unexposed_receipts:0,duplicate_session_unit_receipts:0})));
@@ -396,7 +427,7 @@ test("reports the indexed receipt-to-exposure funnel without inventing rejected 
 
 test("accepts only current, internal, schema-valid experiment events",()=>{
   const unit=unitForVariant("control"),token=exposureTokenForAssignment(unit,"control");
-  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:"66666666-6666-4666-8666-666666666666",unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.26-R26",exposure_id:token};
+  const exposure={experiment:"wanted_landing_v1",analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt:"66666666-6666-4666-8666-666666666666",unit_id:unit,variant:"control",assignment_mode:"assigned",rotator_version:"0.27-R27",exposure_id:token};
   assert.equal(validExperimentUnitId(exposure.unit_id),true);assert.equal(validExperimentUnitId("shared-user"),false);
   assert.equal(validExposureToken(exposure.exposure_id),true);assert.equal(validExposureToken("1"),false);
   assert.equal(validExperimentEvent("experiment_exposure","/wanted-10k",exposure),true);

@@ -1,12 +1,12 @@
 import { getD1 } from "../../../db/d1.ts";
 import { ANALYTICS_RETENTION_QUERY } from "../../experiments/ingestion.ts";
-import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_TREATMENT_FINGERPRINT,ROTATOR_VERSION,WANTED_LANDING_EXPERIMENT } from "../../experiments/rotator.ts";
+import { EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,EXPERIMENT_PRESENTATION_FINGERPRINT,EXPERIMENT_REPORTING_WINDOW_DAYS,EXPERIMENT_TREATMENT_FINGERPRINT,ROTATOR_VERSION,WANTED_LANDING_EXPERIMENT } from "../../experiments/rotator.ts";
 import { summarizeExperiment,summarizeReceiptIntegrity,type RawExperimentRow,type RawReceiptIntegrityVariantRow } from "../../experiments/results.ts";
 
 export const experimentResultsQuery=`WITH exposure_tokens AS (
   SELECT json_extract(metadata,'$.unit_id') unit_id,json_extract(metadata,'$.variant') variant,json_extract(metadata,'$.exposure_id') exposure_token
   FROM analytics_events
-  WHERE created_at >= datetime('now','-30 days')
+  WHERE created_at >= datetime(?) AND created_at <= datetime(?)
     AND event_type='experiment_exposure'
     AND path='/wanted-10k'
     AND json_extract(metadata,'$.experiment')=?
@@ -25,7 +25,7 @@ export const experimentResultsQuery=`WITH exposure_tokens AS (
 ), matched AS (
   SELECT e.variant,e.unit_id,EXISTS(
     SELECT 1 FROM analytics_events g
-    WHERE g.created_at >= datetime('now','-30 days')
+    WHERE g.created_at >= datetime(?) AND g.created_at <= datetime(?)
       AND g.event_type='experiment_goal'
       AND g.path='/wanted-10k'
       AND json_extract(g.metadata,'$.experiment')=?
@@ -45,7 +45,7 @@ FROM matched GROUP BY variant`;
 export const experimentIntegrityQuery=`WITH exposure_tokens AS (
   SELECT json_extract(metadata,'$.unit_id') unit_id,json_extract(metadata,'$.variant') variant,json_extract(metadata,'$.exposure_id') exposure_token
   FROM analytics_events
-  WHERE created_at >= datetime('now','-30 days')
+  WHERE created_at >= datetime(?) AND created_at <= datetime(?)
     AND event_type='experiment_exposure'
     AND path='/wanted-10k'
     AND json_extract(metadata,'$.experiment')=?
@@ -73,7 +73,7 @@ export const experimentReceiptIntegrityQuery=`WITH current_receipts AS (
 ), exposure_receipts AS (
   SELECT json_extract(metadata,'$.assignment_receipt') receipt_id
   FROM analytics_events
-  WHERE created_at>=datetime('now','-30 days')
+  WHERE created_at>=datetime(?) AND created_at<=datetime(?)
     AND event_type='experiment_exposure' AND path='/wanted-10k'
     AND json_extract(metadata,'$.experiment')=?
     AND json_extract(metadata,'$.analysis_cohort')=?
@@ -98,16 +98,24 @@ FROM receipt_rows GROUP BY variant`;
 
 const emptySummary=()=>summarizeExperiment([]);
 
+export function experimentAnalysisWindow(asOf=new Date().toISOString()){
+  const endedAt=new Date(asOf);
+  if(!Number.isFinite(endedAt.getTime()))throw new Error("A valid analysis timestamp is required.");
+  const endedAtMs=Math.floor(endedAt.getTime()/1_000)*1_000,endedAtIso=new Date(endedAtMs).toISOString(),startedAtIso=new Date(endedAtMs-EXPERIMENT_REPORTING_WINDOW_DAYS*86_400_000).toISOString();
+  return{profile:"0.27-AW1",clock:"server_utc",precision:"whole_seconds",started_at:startedAtIso,ended_at:endedAtIso,start_inclusive:true,end_inclusive:true,duration_days:EXPERIMENT_REPORTING_WINDOW_DAYS} as const;
+}
+
 export async function GET() {
+  const analysisWindow=experimentAnalysisWindow();
   try {
     const db=await getD1();
     await db.prepare(ANALYTICS_RETENTION_QUERY).run();
-    const receiptNow=new Date().toISOString(),receiptCutoff=new Date(Date.parse(receiptNow)-29*86_400_000).toISOString();
+    const receiptCutoff=new Date(Date.parse(analysisWindow.started_at)+86_400_000).toISOString();
     const[result,integrity,receiptIntegrity]=await Promise.all([
-      db.prepare(experimentResultsQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).all<RawExperimentRow>(),
-      db.prepare(experimentIntegrityQuery).bind(WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).first<{cross_variant_units:number;multi_token_units:number}>(),
-      db.prepare(experimentReceiptIntegrityQuery).bind(receiptCutoff,receiptNow,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,receiptNow,receiptNow,receiptNow).all<RawReceiptIntegrityVariantRow>(),
+      db.prepare(experimentResultsQuery).bind(analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).all<RawExperimentRow>(),
+      db.prepare(experimentIntegrityQuery).bind(analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT).first<{cross_variant_units:number;multi_token_units:number}>(),
+      db.prepare(experimentReceiptIntegrityQuery).bind(receiptCutoff,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,analysisWindow.started_at,analysisWindow.ended_at,WANTED_LANDING_EXPERIMENT.id,EXPERIMENT_ANALYSIS_COHORT,EXPERIMENT_TREATMENT_FINGERPRINT,EXPERIMENT_PRESENTATION_FINGERPRINT,analysisWindow.ended_at,analysisWindow.ended_at,analysisWindow.ended_at).all<RawReceiptIntegrityVariantRow>(),
     ]);
-    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,receipt_integrity:summarizeReceiptIntegrity(receiptIntegrity.results),implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:Number(integrity?.cross_variant_units||0),multi_token_units_excluded:Number(integrity?.multi_token_units||0),...summarizeExperiment(result.results)},{headers:{"cache-control":"no-store"}});
-  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,receipt_integrity:summarizeReceiptIntegrity(null),implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:30,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:0,multi_token_units_excluded:0,...emptySummary()},{headers:{"cache-control":"no-store"}}); }
+    return Response.json({status:"ready",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,analysis_window:analysisWindow,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,receipt_integrity:summarizeReceiptIntegrity(receiptIntegrity.results),implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:EXPERIMENT_REPORTING_WINDOW_DAYS,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:Number(integrity?.cross_variant_units||0),multi_token_units_excluded:Number(integrity?.multi_token_units||0),...summarizeExperiment(result.results)},{headers:{"cache-control":"no-store"}});
+  } catch { return Response.json({status:"unavailable",experiment:WANTED_LANDING_EXPERIMENT.id,analysis_cohort:EXPERIMENT_ANALYSIS_COHORT,treatment_fingerprint:EXPERIMENT_TREATMENT_FINGERPRINT,presentation_fingerprint:EXPERIMENT_PRESENTATION_FINGERPRINT,analysis_window:analysisWindow,assignment_receipt_profile:EXPERIMENT_ASSIGNMENT_RECEIPT_PROFILE,assignment_receipt_required:true,receipt_integrity:summarizeReceiptIntegrity(null),implementation_version:ROTATOR_VERSION,analysis_unit:"experiment_scoped_anonymous_browser_unit",unit_represents:"one_first_party_browser_profile_storage_instance",reported_as_unique_users:false,human_identity_resolution:false,window_days:EXPERIMENT_REPORTING_WINDOW_DAYS,primary_goal:WANTED_LANDING_EXPERIMENT.primary_goal,cross_variant_units_excluded:0,multi_token_units_excluded:0,...emptySummary()},{headers:{"cache-control":"no-store"}}); }
 }
