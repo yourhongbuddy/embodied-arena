@@ -85,6 +85,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 26 | `digitalocean-v26` | `4e8f3e9` | Recompute assigned variants and exposure tokens during event ingestion |
 | 27 | `digitalocean-v27` | `3051587` | Gate continuously monitored experiment results as descriptive only |
 | 28 | `digitalocean-v28` | `1a1d88c` | Separate analysis cohorts from compatible software releases |
+| 29 | `digitalocean-v29` | `e636516` | Bind cohort telemetry to a frozen treatment fingerprint |
 
 ## Release convention
 
