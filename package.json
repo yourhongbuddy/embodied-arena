@@ -12,6 +12,7 @@
     "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/experiment-rotator.test.mjs tests/diagnostics.test.mjs tests/scoring-robustness.test.mjs tests/preflight.test.mjs tests/leaderboard.test.mjs tests/safety.test.mjs tests/certification.test.mjs tests/preregistration-integrity.test.mjs tests/protocol-deviations.test.mjs tests/sampling-stopping.test.mjs tests/cohort-integrity.test.mjs tests/site-heterogeneity.test.mjs tests/exposure-ledger.test.mjs tests/analysis-reproduction.test.mjs tests/analysis-conformance.test.mjs tests/analysis-conformance-sdk.test.mjs tests/endpoint-adjudication.test.mjs tests/human-measures.test.mjs tests/revealed-preference.test.mjs tests/learning-generalization.test.mjs tests/assistance-integrity.test.mjs tests/policy-evolution.test.mjs tests/privacy-integrity.test.mjs tests/service-continuity.test.mjs tests/realtime.test.mjs tests/withdrawal.test.mjs tests/telemetry-authenticity.test.mjs tests/audit-seal.test.mjs tests/auditor-credential.test.mjs tests/audit-sdk.test.mjs tests/mcp.test.mjs tests/monitoring.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "verify": "npm run lint && npm test",
+    "verify:versions": "node scripts/verify-version-index.mjs",
     "test:mcp": "node --experimental-strip-types --test tests/mcp.test.mjs",
     "test:monitoring": "node --experimental-strip-types --test tests/monitoring.test.mjs",
     "db:generate": "drizzle-kit generate"

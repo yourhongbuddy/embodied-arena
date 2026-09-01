@@ -25,6 +25,7 @@ The benchmark treats time to permanent voluntary rejection as the primary endpoi
 | `digitalocean-v01` … | Immutable DigitalOcean-specific deployment iterations |
 
 See [docs/SITE-VERSIONS.md](docs/SITE-VERSIONS.md) for the complete version-to-commit index and maintenance convention.
+See [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md) for the validated GitHub and deployment sequence.
 
 ## Local development
 
@@ -39,7 +40,10 @@ Validate the standalone release with:
 
 ```bash
 npm run verify
+npm run verify:versions
 ```
+
+GitHub runs both checks on pushes and pull requests targeting `digitalocean` or `sites`. The workflow has read-only repository permissions and fetches full tag history so it can prove that every indexed iteration resolves to the recorded commit.
 
 ## DigitalOcean App Platform
 

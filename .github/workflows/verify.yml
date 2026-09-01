@@ -1,0 +1,37 @@
+name: Verify repository
+
+on:
+  push:
+    branches: [digitalocean, sites]
+  pull_request:
+    branches: [digitalocean, sites]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out complete release history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Verify documented release tags
+        run: npm run verify:versions
+      - name: Build, lint, and test
+        run: npm run verify
