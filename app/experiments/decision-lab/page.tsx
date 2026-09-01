@@ -1,0 +1,6 @@
+import type{Metadata}from"next";
+import{SiteNav}from"../../components/SiteNav";
+import{DecisionLab}from"./DecisionLab";
+import"../experiments.css";
+export const metadata:Metadata={title:"Fixed-Close Decision Lab — Embodied Arena",description:"Evaluate a preregistered WANTED presentation experiment with a deterministic, conservative fixed-close rule.",alternates:{canonical:"/experiments/decision-lab"},robots:{index:false,follow:false}};
+export default function DecisionLabPage(){return <main className="experimentsPage decisionLabPage"><SiteNav/><section className="designLabHero shell"><div><span className="eyebrow"><i className="liveDot"/> FIXED-CLOSE DECISION LAB</span><h1>Close once.<br/><em>Refuse every shortcut.</em></h1></div><p>Evaluate one frozen final-look bundle against the preregistered targets, integrity gates, hard guardrails, and a two-point practical-effect threshold. Rolling dashboard results are inadmissible by construction.</p></section><DecisionLab/><section className="experimentBoundary"><div className="shell"><b>RECOMMENDATION, NOT DEPLOYMENT</b><p>The rule can recommend one treatment for human review, retain control, return inconclusive, or refuse malformed evidence. It never declares a winner or authorizes an automatic rollout.</p><a href="/experiments/design-lab">BACK TO DESIGN LAB →</a></div></section></main>}

@@ -1,0 +1,2 @@
+import{EXPERIMENT_DECISION_POLICY_REFERENCE_BUNDLE,evaluateExperimentDecisionPolicy}from"../decision-policy.ts";
+export function GET(){return Response.json({synthetic:true,bundle:EXPERIMENT_DECISION_POLICY_REFERENCE_BUNDLE,expected:evaluateExperimentDecisionPolicy(EXPERIMENT_DECISION_POLICY_REFERENCE_BUNDLE),interpretation:"Synthetic conformance vector only. It exercises the fixed-close rule but is never decision eligible and establishes no real experiment evidence."},{headers:{"cache-control":"public, max-age=3600"}})}
