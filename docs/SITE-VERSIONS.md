@@ -127,6 +127,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 68 | `digitalocean-v68` | `ff2d45d` | Add a local Ed25519 design-registration receipt lab, schema, trust root, and verifier CLI |
 | 69 | `digitalocean-v69` | `7d554e2` | Add a deterministic fixed-close decision policy, local lab, strict schema, and portable verifier CLI |
 | 70 | `digitalocean-v70` | `e3ca83c` | Bind fixed-close policy evidence to a signed analysis-custodian record and independently pinned trust root |
+| 71 | `digitalocean-v71` | `c3cac4a` | Add no-key-custody accountable approval for one evidence-matched, time-bounded site-version action |
 
 ## Release convention
 
