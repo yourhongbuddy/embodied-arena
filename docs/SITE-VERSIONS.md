@@ -132,6 +132,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 73 | `digitalocean-v73` | `16f17c6` | Add a no-key-custody Ed25519 authorization over the exact approval, candidate, package, staged plan, R37 target, and C9 reset |
 | 74 | `digitalocean-v74` | `c17fa5c` | Add a signed, hash-chained rollout phase review ledger with fresh authorization, isolated epochs, safety gates, manual review, and inference isolation |
 | 75 | `digitalocean-v75` | `a78899e` | Add a deterministic synthetic population simulator proving sticky, monotone 5% → 25% → 50% → 100% rollout membership without live allocation or inference effects |
+| 76 | `digitalocean-v76` | `192a29d` | Compile the exact verified package and signed phase-ledger prefix into deterministic, inert activation and ≤15-minute control rollback manifests without reading secrets or applying configuration |
 
 ## Release convention
 
