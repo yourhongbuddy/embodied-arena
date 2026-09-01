@@ -1,5 +1,6 @@
 import {
   EXPERIMENT_ROLLOUT_DISTRIBUTION_ALGORITHM,
+  EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256,
   EXPERIMENT_ROLLOUT_DISTRIBUTION_BUNDLE_PROFILE,
   EXPERIMENT_ROLLOUT_DISTRIBUTION_SAMPLE_SIZE,
 } from "./rollout-distribution-audit.ts";
@@ -14,6 +15,8 @@ export const experimentRolloutDistributionAuditSchema = {
     "profile",
     "purpose",
     "generator_profile",
+    "audited_source_profile",
+    "audited_source_sha256",
     "sample_size",
     "index_start",
     "allocation_algorithm",
@@ -22,6 +25,8 @@ export const experimentRolloutDistributionAuditSchema = {
     profile: { const: EXPERIMENT_ROLLOUT_DISTRIBUTION_BUNDLE_PROFILE },
     purpose: { const: "conformance_only" },
     generator_profile: { const: "0.43-RSM1" },
+    audited_source_profile: { const: "0.43-RSM1" },
+    audited_source_sha256: { const: EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256 },
     sample_size: { const: EXPERIMENT_ROLLOUT_DISTRIBUTION_SAMPLE_SIZE },
     index_start: { const: 0 },
     allocation_algorithm: { const: EXPERIMENT_ROLLOUT_DISTRIBUTION_ALGORITHM },

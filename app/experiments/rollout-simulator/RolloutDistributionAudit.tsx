@@ -6,7 +6,7 @@ export function RolloutDistributionAudit() {
       <header>
         <div>
           <span>ONE MILLION SYNTHETIC UNITS</span>
-          <b>DETERMINISTIC HASH-DISTRIBUTION AUDIT · PROFILE 0.47-RDA1</b>
+          <b>SOURCE-BOUND HASH-DISTRIBUTION AUDIT · PROFILE 0.48-RDA2</b>
         </div>
         <i>PASS</i>
       </header>
@@ -29,9 +29,11 @@ export function RolloutDistributionAudit() {
       </div>
       <footer>
         <p><span>OCCUPANCY VECTOR SHA-256</span><code>{summary.bucket_occupancy_sha256}</code></p>
+        <p><span>AUDITED IMPLEMENTATION SHA-256</span><code>{summary.audited_source_sha256}</code></p>
+        <p><span>16-VECTOR PARITY SHA-256</span><code>{summary.cross_implementation_vectors_sha256}</code></p>
         <p><span>CERTIFICATE SHA-256</span><code>{summary.certificate_sha256}</code></p>
       </footer>
-      <aside>This is a deterministic engineering diagnostic over synthetic indices 0–999,999. It is not a hypothesis test, a claim of cryptographic randomness, evidence about real users, or input to version selection.</aside>
+      <aside>The certificate binds the exact staged-rollout helper and 16 independently reproduced boundary vectors before enumerating synthetic indices 0–999,999. It is not a hypothesis test, a claim of cryptographic randomness, evidence about real users, or input to version selection.</aside>
       <nav className="rolloutSimulatorResources" aria-label="Rollout distribution audit resources">
         <a href="/experiments/rollout-distribution.reference.json">REFERENCE CERTIFICATE ↗</a>
         <a href="/experiments/rollout-distribution.schema.json">STRICT JSON SCHEMA ↗</a>

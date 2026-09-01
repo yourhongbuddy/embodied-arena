@@ -3,11 +3,12 @@ import {
   rolloutBucketForSyntheticUnit,
   syntheticRolloutUnitId,
 } from "./rollout-simulator.ts";
+import { experimentRolloutSimulatorVerifierSource } from "./rollout-simulator-verifier-source.ts";
 
-export const EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDIT_PROFILE = "0.47-RDA1";
-export const EXPERIMENT_ROLLOUT_DISTRIBUTION_CERTIFICATE_PROFILE = "0.47-RDAC1";
+export const EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDIT_PROFILE = "0.48-RDA2";
+export const EXPERIMENT_ROLLOUT_DISTRIBUTION_CERTIFICATE_PROFILE = "0.48-RDAC2";
 export const EXPERIMENT_ROLLOUT_DISTRIBUTION_BUNDLE_PROFILE =
-  "wanted_experiment_rollout_distribution_0.47-RDAB1";
+  "wanted_experiment_rollout_distribution_0.48-RDAB2";
 export const EXPERIMENT_ROLLOUT_DISTRIBUTION_CLI_EXIT_CODES = {
   pass: 0,
   verification_failed: 1,
@@ -16,9 +17,16 @@ export const EXPERIMENT_ROLLOUT_DISTRIBUTION_CLI_EXIT_CODES = {
 export const EXPERIMENT_ROLLOUT_DISTRIBUTION_SAMPLE_SIZE = 1_000_000;
 export const EXPERIMENT_ROLLOUT_DISTRIBUTION_ALGORITHM =
   "FNV1a_32(target_analysis_cohort|staged-rollout|synthetic_unit_id) mod 10000";
+export const EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256 =
+  "aef89bad20c04d1bee8e65af5064606e42ae1dda4ff5e061f707c0a99a7656f3";
+export const EXPERIMENT_ROLLOUT_DISTRIBUTION_VECTOR_INDICES = [
+  0, 1, 2, 3, 4, 5, 8, 9, 10, 99, 100, 999, 1_000, 9_999, 100_000, 999_999,
+] as const;
 
 const bundleKeys = [
   "allocation_algorithm",
+  "audited_source_profile",
+  "audited_source_sha256",
   "generator_profile",
   "index_start",
   "profile",
@@ -50,6 +58,8 @@ export type ExperimentRolloutDistributionCertificate = {
   profile: typeof EXPERIMENT_ROLLOUT_DISTRIBUTION_CERTIFICATE_PROFILE;
   purpose: "conformance_only";
   generator_profile: "0.43-RSM1";
+  audited_source_profile: "0.43-RSM1";
+  audited_source_sha256: string;
   target_rotator_version: "0.37-R37";
   target_analysis_cohort: "wanted_landing_v1-C9";
   sample_size: 1_000_000;
@@ -65,6 +75,8 @@ export type ExperimentRolloutDistributionCertificate = {
   pearson_chi_square_times_100: number;
   pearson_degrees_of_freedom: 9_999;
   bucket_occupancy_sha256: string;
+  cross_implementation_vector_count: 16;
+  cross_implementation_vectors_sha256: string;
   phases: ExperimentRolloutDistributionPhase[];
   gates: {
     every_bucket_observed: boolean;
@@ -84,6 +96,8 @@ export type ExperimentRolloutDistributionResult = {
   sample_verified: boolean;
   generator_verified: boolean;
   algorithm_verified: boolean;
+  source_binding_verified: boolean;
+  cross_implementation_vectors_verified: boolean;
   distribution_gates_verified: boolean;
   deterministic_certificate_verified: boolean;
   certificate: ExperimentRolloutDistributionCertificate | null;
@@ -104,12 +118,15 @@ export const experimentRolloutDistributionReferenceBundle = () => ({
   profile: EXPERIMENT_ROLLOUT_DISTRIBUTION_BUNDLE_PROFILE,
   purpose: "conformance_only" as const,
   generator_profile: "0.43-RSM1" as const,
+  audited_source_profile: "0.43-RSM1" as const,
+  audited_source_sha256: EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256,
   sample_size: EXPERIMENT_ROLLOUT_DISTRIBUTION_SAMPLE_SIZE,
   index_start: 0 as const,
   allocation_algorithm: EXPERIMENT_ROLLOUT_DISTRIBUTION_ALGORITHM,
 });
 
 export const EXPERIMENT_ROLLOUT_DISTRIBUTION_REFERENCE_SUMMARY = {
+  profile: "0.48-RDA2",
   sample_size: 1_000_000,
   observed_bucket_count: 10_000,
   empty_bucket_count: 0,
@@ -118,7 +135,10 @@ export const EXPERIMENT_ROLLOUT_DISTRIBUTION_REFERENCE_SUMMARY = {
   maximum_absolute_bucket_deviation: 42,
   pearson_chi_square_times_100: 982_492,
   bucket_occupancy_sha256: "8df5abe629859722da49535e8f0e440f2cc8c9bfd175b93ea7f119b860594b93",
-  certificate_sha256: "3ab7aca024b2ccc143b693f88396d182d3da083c12ca0e3edfdcfbe9d9e15b8a",
+  audited_source_sha256: EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256,
+  cross_implementation_vector_count: 16,
+  cross_implementation_vectors_sha256: "b508d15d7c00a933bcc74118dbadf03b1b567a490bc92f5a8c1c77cb62b698ff",
+  certificate_sha256: "d2b808166c3b23902c1f8d1232451b069c696e715bb7b8b1ee215df0a98f81ec",
   phases: [
     { phase: "canary", expected: 50_000, observed: 49_907, deviation: -93 },
     { phase: "ramp", expected: 250_000, observed: 249_990, deviation: -10 },
@@ -163,6 +183,22 @@ function summarizePhases(occupancy: Uint32Array): ExperimentRolloutDistributionP
   });
 }
 
+const hex = (value: ArrayBuffer) =>
+  Array.from(new Uint8Array(value), (byte) => byte.toString(16).padStart(2, "0")).join("");
+const sha256Text = async (value: string) =>
+  hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)));
+
+function crossImplementationVectors() {
+  return EXPERIMENT_ROLLOUT_DISTRIBUTION_VECTOR_INDICES.map((index) => {
+    const synthetic_unit_id = syntheticRolloutUnitId(index);
+    return {
+      index,
+      synthetic_unit_id,
+      rollout_bucket: rolloutBucketForSyntheticUnit(synthetic_unit_id),
+    };
+  });
+}
+
 export async function auditExperimentRolloutDistribution(
   value: unknown,
 ): Promise<ExperimentRolloutDistributionResult> {
@@ -181,11 +217,18 @@ export async function auditExperimentRolloutDistribution(
   if (!generatorVerified) errors.push("The synthetic unit generator profile is invalid.");
   const algorithmVerified = bundle.allocation_algorithm === EXPERIMENT_ROLLOUT_DISTRIBUTION_ALGORITHM;
   if (!algorithmVerified) errors.push("The declared rollout allocation algorithm is invalid.");
+  const calculatedSourceSha256 = await sha256Text(experimentRolloutSimulatorVerifierSource);
+  const sourceBindingVerified =
+    bundle.audited_source_profile === "0.43-RSM1" &&
+    bundle.audited_source_sha256 === EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256 &&
+    calculatedSourceSha256 === EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256;
+  if (!sourceBindingVerified) errors.push("The audit is not bound to the exact staged-rollout implementation source.");
 
   let certificate: ExperimentRolloutDistributionCertificate | null = null;
   let distributionGatesVerified = false;
   let deterministicCertificateVerified = false;
-  if (shapeVerified && sampleVerified && generatorVerified && algorithmVerified) {
+  let crossImplementationVectorsVerified = false;
+  if (shapeVerified && sampleVerified && generatorVerified && algorithmVerified && sourceBindingVerified) {
     const occupancy = enumerateBucketOccupancy();
     let observedBuckets = 0;
     let minimum = Number.POSITIVE_INFINITY;
@@ -200,6 +243,10 @@ export async function auditExperimentRolloutDistribution(
       squaredDeviationSum += (count - 100) ** 2;
     }
     const phases = summarizePhases(occupancy);
+    const vectors = crossImplementationVectors();
+    const vectorsSha256 = await rolloutPackageSha256(vectors);
+    crossImplementationVectorsVerified = vectors.length === 16;
+    if (!crossImplementationVectorsVerified) errors.push("Cross-implementation vector construction failed.");
     const gates = {
       every_bucket_observed: observedBuckets === 10_000,
       bucket_occupancy_within_50_to_150: minimum >= 50 && maximum <= 150,
@@ -216,6 +263,8 @@ export async function auditExperimentRolloutDistribution(
       profile: EXPERIMENT_ROLLOUT_DISTRIBUTION_CERTIFICATE_PROFILE,
       purpose: "conformance_only",
       generator_profile: "0.43-RSM1",
+      audited_source_profile: "0.43-RSM1",
+      audited_source_sha256: calculatedSourceSha256,
       target_rotator_version: "0.37-R37",
       target_analysis_cohort: "wanted_landing_v1-C9",
       sample_size: EXPERIMENT_ROLLOUT_DISTRIBUTION_SAMPLE_SIZE,
@@ -231,6 +280,8 @@ export async function auditExperimentRolloutDistribution(
       pearson_chi_square_times_100: squaredDeviationSum,
       pearson_degrees_of_freedom: 9_999,
       bucket_occupancy_sha256: await rolloutPackageSha256(Array.from(occupancy)),
+      cross_implementation_vector_count: 16,
+      cross_implementation_vectors_sha256: vectorsSha256,
       phases,
       gates,
       deterministic_reproduction_verified: true,
@@ -249,6 +300,8 @@ export async function auditExperimentRolloutDistribution(
     sample_verified: sampleVerified,
     generator_verified: generatorVerified,
     algorithm_verified: algorithmVerified,
+    source_binding_verified: sourceBindingVerified,
+    cross_implementation_vectors_verified: crossImplementationVectorsVerified,
     distribution_gates_verified: distributionGatesVerified,
     deterministic_certificate_verified: deterministicCertificateVerified,
     certificate: passed ? certificate : null,
@@ -276,6 +329,10 @@ export const experimentRolloutDistributionContract = {
   certificate_profile: EXPERIMENT_ROLLOUT_DISTRIBUTION_CERTIFICATE_PROFILE,
   bundle_profile: EXPERIMENT_ROLLOUT_DISTRIBUTION_BUNDLE_PROFILE,
   generator_profile: "0.43-RSM1",
+  audited_source_profile: "0.43-RSM1",
+  audited_source_sha256: EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256,
+  audited_source_module: "/experiments/wanted-rollout-simulator.mjs",
+  cross_implementation_vector_count: 16,
   target_rotator_version: "0.37-R37",
   target_analysis_cohort: "wanted_landing_v1-C9",
   sample_size: EXPERIMENT_ROLLOUT_DISTRIBUTION_SAMPLE_SIZE,
