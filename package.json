@@ -6,15 +6,16 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
-    "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "node dist/standalone/server.js",
     "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/diagnostics.test.mjs tests/scoring-robustness.test.mjs tests/preflight.test.mjs tests/leaderboard.test.mjs tests/safety.test.mjs tests/certification.test.mjs tests/preregistration-integrity.test.mjs tests/protocol-deviations.test.mjs tests/sampling-stopping.test.mjs tests/cohort-integrity.test.mjs tests/exposure-ledger.test.mjs tests/analysis-reproduction.test.mjs tests/endpoint-adjudication.test.mjs tests/human-measures.test.mjs tests/revealed-preference.test.mjs tests/learning-generalization.test.mjs tests/assistance-integrity.test.mjs tests/policy-evolution.test.mjs tests/privacy-integrity.test.mjs tests/service-continuity.test.mjs tests/realtime.test.mjs tests/withdrawal.test.mjs tests/telemetry-authenticity.test.mjs tests/audit-seal.test.mjs tests/auditor-credential.test.mjs tests/audit-sdk.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
+    "pg": "^8.23.0",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
@@ -25,6 +26,7 @@
     "@openai/sites-vite-plugin": "0.1.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
+    "@types/pg": "^8.23.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
@@ -43,5 +45,13 @@
     "vite": "8.0.13",
     "wrangler": "4.92.0"
   },
-  "type": "module"
+  "type": "module",
+  "allowScripts": {
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.0": true,
+    "esbuild@0.27.3": true,
+    "sharp@0.34.5": true,
+    "workerd": false
+  }
 }
