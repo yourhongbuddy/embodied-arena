@@ -102,6 +102,9 @@ test("only WANTED WILD ranks and WANTED 10K requires withdrawal", async () => {
   assert.equal(wild.projection.sampling_actual_units, 24);
   assert.equal(wild.projection.sampling_actual_exposure_hours, 120000);
   assert.equal(wild.projection.sampling_unscheduled_primary_analyses, 0);
+  assert.equal(wild.projection.root_commitment_witness_verified, true);
+  assert.equal(wild.projection.root_commitment_count, 1000);
+  assert.equal(wild.projection.root_witness_receipt_count, 2000);
   assert.equal(wild.projection.site_heterogeneity_verified, true);
   assert.equal(wild.projection.site_count, 3);
   assert.equal(wild.projection.maximum_site_share, .333333333);

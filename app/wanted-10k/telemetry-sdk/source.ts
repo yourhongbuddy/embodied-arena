@@ -323,7 +323,7 @@ export async function reconcileTelemetryExposure(aggregate, exposureLedger) {
     if (!integrityPass) errors.push(label + " lacks a complete exposure chain or valid root commitment binding.");
     rows.push({ deploymentId: stream.deploymentId, environmentIdSha256: stream.environmentIdSha256, eventStreamSha256: stream.eventStreamSha256, events: stream.events, activationEventSha256: stream.genesis?.eventSha256 ?? null, endEventSha256: stream.tail?.eventSha256 ?? null, rootCommitmentUri: record.root_commitment_uri ?? null, rootCommitmentSha256: record.root_commitment_sha256 ?? null, passed: Boolean(boundaryPass && integrityPass) });
   }
-  const base = { reportProfile: TELEMETRY_EXPOSURE_RECONCILIATION_VERSION, verifierVersion: TELEMETRY_VERIFIER_SDK_VERSION, aggregateReportSha256: aggregate.verificationReportSha256, exposureLedgerSha256: await sha256Hex(exposureLedger), deploymentStreams: aggregate.deploymentStreams, status: errors.length ? "fail" : "pass", rows, errors, interpretation: "reconciles_declared_streams_and_boundaries_but_external_root_witness_freshness_requires_independent_audit" };
+  const base = { reportProfile: TELEMETRY_EXPOSURE_RECONCILIATION_VERSION, verifierVersion: TELEMETRY_VERIFIER_SDK_VERSION, aggregateReportSha256: aggregate.verificationReportSha256, exposureLedgerSha256: await sha256Hex(exposureLedger), deploymentStreams: aggregate.deploymentStreams, status: errors.length ? "fail" : "pass", rows, errors, interpretation: "reconciles_declared_streams_and_boundaries; external_root_chronology_requires_independent_0.2-RC1_witness_verification" };
   return { ...base, reconciliationSha256: await sha256Hex(base) };
 }
 

@@ -40,7 +40,7 @@ test("distinguishes digest and signature failures", async () => {
   assert.equal(check(digestResult, "V4").passed, true);
 
   const signatureMutation = clone(auditManifestTemplates.WANTED_WILD);
-  signatureMutation.audit.auditor_signature = `A${signatureMutation.audit.auditor_signature.slice(1)}`;
+  signatureMutation.audit.auditor_signature = `${signatureMutation.audit.auditor_signature.startsWith("A") ? "B" : "A"}${signatureMutation.audit.auditor_signature.slice(1)}`;
   const signatureResult = await verifyAuditSeal(signatureMutation);
   assert.equal(check(signatureResult, "V3").passed, true);
   assert.equal(check(signatureResult, "V4").passed, false);

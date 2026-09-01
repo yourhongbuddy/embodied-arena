@@ -91,6 +91,7 @@ test("aggregates unique passing streams and emits the exact audit telemetry shap
   const reconciliation = await sdk.reconcileTelemetryExposure(aggregate, exposureLedger);
   assert.equal(reconciliation.status, "pass", JSON.stringify(reconciliation.errors));
   assert.equal(reconciliation.reportProfile, "0.2-TX1");
+  assert.match(reconciliation.interpretation, /0\.2-RC1/);
   assert.equal(reconciliation.rows.length, 2);
   assert.equal(reconciliation.rows.every(row => row.passed), true);
   const reconciliationUnsigned = structuredClone(reconciliation);
