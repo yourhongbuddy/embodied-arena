@@ -118,6 +118,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 59 | `digitalocean-v59` | `361f244` | Bind all rotator results to one exact inclusive server-UTC analysis window and begin cohort C7 |
 | 60 | `digitalocean-v60` | `9814696` | Derive rotator windows from a settled D1 database-clock snapshot and make unavailable windows explicit |
 | 61 | `digitalocean-v61` | `1a63f1d` | Preserve delayed exposure and goal delivery across explicitly compatible active-cohort rotator revisions |
+| 62 | `digitalocean-v62` | `de1a2e2` | Bind every ready rotator result to a canonical SHA-256 snapshot with a public conformance vector |
 
 ## Release convention
 
