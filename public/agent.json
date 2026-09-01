@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Embodied Arena HILO",
+  "version": "0.1.0",
+  "description": "Vendor-neutral robot benchmark and HILO Realtime Protocol knowledge surface.",
+  "mcp": {
+    "endpoint": "/mcp",
+    "transport": "streamable-http",
+    "preferredProtocolVersion": "2026-07-28",
+    "legacyProtocolVersions": ["2025-11-25", "2025-03-26"],
+    "state": "stateless",
+    "access": "public-read-only",
+    "tools": ["compare_systems", "get_hilo_protocol", "get_site_map", "list_edge_platforms", "list_robot_models"]
+  },
+  "safety": {
+    "actuationToolsExposed": false,
+    "mutatingToolsExposed": false,
+    "boundary": "Agent outputs are informational or proposed actions. Physical execution requires a separate authenticated safety kernel."
+  },
+  "routes": {
+    "agentGuide": "/agents",
+    "leaderboard": "/leaderboard",
+    "hiloRealtime": "/wanted-10k/realtime",
+    "longHorizon": "/wanted-10k",
+    "openapi": "/wanted-10k/openapi.json",
+    "specification": "/wanted-10k/spec.json",
+    "modelGuide": "/llms.txt"
+  },
+  "dataNotice": "Leaderboard seed scores are illustrative public-beta values, not deployment certifications. GPT-Realtime-2.1 is a reference implementation, not the benchmark."
+}

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Agent-readable guides
+# /llms.txt
+# /agent.json

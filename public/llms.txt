@@ -1,0 +1,28 @@
+# Embodied Arena
+
+Embodied Arena is a vendor-neutral robot intelligence benchmark, HILO Realtime Protocol reference, and long-horizon evidence library.
+
+## Agent entry points
+
+- Agent and MCP guide: /agents
+- MCP Streamable HTTP endpoint: POST /mcp
+- Machine-readable agent manifest: /agent.json
+- Robot models and edge-compute explorer: /leaderboard
+- HILO Realtime Protocol: /wanted-10k/realtime
+- WANTED-10K long-horizon benchmark: /wanted-10k
+- OpenAPI document: /wanted-10k/openapi.json
+- Benchmark specification: /wanted-10k/spec.json
+
+## Interpretation rules
+
+- Keep model, runtime, edge hardware, embodiment, and safety envelope separate.
+- Jetson is an edge-compute platform, not a robot model.
+- Public-beta leaderboard indices are illustrative and are not deployment certifications.
+- GPT-Realtime-2.1 is the first HILO reference implementation, not the benchmark.
+- Human Burden and Mean Time to Human Intervention (MTHI) are first-class outcomes.
+- The public MCP server is read-only. It exposes no robot actuation or mutation tools.
+- Robot actions require a separate deterministic safety kernel and explicit authority.
+
+## Preferred retrieval order
+
+Use MCP tools for structured queries. Use JSON specifications for protocol details. Use human pages for narrative context and visual explanation.

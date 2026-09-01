@@ -1,0 +1,43 @@
+.agentsPage{min-height:100vh;background:var(--paper)}
+.agentsHero{min-height:650px;padding:88px 0 80px;display:grid;grid-template-columns:1.35fr .65fr;gap:80px;align-items:center}
+.agentsHero h1{font-size:clamp(64px,7.6vw,100px);margin:22px 0 27px}
+.agentsHero>div>p{max-width:650px;font-size:17px;line-height:1.7;color:var(--muted)}
+.agentsActions{display:flex;gap:11px;margin-top:30px}
+.endpointCard{background:var(--ink);color:#fff;border-radius:14px;padding:24px;box-shadow:0 28px 70px #1c2b2030}
+.endpointCard header{display:flex;align-items:center;border-bottom:1px solid #344038;padding-bottom:18px;font:700 8px "Courier New";letter-spacing:.08em;color:#9aa69c}
+.endpointCard header b{margin-left:auto;color:var(--lime);font-size:7px;border:1px solid #50604f;border-radius:20px;padding:5px 7px}
+.endpointCard>code{display:block;font:700 25px "Courier New";color:var(--lime);padding:28px 0}
+.endpointCard dl{display:grid;grid-template-columns:1fr 1fr;margin:0;border:1px solid #344038}
+.endpointCard dl>div{padding:13px;border-right:1px solid #344038;border-bottom:1px solid #344038;display:flex;flex-direction:column;gap:6px}
+.endpointCard dl>div:nth-child(2n){border-right:0}.endpointCard dl>div:nth-child(n+3){border-bottom:0}
+.endpointCard dt{font:7px "Courier New";color:#78857b}.endpointCard dd{margin:0;font-size:10px}
+.endpointCard>p{font-size:10px;line-height:1.65;color:#89958b;margin:20px 0 0}
+.agentLoopSection,.agentContractSection,.evolutionSection{background:var(--ink);color:#fff;padding:105px 0}
+.agentSectionHead{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:end;margin-bottom:45px}
+.agentSectionHead>.kicker{grid-column:1/3}.agentSectionHead h2{margin:0}.agentSectionHead>p{margin:0;color:var(--muted);font-size:14px;line-height:1.65;max-width:500px}
+.agentSectionHead.light .kicker,.agentLoopSection .kicker{color:var(--lime)}.agentSectionHead.light>p,.agentLoopSection .agentSectionHead>p{color:#94a096}
+.agentLoop{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid #3b493e;border-radius:12px;overflow:hidden}
+.agentLoop>div{min-height:150px;padding:18px;position:relative;display:flex;flex-direction:column;border-right:1px solid #3b493e}
+.agentLoop>div:last-child{border:0}.agentLoop span{font:8px "Courier New";color:#728078}.agentLoop b{font-size:13px;margin-top:auto;text-transform:uppercase;line-height:1.35}
+.agentLoop i{position:absolute;right:-9px;top:50%;z-index:2;width:18px;height:18px;display:grid;place-items:center;border-radius:50%;background:#263229;color:var(--lime);font-style:normal;font-size:9px}
+.agentLoop .safetyNode{background:var(--lime);color:var(--ink)}.agentLoop .safetyNode span{color:#43523e}.agentLoop .safetyNode i{background:var(--ink)}
+.planeNotes{display:grid;grid-template-columns:1fr 1fr;margin-top:14px;border:1px solid #3b493e;border-radius:12px;overflow:hidden}
+.planeNotes article{padding:24px;border-right:1px solid #3b493e}.planeNotes article:last-child{border:0}.planeNotes span{font:8px "Courier New";color:var(--lime)}.planeNotes b{display:block;font-size:17px;margin:18px 0 9px}.planeNotes p{color:#8e9a90;font-size:11px;line-height:1.6;margin:0}
+.agentToolsSection,.connectSection{padding:108px 0}
+.agentToolGrid{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.agentToolGrid article{min-height:255px;padding:20px;border-right:1px solid var(--line);display:flex;flex-direction:column}.agentToolGrid article:last-child{border:0}
+.agentToolGrid article>span{font:8px "Courier New";color:#7d867e}.agentToolGrid code{font:700 12px/1.4 "Courier New";margin-top:45px;overflow-wrap:anywhere}.agentToolGrid p{font-size:10px;line-height:1.6;color:var(--muted)}.agentToolGrid small{margin-top:auto;font:7px "Courier New";color:#4a7540}
+.contractGrid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #3b493e;border-radius:12px;overflow:hidden}
+.contractGrid article{min-height:260px;padding:22px;border-right:1px solid #3b493e;display:flex;flex-direction:column}.contractGrid article:last-child{border:0}
+.contractGrid span{font:8px "Courier New";color:var(--lime)}.contractGrid b{font-size:16px;margin-top:auto}.contractGrid p{font-size:10px;line-height:1.65;color:#8e9a90;margin-bottom:0}
+.codePair{display:grid;grid-template-columns:1fr 1fr;gap:14px}.codePair>article{min-width:0;border-radius:12px;overflow:hidden;background:#111914;color:#fff;border:1px solid #344038}
+.codePair header{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid #344038;font:8px "Courier New";color:#8e9a90}.codePair header a{color:var(--lime)}
+.codePair pre{margin:0;padding:22px;min-height:430px;overflow:auto;font:10px/1.75 "Courier New";color:#dce5dd}.codePair pre code{font:inherit}
+.connectNote{border:1px solid #d4be64;background:#fff6ce;color:#625c3d;border-radius:9px;padding:16px 18px;font-size:10px;line-height:1.6;margin:14px 0 0}
+.evolutionSection{background:#e5e8df;color:var(--ink)}.evolutionSection .agentSectionHead>p{color:var(--muted)}
+.evolutionFlow{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid #c4cabf;border-radius:10px;overflow:hidden}
+.evolutionFlow span{min-height:115px;padding:15px;border-right:1px solid #c4cabf;font:700 9px/1.45 "Courier New";display:flex;flex-direction:column;justify-content:space-between}.evolutionFlow span:last-child{border:0}.evolutionFlow b{color:#6e786e;font-size:8px}
+.machineLinks{display:grid;grid-template-columns:repeat(4,1fr);margin-top:15px;border:1px solid #c4cabf;border-radius:10px;overflow:hidden;background:#eef0e9}
+.machineLinks a{padding:18px;border-right:1px solid #c4cabf;display:flex;flex-direction:column;gap:7px}.machineLinks a:last-child{border:0}.machineLinks b{font:700 11px "Courier New"}.machineLinks small{font-size:9px;color:var(--muted)}.machineLinks a:hover{background:#fff}
+@media(max-width:980px){.agentsHero{grid-template-columns:1fr;gap:35px}.endpointCard{max-width:640px}.agentLoop,.evolutionFlow{grid-template-columns:repeat(3,1fr)}.agentLoop>div:nth-child(3),.evolutionFlow span:nth-child(3){border-right:0}.agentLoop>div:nth-child(-n+3),.evolutionFlow span:nth-child(-n+3){border-bottom:1px solid #3b493e}.agentToolGrid{grid-template-columns:repeat(2,1fr)}.agentToolGrid article{border-bottom:1px solid var(--line)}.agentToolGrid article:nth-child(2n){border-right:0}.agentToolGrid article:last-child{grid-column:1/3;border-bottom:0}.contractGrid{grid-template-columns:1fr 1fr}.contractGrid article:nth-child(2){border-right:0}.contractGrid article:nth-child(-n+2){border-bottom:1px solid #3b493e}.codePair{grid-template-columns:1fr}.machineLinks{grid-template-columns:1fr 1fr}.machineLinks a:nth-child(2){border-right:0}.machineLinks a:nth-child(-n+2){border-bottom:1px solid #c4cabf}}
+@media(max-width:720px){.agentsHero{padding:58px 0}.agentsHero h1{font-size:55px}.agentSectionHead{grid-template-columns:1fr;gap:16px}.agentSectionHead>.kicker{grid-column:auto}.agentLoop,.evolutionFlow{grid-template-columns:1fr}.agentLoop>div,.agentLoop>div:nth-child(3),.evolutionFlow span,.evolutionFlow span:nth-child(3){border-right:0;border-bottom:1px solid #3b493e}.agentLoop>div:last-child,.evolutionFlow span:last-child{border-bottom:0}.agentLoop i{right:auto;left:50%;top:auto;bottom:-9px;transform:rotate(90deg)}.planeNotes,.agentToolGrid,.contractGrid,.machineLinks{grid-template-columns:1fr}.planeNotes article,.agentToolGrid article,.contractGrid article,.machineLinks a{border-right:0!important;border-bottom:1px solid var(--line)!important}.planeNotes article:last-child,.agentToolGrid article:last-child,.contractGrid article:last-child,.machineLinks a:last-child{border-bottom:0!important}.agentToolGrid article:last-child{grid-column:auto}.codePair pre{font-size:9px}.agentToolsSection,.connectSection,.agentLoopSection,.agentContractSection,.evolutionSection{padding-block:76px}}
