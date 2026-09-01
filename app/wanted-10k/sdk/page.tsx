@@ -83,14 +83,16 @@ import { verifyTelemetryJsonl } from
     </div></section>
 
     <section className="sdkCodeSection"><div className="shell sdkCodeGrid">
-      <div><span className="kicker">04 / INDEPENDENT ROOT WITNESSES</span><h2>Roots observed.<br/><em>Keys stay sovereign.</em></h2><p>Independent witness organizations can now create one RC1 receipt through the same no-export signing pattern. The helper prepares canonical bytes, accepts a caller-owned HSM callback, or supports an air-gapped prepare/attach workflow without ever reading a private key.</p><div className="sdkResources"><a href="/wanted-10k/root-commitment-witness/issuance">WITNESS ISSUANCE GUIDE →</a><a href="/wanted-10k/wanted-root-witness-receipt.mjs">RECEIPT HELPER ↓</a><a href="/wanted-10k/root-witness-receipt-sdk.json">RECEIPT SDK CONTRACT ↗</a><a href="/wanted-10k/root-witness-receipt.template.json">SYNTHETIC RECEIPT EXAMPLE ↓</a></div></div>
-      <div className="codeCard sdkCode"><header><span>KEY-CUSTODY BOUNDARY</span><i>WITNESS-OWNED</i></header><pre><code>{`prepare → canonical bytes + digest
+      <div><span className="kicker">04 / ROOTS + INDEPENDENT WITNESSES</span><h2>Prefixes committed.<br/><em>Keys stay sovereign.</em></h2><p>RE1 first binds each root to a verified signed telemetry prefix and the prior root. Independent witness organizations then create RC1 receipts through the same no-export signing pattern, using a caller-owned HSM callback or air-gapped prepare/attach workflow.</p><div className="sdkResources"><a href="/wanted-10k/root-commitment-witness/envelopes">ROOT ENVELOPE GUIDE →</a><a href="/wanted-10k/wanted-root-envelope.mjs">ROOT HELPER ↓</a><a href="/wanted-10k/root-envelope-sdk.json">ROOT SDK CONTRACT ↗</a><a href="/wanted-10k/root-commitment-witness/issuance">WITNESS ISSUANCE GUIDE →</a><a href="/wanted-10k/wanted-root-witness-receipt.mjs">RECEIPT HELPER ↓</a><a href="/wanted-10k/root-witness-receipt-sdk.json">RECEIPT SDK CONTRACT ↗</a></div></div>
+      <div className="codeCard sdkCode"><header><span>ROOT + KEY BOUNDARY</span><i>LOCAL ONLY</i></header><pre><code>{`events  → verified signed prefix
+envelope → prefix + prior-root digest
+prepare → canonical receipt bytes
 sign    → witness HSM / TPM / KMS
 attach  → signature self-verification
 verify  → registered key + lifecycle
 
 No private-key flag. No network request.
-One receipt still requires full RC1 quorum.`}</code></pre><footer><span>0.2-RIS1 · RFC 8785 · ED25519</span><span>LOCAL ONLY</span></footer></div>
+One receipt still requires full RC1 quorum.`}</code></pre><footer><span>0.2-RE1 · 0.2-RIS1 · ED25519</span><span>NO UPLOAD</span></footer></div>
     </div></section>
 
     <section className="restartSection"><div className="shell">

@@ -15,6 +15,8 @@ The benchmark treats time to permanent voluntary rejection as the primary endpoi
 - `/wanted-10k/root-witness-conformance-vectors.json` — 11 normative RC1 parity, tamper, replay, quorum, and chronology cases
 - `/wanted-10k/root-commitment-witness/issuance` — independent witness receipt workflow with no production-key custody
 - `/wanted-10k/wanted-root-witness-receipt.mjs` — zero-dependency prepare, attach, verify, and HSM-callback receipt helper
+- `/wanted-10k/root-commitment-witness/envelopes` — canonical signed telemetry-prefix root documents and append-only root chaining
+- `/wanted-10k/wanted-root-envelope.mjs` — local create, verify, and full-series root-envelope helper
 - `/wanted-10k/certification` — certification levels and applicability
 - `/wanted-10k/leaderboard` — audited registry and ranking rules
 - `/leaderboard` — broader embodied-robot rankings
