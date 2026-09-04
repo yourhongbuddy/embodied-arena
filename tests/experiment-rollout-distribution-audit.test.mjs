@@ -27,6 +27,24 @@ import { GET as getModule } from "../app/experiments/wanted-rollout-distribution
 
 const clone = (value) => structuredClone(value);
 
+test("rejects changed vector results before enumerating the million-unit sample", async () => {
+  // Keep the embedded simulator source intact to isolate the vector-result check.
+  const original = experimentRolloutDistributionAuditVerifierSource;
+  const changed = original.replace(
+    "rollout_bucket:simulatorSdk.rolloutBucket(synthetic_unit_id)",
+    "rollout_bucket:(simulatorSdk.rolloutBucket(synthetic_unit_id)+1)%10000",
+  ).replace("const counts=occupancy();", 'const counts=(()=>{throw new Error("Enumeration must not run")})();');
+  assert.notEqual(changed, original);
+  const sdk = await import(`data:text/javascript;base64,${Buffer.from(changed).toString("base64")}`);
+  const result = await sdk.auditRolloutDistribution(experimentRolloutDistributionReferenceBundle());
+  assert.equal(result.source_binding_verified, true);
+  assert.equal(result.cross_implementation_vectors_verified, false);
+  assert.equal(result.status, "fail");
+  assert.equal(result.certificate, null);
+  assert.equal(result.distribution_gates_verified, false);
+  assert.deepEqual(result.errors, ["Cross-implementation vectors do not match the frozen reference."]);
+});
+
 test("reproduces the exact one-million-unit synthetic distribution certificate", async () => {
   const first = await auditExperimentRolloutDistribution(experimentRolloutDistributionReferenceBundle());
   const second = await auditExperimentRolloutDistribution(experimentRolloutDistributionReferenceBundle());

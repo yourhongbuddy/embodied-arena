@@ -22,6 +22,9 @@ export const EXPERIMENT_ROLLOUT_DISTRIBUTION_AUDITED_SOURCE_SHA256 =
 export const EXPERIMENT_ROLLOUT_DISTRIBUTION_VECTOR_INDICES = [
   0, 1, 2, 3, 4, 5, 8, 9, 10, 99, 100, 999, 1_000, 9_999, 100_000, 999_999,
 ] as const;
+// Frozen expected results, not a digest derived from the implementation under test.
+export const EXPERIMENT_ROLLOUT_DISTRIBUTION_VECTOR_SHA256 =
+  "b508d15d7c00a933bcc74118dbadf03b1b567a490bc92f5a8c1c77cb62b698ff";
 
 const bundleKeys = [
   "allocation_algorithm",
@@ -228,7 +231,15 @@ export async function auditExperimentRolloutDistribution(
   let distributionGatesVerified = false;
   let deterministicCertificateVerified = false;
   let crossImplementationVectorsVerified = false;
+  let vectorsSha256 = "";
   if (shapeVerified && sampleVerified && generatorVerified && algorithmVerified && sourceBindingVerified) {
+    const vectors = crossImplementationVectors();
+    vectorsSha256 = await rolloutPackageSha256(vectors);
+    crossImplementationVectorsVerified =
+      vectors.length === 16 && vectorsSha256 === EXPERIMENT_ROLLOUT_DISTRIBUTION_VECTOR_SHA256;
+    if (!crossImplementationVectorsVerified) errors.push("Cross-implementation vectors do not match the frozen reference.");
+  }
+  if (crossImplementationVectorsVerified) {
     const occupancy = enumerateBucketOccupancy();
     let observedBuckets = 0;
     let minimum = Number.POSITIVE_INFINITY;
@@ -243,10 +254,6 @@ export async function auditExperimentRolloutDistribution(
       squaredDeviationSum += (count - 100) ** 2;
     }
     const phases = summarizePhases(occupancy);
-    const vectors = crossImplementationVectors();
-    const vectorsSha256 = await rolloutPackageSha256(vectors);
-    crossImplementationVectorsVerified = vectors.length === 16;
-    if (!crossImplementationVectorsVerified) errors.push("Cross-implementation vector construction failed.");
     const gates = {
       every_bucket_observed: observedBuckets === 10_000,
       bucket_occupancy_within_50_to_150: minimum >= 50 && maximum <= 150,
