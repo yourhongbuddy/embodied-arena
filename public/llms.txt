@@ -11,6 +11,7 @@ Embodied Arena is a vendor-neutral robot intelligence benchmark, HILO Realtime P
 - Monitoring-agent manifest: /monitoring-agents.json
 - Live read-only deployment probes run in-browser at /monitoring
 - Robot models and edge-compute explorer: /leaderboard
+- ArenaGPT model profiles and illustrative comparison charts: /arenagpt
 - HILO Realtime Protocol: /wanted-10k/realtime
 - WANTED-10K long-horizon benchmark: /wanted-10k
 - OpenAPI document: /wanted-10k/openapi.json

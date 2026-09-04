@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react";
 import { SiteNav } from "../components/SiteNav";
 import { track } from "../components/AnalyticsHeartbeat";
-
-type Metric = "overall" | "manipulation" | "navigation" | "reasoning";
+import { models, type Metric } from "./models";
 
 const sections = [
   ["top-robot-models", "Top robot models"],
@@ -21,15 +20,6 @@ const sections = [
   ["vision-streams", "Vision streams"],
   ["deployments", "Top deployments"],
 ] as const;
-
-const models = [
-  { name: "π0.5", org: "Physical Intelligence", overall: 78.4, manipulation: 86.2, navigation: 65.4, reasoning: 82.5, reality: "REAL", open: true, kind: "GENERALIST VLA", task: "Mobile manipulation" },
-  { name: "GR00T N1.6", org: "NVIDIA", overall: 75.9, manipulation: 80.4, navigation: 71.5, reasoning: 77.1, reality: "REAL", open: true, kind: "HUMANOID VLA", task: "Humanoid loco-manipulation" },
-  { name: "OpenVLA-OFT", org: "Stanford / TRI", overall: 72.6, manipulation: 79.3, navigation: 67.0, reasoning: 74.8, reality: "REAL", open: true, kind: "OPEN VLA", task: "Manipulation" },
-  { name: "Helix 02", org: "Figure AI", overall: 69.8, manipulation: 76.6, navigation: 70.2, reasoning: 68.5, reality: "REAL", open: false, kind: "HUMANOID POLICY", task: "Humanoid manipulation" },
-  { name: "RoboBrain 2.0", org: "BAAI", overall: 67.2, manipulation: 62.1, navigation: 66.8, reasoning: 81.2, reality: "SIM", open: true, kind: "EMBODIED VLM", task: "Embodied reasoning" },
-  { name: "SmolVLA", org: "Hugging Face", overall: 58.7, manipulation: 65.0, navigation: 52.8, reasoning: 63.1, reality: "REAL", open: true, kind: "COMPACT VLA", task: "Local manipulation" },
-];
 
 const taskLeaders = [
   ["MANIPULATION", "π0.5", "86.2", "Seed normalized index"],
@@ -83,6 +73,7 @@ export default function Leaderboard() {
 
         <section className="rankingSection">
           <AnchorTitle id="leaderboard-table" eyebrow="02 / LEADERBOARD" title="Rank with context." copy="Filter the public-beta seed set. Scores remain illustrative until submissions share a frozen protocol and comparable evidence." />
+          <a className="sourceLine" href="/arenagpt">Explore model profiles and comparison bar charts in ArenaGPT ↗</a>
           <div className="leaderTools"><div>{(["overall", "manipulation", "navigation", "reasoning"] as const).map(item => <button key={item} className={metric === item ? "active" : ""} onClick={() => { setMetric(item); track("leaderboard_filter", "/leaderboard", { metric: item }); }}>{item}</button>)}</div><label><span>⌕</span><input aria-label="Search robot models" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search models" /></label><label className="openCheck"><input type="checkbox" checked={openOnly} onChange={event => setOpenOnly(event.target.checked)} /> open only</label></div>
           <div className="simpleBoard"><header><span>#</span><span>MODEL</span><span>{metric.toUpperCase()}</span><span>EVIDENCE</span></header>{rows.map((model, index) => <article key={model.name}><b className={index === 0 ? "topRank" : ""}>{index + 1}</b><div><strong>{model.name}{model.open && <i>OPEN</i>}</strong><small>{model.org} · {model.kind}</small></div><div className="metricBar"><strong>{model[metric].toFixed(1)}</strong><i><span style={{ width: `${model[metric]}%` }} /></i></div><span className={model.reality === "REAL" ? "realTag" : "simTag"}>● {model.reality}</span></article>)}</div>
           <p className="betaNote">Illustrative public-beta data. Hardware, tasks, training data, sample sizes, and evaluation protocols differ; do not treat this table as a deployment claim.</p>
