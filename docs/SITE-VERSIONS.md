@@ -56,6 +56,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 39 | `sites-v39` | `f8292d9` | Add compliant campaign agent control center |
 | 40 | `sites-v40` | `c28e10c` | Remove scan footer upload notice |
 | 41 | `sites-v41` | `591ddba` | Add ArenaGPT model analysis and comparison charts |
+| 42 | `sites-v42` | `6292924` | Integrate rotator, ArenaGPT, and campaign controls; saved without deployment |
 
 ## DigitalOcean iterations
 
