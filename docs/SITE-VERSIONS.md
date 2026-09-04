@@ -6,6 +6,7 @@ This repository keeps platform-specific deployment work separate from the benchm
 
 - `digitalocean` is the current standalone Node deployment line and GitHub default branch.
 - `sites` points to the exact source used for saved Sites version 38.
+- Saved Sites versions 39–41 are preserved by their immutable tags on the separate `daily-rotation-release` line. They contain campaign controls and ArenaGPT additions that are not yet merged into `digitalocean`; do not deploy `digitalocean` over that newer site without integrating those changes.
 - Historical versions are tags, not copied directories. This preserves the full Git history without duplicating generated files.
 
 ## Saved Sites versions
@@ -52,6 +53,9 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 36 | `sites-v36` | `94c1c75` | Add protocol-deviation integrity profile |
 | 37 | `sites-v37` | `afbc365` | Expose benchmark evidence profiles in OpenAPI |
 | 38 | `sites-v38` | `05c24ce` | Add prospective sampling and stopping integrity |
+| 39 | `sites-v39` | `f8292d9` | Add compliant campaign agent control center |
+| 40 | `sites-v40` | `c28e10c` | Remove scan footer upload notice |
+| 41 | `sites-v41` | `591ddba` | Add ArenaGPT model analysis and comparison charts |
 
 ## DigitalOcean iterations
 
