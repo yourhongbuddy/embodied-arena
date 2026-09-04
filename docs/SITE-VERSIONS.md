@@ -6,7 +6,7 @@ This repository keeps platform-specific deployment work separate from the benchm
 
 - `digitalocean` is the current standalone Node deployment line and GitHub default branch.
 - `sites` points to the exact source used for saved Sites version 38.
-- Saved Sites versions 39–41 are preserved by their immutable tags on the separate `daily-rotation-release` line. They contain campaign controls and ArenaGPT additions that are not yet merged into `digitalocean`; do not deploy `digitalocean` over that newer site without integrating those changes.
+- Saved Sites versions 39–41 are preserved by their immutable tags on the separate `daily-rotation-release` line and integrated into `digitalocean`. Campaign controls, ArenaGPT, the scan correction, and the dedicated Sites build are retained. ArenaGPT is linked from the leaderboard; the WANTED experiment's fingerprinted navigation remains unchanged to avoid silently altering its active cohort.
 - Historical versions are tags, not copied directories. This preserves the full Git history without duplicating generated files.
 
 ## Saved Sites versions

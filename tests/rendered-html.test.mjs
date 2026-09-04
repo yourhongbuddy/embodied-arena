@@ -79,6 +79,21 @@ after(async () => {
   assert.doesNotMatch(serverOutput,/Each child in a list should have a unique/);
 });
 
+test("preserves newer Sites pages alongside the WANTED rotator", async () => {
+  const leaderboard = await request("/leaderboard");
+  assert.equal(leaderboard.status, 200);
+  assert.match(await leaderboard.text(), /href="\/arenagpt"/);
+  const analysis = await request("/arenagpt");
+  assert.equal(analysis.status, 200);
+  const html = await analysis.text();
+  assert.match(html, /One shared dataset/);
+  assert.match(html, /illustrative scores out of 100/);
+  assert.match(html, /Not measured/);
+  const campaigns = await request("/campaigns");
+  assert.equal(campaigns.status, 200);
+  assert.match(await campaigns.text(), /approval-and-delivery audit trail/);
+});
+
 test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   const benchmark = await request("/wanted-10k");
   assert.equal(benchmark.status, 200);
