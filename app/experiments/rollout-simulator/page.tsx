@@ -3,6 +3,7 @@ import { SiteNav } from "../../components/SiteNav";
 import { RolloutConfigCompilerLab } from "./RolloutConfigCompilerLab";
 import { RolloutBucketConformance } from "./RolloutBucketConformance";
 import { RolloutDistributionAudit } from "./RolloutDistributionAudit";
+import { RolloutCohortSeparation } from "./RolloutCohortSeparation";
 import { RolloutRuntimeInspector } from "./RolloutRuntimeInspector";
 import { RolloutSimulatorLab } from "./RolloutSimulatorLab";
 
@@ -30,6 +31,7 @@ export default function RolloutSimulatorPage() {
       <RolloutRuntimeInspector />
       <RolloutBucketConformance />
       <RolloutDistributionAudit />
+      <RolloutCohortSeparation />
       <section className="experimentBoundary">
         <div className="shell">
           <b>PREPRODUCTION SIMULATION ONLY</b>

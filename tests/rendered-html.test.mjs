@@ -1024,6 +1024,16 @@ test("serves the one-million-unit rollout distribution audit and artifacts", asy
   assert.equal(schema.additionalProperties,false);assert.equal(reference.synthetic,true);assert.equal(reference.expected.status,"pass");assert.equal(reference.expected.source_binding_verified,true);assert.equal(reference.expected.cross_implementation_vectors_verified,true);assert.equal(reference.expected.certificate.empty_bucket_count,0);assert.equal(reference.expected.certificate.cross_implementation_vector_count,16);assert.deepEqual(reference.expected.certificate.phases.map(phase=>phase.observed_selected_units),[49907,249990,499757,1000000]);
 });
 
+test("publishes a source-bound C8-to-C9 activation hold for low-bit coupling", async () => {
+  const [pageResponse,moduleResponse,contractResponse,schemaResponse,referenceResponse]=await Promise.all([request("/experiments/rollout-simulator"),request("/experiments/wanted-rollout-cohort-separation.mjs"),request("/experiments/rollout-cohort-separation.json","application/json"),request("/experiments/rollout-cohort-separation.schema.json","application/json"),request("/experiments/rollout-cohort-separation.reference.json","application/json")]);
+  for(const response of [pageResponse,moduleResponse,contractResponse,schemaResponse,referenceResponse])assert.equal(response.status,200);
+  const [html,source,contract,schema,reference]=await Promise.all([pageResponse.text(),moduleResponse.text(),contractResponse.json(),schemaResponse.json(),referenceResponse.json()]);
+  assert.match(html,/C8 → C9 COHORT SEPARATION/);assert.match(html,/NOT AUTHORIZED/);assert.match(html,/8 OF 16 OBSERVED/);assert.match(html,/REQUIRED BEFORE ACTIVATION REVIEW/);
+  assert.match(moduleResponse.headers.get("content-type"),/text\/javascript/);assert.doesNotMatch(source,/\bfetch\s*\(/);assert.doesNotMatch(source,/process\.env(?:\.|\[)/);assert.match(source,/auditCohortSeparation/);
+  assert.equal(contract.version,"0.49-CSR1");assert.equal(contract.result,"hold");assert.equal(contract.activation_authorized,false);assert.equal(contract.sample_size,1000000);assert.deepEqual(contract.failed_structural_gates,["all_modulo_16_difference_residues_observed","exact_bucket_match_count_between_50_and_150"]);assert.equal(contract.runtime_dependencies,0);assert.equal(contract.uses_live_traffic,false);assert.equal(contract.changes_live_allocation,false);assert.equal(contract.deploys,false);assert.equal(contract.source_sha256,createHash("sha256").update(source).digest("hex"));
+  assert.equal(schema.additionalProperties,false);assert.equal(reference.synthetic,true);assert.equal(reference.expected.evaluation_status,"complete");assert.equal(reference.expected.readiness,"hold");assert.equal(reference.expected.activation_authorized,false);assert.equal(reference.expected.certificate.exact_bucket_match_count,0);assert.deepEqual(reference.expected.certificate.observed_modulo_16_difference_residues,[1,3,5,7,9,11,13,15]);
+});
+
 test("publishes the aggregate certification audit contract", async () => {
   const [pageResponse, schemaResponse, templateResponse, specResponse] = await Promise.all([
     request("/wanted-10k/audit"),
