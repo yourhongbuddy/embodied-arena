@@ -64,8 +64,8 @@ export const EXPERIMENT_ROLLOUT_COHORT_SEPARATION_REFERENCE_SUMMARY = {
   expected_exact_bucket_matches: 100,
   observed_modulo_16_difference_residues: [1, 3, 5, 7, 9, 11, 13, 15],
   missing_modulo_16_difference_residues: [0, 2, 4, 6, 8, 10, 12, 14],
-  diagnostics_sha256: "21aa594afae6680a6ba43102a3f9fc7c5d0929b2de018830b1633afc16410c52",
-  certificate_sha256: "edf66af725607e4849019cd8a6c3b7eeff1b8ab1f926356867716712cc5cdb4d",
+  diagnostics_sha256: "dd2085d643ee6887b88c757997d71331b04645268924a4df31448cd9c217db71",
+  certificate_sha256: "6f47094fe44c68bac6db9181aba1786ce5f1f33a99cb3b0f0c73043dbbdbc2a7",
 } as const;
 
 export type ExperimentRolloutCohortSeparationCertificate = {
@@ -183,13 +183,16 @@ export async function auditExperimentRolloutCohortSeparation(
       const candidateColumn = candidateBucket < 2_500 ? 1 : 0;
       contingency[previous.variant][candidateColumn] += 1;
       deciles[Math.floor(previous.bucket / 1_000)][Math.floor(candidateBucket / 1_000)] += 1;
-      residues[(candidateBucket - previous.bucket + 16) % 16] += 1;
+      residues[((candidateBucket - previous.bucket) % 16 + 16) % 16] += 1;
       if (previous.bucket === candidateBucket) sameBucket += 1;
       sumOld += previous.bucket;
       sumNew += candidateBucket;
       sumOldSquared += previous.bucket ** 2;
       sumNewSquared += candidateBucket ** 2;
       sumProduct += previous.bucket * candidateBucket;
+    }
+    if (residues.reduce((sum, count) => sum + count, 0) !== 1_000_000) {
+      throw new Error("Residue accounting must retain every synthetic unit.");
     }
     const variants = ["control", "proof", "developer"] as const;
     const variantTotals = variants.map((variant) => contingency[variant][0] + contingency[variant][1]);

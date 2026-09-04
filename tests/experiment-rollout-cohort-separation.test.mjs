@@ -36,6 +36,12 @@ test("completes the source-bound cohort review and places the FNV candidate on h
   assert.equal(result.certificate.old_new_decile_cramers_v_ppm, 2_723);
   assert.equal(result.certificate.bucket_pearson_correlation_ppm, -358);
   assert.equal(result.certificate.exact_bucket_match_count, 0);
+  const residueCounts = result.certificate.modulo_16_difference_residue_counts;
+  assert.equal(residueCounts.length, 16);
+  assert.equal(residueCounts.reduce((sum, count) => sum + count, 0), result.certificate.sample_size,
+    "Every unit, including negative bucket differences, must be retained in the public histogram");
+  assert.deepEqual(Object.keys(residueCounts), Array.from({ length: 16 }, (_, index) => String(index)),
+    "Residue accounting must not create negative array properties");
   assert.deepEqual(result.certificate.observed_modulo_16_difference_residues, [1, 3, 5, 7, 9, 11, 13, 15]);
   assert.deepEqual(result.certificate.modulo_16_difference_residue_counts.filter((_, index) => index % 2 === 0), Array(8).fill(0));
   assert.equal(result.certificate.gates.treatment_association_at_most_5_000_ppm, true);
@@ -43,8 +49,8 @@ test("completes the source-bound cohort review and places the FNV candidate on h
   assert.equal(result.certificate.gates.absolute_linear_correlation_at_most_5_000_ppm, true);
   assert.equal(result.certificate.gates.all_modulo_16_difference_residues_observed, false);
   assert.equal(result.certificate.gates.exact_bucket_match_count_between_50_and_150, false);
-  assert.equal(result.certificate.diagnostics_sha256, "21aa594afae6680a6ba43102a3f9fc7c5d0929b2de018830b1633afc16410c52");
-  assert.equal(result.certificate.certificate_sha256, "edf66af725607e4849019cd8a6c3b7eeff1b8ab1f926356867716712cc5cdb4d");
+  assert.equal(result.certificate.diagnostics_sha256, "dd2085d643ee6887b88c757997d71331b04645268924a4df31448cd9c217db71");
+  assert.equal(result.certificate.certificate_sha256, "6f47094fe44c68bac6db9181aba1786ce5f1f33a99cb3b0f0c73043dbbdbc2a7");
   assert.equal(result.findings.length, 2);
   for (const field of ["reads_user_identifiers", "uses_live_traffic", "counts_exposures", "supports_version_selection", "changes_live_allocation", "changes_live_phase", "deploys"]) assert.equal(result[field], false, field);
 });
