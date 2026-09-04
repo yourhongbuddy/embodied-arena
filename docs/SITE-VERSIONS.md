@@ -137,6 +137,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 78 | `digitalocean-v78` | `7d7fac3` | Exhaustively enumerate all 10,000 integer buckets to prove exact staged populations, gap-free disjoint assignment, monotone phase nesting, activation-manifest alignment, and complete control rollback without reading users or changing live allocation |
 | 79 | `digitalocean-v79` | `1a0a586` | Audit the frozen FNV-1a assignment path over one million deterministic synthetic units, reaching every bucket and binding exact occupancy, phase deviations, engineering gates, and the complete distribution vector without observing users or traffic |
 | 80 | `digitalocean-v80` | `cc523ba` | Bind the million-unit distribution certificate to the exact downloadable staged-rollout implementation and 16 independently reproduced boundary vectors so source drift cannot retain a passing audit |
+| 81 | `digitalocean-v81` | `bf02383` | Place the FNV-based C9 candidate on a source-bound activation hold after a million-unit C8-to-C9 audit reveals zero exact bucket matches and only odd modulo-16 differences despite low aggregate association |
 
 ## Release convention
 
