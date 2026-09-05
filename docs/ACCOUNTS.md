@@ -22,6 +22,8 @@ The platform owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, and `/callbac
 
 The append-only migration is `drizzle/0002_account_profiles.sql`. Existing migrations and snapshots are preserved. The migration creates a new table only; there is no runtime CREATE/ALTER or seed contact data. A Sites deployment applies generated migrations before uploading its Worker. A local build does not provision the live table.
 
+When validating both hosting targets, retain `dist/standalone` separately after the Node HTTP tests. The Sites packaging helper copies the entire remaining `dist` tree, so do not leave the Node standalone runtime or its dependency directory in a Worker-only archive. Local test databases under `tests/.wrangler` are ignored and must never be packaged or committed.
+
 Authorized site owners can inspect records in Sites Settings → Database → DB → account_profiles. Restrict editor/database access to operators who need the contacts. No public contact directory is implemented.
 
 Profile deletion removes the row from the active database. Provider-managed backups may retain older copies according to their own retention settings. There is no claim of immediate backup erasure. The account notice describes these limits.
