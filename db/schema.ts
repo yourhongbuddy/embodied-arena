@@ -29,3 +29,14 @@ export const experimentAssignmentReceipts = sqliteTable("experiment_assignment_r
 }, (table) => [
   index("idx_experiment_assignment_receipts_expires_at").on(table.expiresAt),
 ]);
+
+// Private, per-account contact data. Never include this table in public analytics/MCP.
+export const accountProfiles = sqliteTable("account_profiles", {
+  userId: text("user_id").primaryKey(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  privacyVersion: text("privacy_version").notNull(),
+  consentAt: text("consent_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

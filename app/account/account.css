@@ -1,0 +1,25 @@
+.accountPage{min-height:100vh;background:var(--paper);color:var(--ink)}
+.accountShell{width:min(1040px,calc(100% - 48px));margin:auto;padding:72px 0 96px}
+.accountLogin{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;min-height:calc(100vh - 76px)}
+.accountEyebrow,.accountBadge{font:700 .8125rem/1.4 "Courier New",monospace;letter-spacing:.07em}
+.accountEyebrow{color:#4e5b50}.accountBadge{display:inline-block;padding:7px 10px;background:var(--lime);border:1px solid var(--ink);border-radius:4px}
+.accountIntro h1{font-size:clamp(3.2rem,5.5vw,5rem);line-height:1.02;margin:24px 0;letter-spacing:-.065em}
+.accountPage p{font-size:1rem;line-height:1.65;color:#526054}.accountIntro>p{max-width:380px;margin-bottom:32px}
+.accountCard{padding:36px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 44px #10241709;min-width:0}
+.accountCard h2,.accountSectionTitle{font-size:2rem;line-height:1.15;letter-spacing:-.04em;margin:24px 0 12px}
+.accountPrimary,.accountSecondary,.accountDanger{display:inline-flex;justify-content:center;align-items:center;gap:24px;min-height:48px;border-radius:8px;padding:13px 18px;font-size:1rem;font-weight:700;cursor:pointer;text-align:center}
+.accountPrimary{background:var(--ink);color:white;border:1px solid var(--ink)}.accountPrimary span{color:var(--lime)}.accountPrimary:hover{background:#283f2e}.accountLogin .accountPrimary{width:100%;margin:18px 0 8px}
+.accountSecondary{border:1px solid #b7c1b8;background:transparent}.accountDanger{color:#952b24;border:1px solid #c28782;background:#fff7f5}.accountPage button:disabled{opacity:.55;cursor:wait}
+.accountTextLink{font-size:.9375rem;text-decoration:underline;text-underline-offset:4px;line-height:1.6}
+.accountLoginNotes{border-top:1px solid var(--line);margin:24px 0;padding-top:8px}.accountLoginNotes p{font-size:.9375rem}.accountLoginNotes strong{color:var(--ink)}
+.accountNotice,.accountMessage{padding:16px;background:#eef2e8;border:1px solid #b9c7ac;border-radius:8px;font-size:1rem;line-height:1.6;margin:20px 0}
+.accountError{background:#fff3ef;border-color:#ca9790;color:#8a251f}
+.accountPage a:focus-visible,.accountPage button:focus-visible,.accountPage input:focus-visible{outline:3px solid #40733d;outline-offset:4px}
+.accountHeader{display:flex;justify-content:space-between;gap:24px;align-items:center;margin-bottom:32px}.accountHeader h1{font-size:clamp(2.6rem,5vw,3.8rem);margin:16px 0;line-height:1.08}.accountHeader p{margin:0}
+.accountGrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start}
+.accountForm{display:grid;gap:24px;margin-top:28px}.accountField{display:grid;gap:9px;font-size:1rem;font-weight:700}.accountField input{width:100%;min-width:0;border:1px solid #aab6ab;background:white;border-radius:8px;padding:13px;font-size:1rem;line-height:1.5;color:var(--ink)}.accountField input[readonly]{background:#edf0e8;color:#4c5a4f}.accountField small{font-size:.875rem;font-weight:400;line-height:1.5;color:#526054}
+.accountConsent{display:flex;gap:12px;align-items:flex-start;font-size:.9375rem;line-height:1.6}.accountConsent input{width:20px;height:20px;flex-shrink:0;margin-top:3px;accent-color:var(--ink)}
+.accountActions{display:flex;gap:12px;flex-wrap:wrap}.accountSide{border-top:4px solid var(--ink)}.accountSide h2{margin-top:0}.accountSide dl{margin:24px 0}.accountSide dt{font-size:.875rem;color:#526054;margin:18px 0 6px}.accountSide dd{margin:0;font-size:1rem;line-height:1.5}.accountDelete{border-top:1px solid var(--line);padding-top:24px;margin-top:28px}.accountDelete summary{cursor:pointer;font-size:1rem;color:#952b24;min-height:36px}.accountDelete p{font-size:.9375rem}
+.accountPrivacy{max-width:760px}.accountPrivacy h1{font-size:clamp(2.5rem,5vw,3.7rem);line-height:1.1;margin:24px 0}.accountPrivacy h2{font-size:1.5rem;line-height:1.3;margin:32px 0 12px}.accountPrivacy li{font-size:1rem;line-height:1.7;margin:10px 0}.accountPrivacy .accountCard{margin-top:28px}
+@media(max-width:800px){.accountLogin{grid-template-columns:1fr;gap:32px;min-height:auto}.accountShell{padding:40px 0 72px}.accountIntro h1 br{display:none}.accountIntro>p{max-width:none}.accountGrid{grid-template-columns:1fr}.accountHeader{align-items:flex-start}.accountCard{padding:26px}}
+@media(max-width:480px){.accountShell{width:calc(100% - 32px)}.accountCard{padding:22px}.accountHeader{display:block}.accountHeader>.accountTextLink{display:inline-block;margin-top:16px}.accountActions>*{width:100%}}

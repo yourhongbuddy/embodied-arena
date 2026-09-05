@@ -27,6 +27,7 @@
     "verify:digitalocean": "node scripts/verify-digitalocean-spec.mjs",
     "verify:versions": "node scripts/verify-version-index.mjs",
     "test:mcp": "node --experimental-strip-types --test tests/mcp.test.mjs",
+    "test:accounts": "node --experimental-strip-types --test tests/account.test.mjs",
     "test:monitoring": "node --experimental-strip-types --test tests/monitoring.test.mjs",
     "db:generate": "drizzle-kit generate"
   },

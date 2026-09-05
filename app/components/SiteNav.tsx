@@ -12,6 +12,6 @@ export function SiteNav() {
   return <nav className="nav shell" aria-label="Primary navigation">
     <Link className="brand" href="/"><span className="brandMark">EA</span><span>EMBODIED <b>ARENA</b></span></Link>
     <div className="navLinks routeLinks">{links.map(([href,label])=><a className={pathname===href||(href!=="/"&&pathname.startsWith(`${href}/`))?"current":""} href={href} key={href}>{label}</a>)}</div>
-    <span className="localPill">PRIVATE BETA</span>
+    <a className="localPill" href="/account">MY ACCOUNT ↗</a>
   </nav>;
 }
