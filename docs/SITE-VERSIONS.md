@@ -149,6 +149,8 @@ Versions 43–44 are preserved from the `login-profiles` branch and integrated h
 | 80 | `digitalocean-v80` | `cc523ba` | Bind the million-unit distribution certificate to the exact downloadable staged-rollout implementation and 16 independently reproduced boundary vectors so source drift cannot retain a passing audit |
 | 81 | `digitalocean-v81` | `bf02383` | Place the FNV-based C9 candidate on a source-bound activation hold after a million-unit C8-to-C9 audit reveals zero exact bucket matches and only odd modulo-16 differences despite low aggregate association |
 
+| 82 | `digitalocean-v82` | `e2787ef` | Add chart-first robot leaderboard with task filters, sortable scores, model profiles, and hfxaa llc privacy, terms, about, and contact pages |
+
 ## Release convention
 
 1. Keep benchmark changes platform-neutral whenever possible.
