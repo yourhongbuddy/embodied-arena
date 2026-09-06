@@ -1,20 +1,35 @@
-# HILO research-kit validation — 2026-09-04
+# HILO research-kit validation — 2026-09-05 America/Los_Angeles
 
-Scope: new 0.1-RM1 reference utilities and research page; not field testing or certification.
+Scope: 0.1-RM1 reference utilities and research page; not physical testing or certification.
 
-| Check | Actual result |
+## Observed GitHub Actions results
+
+The following results were read from actual workflow logs for head `7bb10f7d2538a86e9bcfdc970eb98baa5ddd74ce`, evaluated as PR merge commit `8bccdb955a1f62d76084398ab8ffa884f47686da`. GitHub timestamps are September 6 UTC, September 5 in America/Los_Angeles.
+
+| Check | Observed result |
 |---|---|
-| `node --test tests/hilo-review-mining.test.mjs` | 35 tests passed; 0 failed on Node 22.16.0 |
-| `node --check public/hilo/hilo-review-mining.mjs` | Passed |
-| JSON Schema Draft 2020-12 meta-validation | Passed using Python jsonschema |
-| Two explicitly synthetic JSONL fixtures against schema | Passed with format checking |
-| New page and modified navigation TSX syntax | Passed TypeScript `transpileModule` diagnostics |
-| Complete existing site build, lint, and release gate locally | Not executed: full dependency-installed checkout unavailable |
-| Million-hour throughput / distributed execution | Not tested; architecture and capacity scenarios only |
-| Physical robot trial / acquired video | Not performed; both collection counters remain zero |
+| HILO reference tests | **35 passed, 0 failed, 0 skipped**, Node **22.23.2**, Ubuntu GitHub runner |
+| Existing release-tag verification | Passed: 123 contiguous, monotonic release tags |
+| Existing repository ESLint | Passed |
+| Existing full `vinext build` | Passed; standalone output generated |
+| Existing main test batch | **320 passed, 1 failed** |
+| Failure | Frozen landing-page source digest for `app/components/SiteNav.tsx` changed |
+| Later chained verification stages | Not reached after that failure |
 
-The test suite exercises evidence boundaries, source normalization, real timestamps, schema restrictions, consent metadata, duplicate footage, overlapping camera/session coverage, conflicting unit locations, separate simulated/human/field clocks, human burden, all-stage mission completion, zero-event statistical bounds, capacity arithmetic, streaming line limits, I/O failures and CLI behavior.
+Reference test run: https://github.com/yourhongbuddy/embodied-arena/actions/runs/34002785636
 
-The dedicated `hilo-research.yml` workflow runs the reference tests on relevant pushes and pull requests with read-only repository permissions. It is **not** a review crawler or video-collection schedule. The repository's existing complete verification remains required before merging and deployment. Adding code to a GitHub branch does not deploy the website.
+Initial repository verification: https://github.com/yourhongbuddy/embodied-arena/actions/runs/34002785601
 
-These tests verify the implementation's stated behavior on synthetic fixtures. They do not validate real-world model accuracy, physical safety, data licenses, prospective lifetime claims, independent incident adjudication or the scientific adequacy of a chosen field sample.
+The corrective commit restores `SiteNav.tsx` byte-for-byte to the base release. The isolated research route remains at `/wanted-10k/failure-mining`; changing the global navigation requires a deliberately versioned experiment cohort and is outside this add-on. No frozen hashes, tests, experiment definitions or release tags were weakened or rewritten. Consult PR #1 checks for the correction's actual result; the earlier passing build is not automatically a passing result for every later commit.
+
+## Correction to the initial validation note
+
+The initial note incorrectly described local Node 22.16.0 tests, `node --check`, Python JSON Schema validation and TypeScript `transpileModule` checks as completed. Those local checks were **not established** and are withdrawn. A full local checkout failed because the environment could not resolve github.com. The independently observed remote results above replace those claims. JSON Schema shape and runtime semantic checks are implemented; independent schema-engine conformance should not be claimed without its own executed test.
+
+## Boundaries
+
+The 35 reference tests exercise evidence labels, source normalization, real timestamps, record restrictions, consent metadata, duplicate footage, overlapping coverage, conflicting robot locations, separate simulated/human/field clocks, human burden, all-stage mission completion, zero-event statistical bounds, capacity arithmetic, incremental line limits, I/O failures and CLI behavior.
+
+These are synthetic software tests, not independent incident verification, rights approval, extraction-model accuracy, physical safety, million-hour throughput or robot-lifetime validation. No real video or field robot-hours were acquired. No crawler, ongoing worker, paid infrastructure or production deployment is represented by a passing test.
+
+The dedicated workflow uses read-only repository permissions. Full repository checks remain required before merge. PR #1 is the authoritative review surface: https://github.com/yourhongbuddy/embodied-arena/pull/1
