@@ -94,6 +94,39 @@ test("preserves newer Sites pages alongside the WANTED rotator", async () => {
   assert.match(await campaigns.text(), /approval-and-delivery audit trail/);
 });
 
+test("renders the comparison leaderboard with honest data labels and URL search", async () => {
+  const response = await request("/leaderboard");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /<h1>Leaderboard<\/h1>/);
+  assert.match(html, /not measured benchmark results/);
+  assert.match(html, /Sortable model rankings/);
+  assert.match(html, /aria-sort="descending"/);
+  assert.match(html, /Illustrative scores only/);
+  assert.match(html, /href="\/privacy"/);
+  const filtered = await request("/leaderboard?q=NVIDIA");
+  const filteredHtml = await filtered.text();
+  const table = filteredHtml.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] || "";
+  assert.match(table, /GR00T N1.6/);
+  assert.doesNotMatch(table, /SmolVLA|RoboBrain/);
+  const empty = await request("/leaderboard?q=no-such-robot");
+  assert.match(await empty.text(), /No models match these filters/);
+});
+
+test("publishes the four company pages with working contact and footer links", async () => {
+  for (const [path, title] of [["/about", "About us"], ["/contact", "Contact us"], ["/privacy", "Privacy Policy"], ["/terms", "Terms and Conditions"]]) {
+    const response = await request(path);
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.ok(html.includes(`<h1>${title}</h1>`));
+    assert.match(html, /hfxaa llc/);
+    assert.match(html, /mailto:privacy@getrobotrouter.com/);
+    for (const link of ["/about", "/contact", "/privacy", "/terms"]) assert.ok(html.includes(`href="${link}"`));
+  }
+  const watch = await request("/watch");
+  assert.match(await watch.text(), /Company and legal/);
+});
+
 test("server-renders the WANTED-10K benchmark and protocol kit", async () => {
   const benchmark = await request("/wanted-10k");
   assert.equal(benchmark.status, 200);

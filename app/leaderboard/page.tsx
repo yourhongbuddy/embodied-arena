@@ -1,9 +1,10 @@
-"use client";
-
-import { useMemo, useState } from "react";
+import type { Metadata } from "next";
 import { SiteNav } from "../components/SiteNav";
-import { track } from "../components/AnalyticsHeartbeat";
-import { models, type Metric } from "./models";
+import { models } from "./models";
+import { LeaderboardExplorer } from "./LeaderboardExplorer";
+import { SiteFooter } from "../components/SiteFooter";
+
+export const metadata: Metadata = { title: "Robot AI Leaderboard — Embodied Arena", description: "Explore robot model profiles with interactive charts, task filters, and transparent illustrative scores.", alternates: { canonical: "/leaderboard" } };
 
 const sections = [
   ["top-robot-models", "Top robot models"],
@@ -48,20 +49,14 @@ function AnchorTitle({ id, eyebrow, title, copy }: { id: string; eyebrow: string
   return <header className="rankingSectionHead" id={id}><span className="kicker">{eyebrow}</span><h2>{title}</h2><p>{copy}</p></header>;
 }
 
-export default function Leaderboard() {
-  const [metric, setMetric] = useState<Metric>("overall");
-  const [query, setQuery] = useState("");
-  const [openOnly, setOpenOnly] = useState(false);
-  const rows = useMemo(() => models
-    .filter(model => (!openOnly || model.open) && `${model.name} ${model.org} ${model.kind} ${model.task}`.toLowerCase().includes(query.toLowerCase()))
-    .sort((a, b) => b[metric] - a[metric]), [metric, query, openOnly]);
+export default async function Leaderboard({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
+  const params = await searchParams;
+  const initialQuery = typeof params.q === "string" ? params.q.slice(0, 200) : "";
 
   return <main className="rankingsPage">
     <SiteNav />
-    <section className="rankingsHero shell">
-      <div><span className="kicker">ROBOT RANKINGS / EVIDENCE MENU</span><h1>Models meet<br/><em>machines.</em></h1><p><a href="/arenagpt">Open ArenaGPT model comparisons →</a></p><a href="/account">Manage my contact profile →</a></div>
-      <div className="rankingsHeroCopy"><p>Explore robot intelligence, embodiments, edge compute, benchmarks, realtime behavior, and long-horizon deployment evidence in one index.</p><span><b>Important:</b> Jetson is an edge-compute platform—not a robot model. Embodied Arena keeps model, runtime, hardware, and embodiment separate.</span></div>
-    </section>
+    <header className="lbHero shell"><span className="kicker">EMBODIED ARENA / ROBOT INTELLIGENCE</span><h1>Leaderboard</h1><p>Explore robot models across manipulation, navigation, and reasoning.</p><div className="lbHeroLinks"><a href="/wanted-10k/audit">Prepare results →</a><a href="#benchmarks">Browse benchmarks →</a></div></header>
+    <LeaderboardExplorer initialQuery={initialQuery} />
 
     <div className="rankingsShell shell">
       <aside className="rankingRail"><span>EXPLORE</span><nav aria-label="Rankings page sections">{sections.map(([href, label]) => <a href={`#${href}`} key={href}>{label}<i>↘</i></a>)}</nav></aside>
@@ -69,14 +64,6 @@ export default function Leaderboard() {
         <section className="rankingSection topRobotSection">
           <AnchorTitle id="top-robot-models" eyebrow="01 / TOP ROBOT MODELS" title="Intelligence with an embodiment." copy="A model score is meaningful only when the robot body, sensors, compute, task distribution, and intervention policy travel with it." />
           <div className="topRobotGrid">{models.slice(0, 3).map((model, index) => <article key={model.name}><span>0{index + 1}</span><small>{model.kind}</small><h3>{model.name}</h3><p>{model.org}</p><div><b>{model.overall.toFixed(1)}</b><em>ILLUSTRATIVE INDEX</em></div></article>)}</div>
-        </section>
-
-        <section className="rankingSection">
-          <AnchorTitle id="leaderboard-table" eyebrow="02 / LEADERBOARD" title="Rank with context." copy="Filter the public-beta seed set. Scores remain illustrative until submissions share a frozen protocol and comparable evidence." />
-          <a className="sourceLine" href="/arenagpt">Explore model profiles and comparison bar charts in ArenaGPT ↗</a>
-          <div className="leaderTools"><div>{(["overall", "manipulation", "navigation", "reasoning"] as const).map(item => <button key={item} className={metric === item ? "active" : ""} onClick={() => { setMetric(item); track("leaderboard_filter", "/leaderboard", { metric: item }); }}>{item}</button>)}</div><label><span>⌕</span><input aria-label="Search robot models" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search models" /></label><label className="openCheck"><input type="checkbox" checked={openOnly} onChange={event => setOpenOnly(event.target.checked)} /> open only</label></div>
-          <div className="simpleBoard"><header><span>#</span><span>MODEL</span><span>{metric.toUpperCase()}</span><span>EVIDENCE</span></header>{rows.map((model, index) => <article key={model.name}><b className={index === 0 ? "topRank" : ""}>{index + 1}</b><div><strong>{model.name}{model.open && <i>OPEN</i>}</strong><small>{model.org} · {model.kind}</small></div><div className="metricBar"><strong>{model[metric].toFixed(1)}</strong><i><span style={{ width: `${model[metric]}%` }} /></i></div><span className={model.reality === "REAL" ? "realTag" : "simTag"}>● {model.reality}</span></article>)}</div>
-          <p className="betaNote">Illustrative public-beta data. Hardware, tasks, training data, sample sizes, and evaluation protocols differ; do not treat this table as a deployment claim.</p>
         </section>
 
         <section className="rankingSection"><AnchorTitle id="models-by-task" eyebrow="03 / TOP MODELS BY TASK" title="The winner changes with the work." copy="Compare within matched task families rather than collapsing every form of physical intelligence into one number." /><div className="taskLeaderGrid">{taskLeaders.map(([task, model, score, note]) => <article key={task}><span>{task}</span><h3>{model}</h3><div><b>{score}</b><small>{note}</small></div></article>)}</div></section>
@@ -102,5 +89,6 @@ export default function Leaderboard() {
         <section className="rankingSection deploymentSection"><AnchorTitle id="deployments" eyebrow="13 / TOP DEPLOYMENTS" title="The long horizon wins." copy="Promote systems by independently verified resident exposure—not polished demos or isolated successful episodes." /><div className="deploymentTiers">{[["T0", "10 H", "INTEGRATION"], ["T1", "100 H", "PILOT"], ["T2", "1,000 H", "FIELD"], ["T3", "10,000 H", "ENDURANCE"]].map(([tier, hours, label]) => <article key={tier}><span>{tier}</span><b>{hours}</b><small>{label}</small></article>)}</div><p className="rankingAttribution">Information architecture adapted from the <a href="https://openrouter.ai/rankings#benchmarks" target="_blank" rel="noreferrer">OpenRouter Rankings</a> section menu. OpenRouter rankings data is not reproduced. Reference data is licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>; robotics labels, taxonomy, and evidence rules are Embodied Arena adaptations.</p></section>
       </div>
     </div>
+    <SiteFooter />
   </main>;
 }
