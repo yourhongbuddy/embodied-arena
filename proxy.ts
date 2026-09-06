@@ -9,4 +9,4 @@ export function proxy() {
   return response;
 }
 
-export const config = { matcher: ["/login", "/account/:path*", "/api/account"] };
+export const config = { matcher: ["/login", "/account/:path*", "/api/account", "/verified/:path*", "/api/verified/:path*"] };
