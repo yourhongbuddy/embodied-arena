@@ -60,7 +60,7 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 43 | `sites-v43` | `36914ac` | Add private sign-in and contact profiles with D1 storage |
 | 44 | `sites-v44` | `cad5da8` | Document separate Node and Sites account release artifacts |
 
-Versions 43–44 are preserved from the `login-profiles` branch. They include account storage and authentication changes that have not yet been integrated into this branch. Version 42 must not be treated as the latest release candidate; reconcile the newer account work before a public release. An indexed saved version is not proof of deployment or successful validation.
+Versions 43–44 are preserved from the `login-profiles` branch and integrated here. Account storage and authentication remain separate from WANTED experiment identities. The contact-profile entry point is on the leaderboard; WANTED's fingerprinted shared navigation stays unchanged. Version 42 must not be treated as the latest release candidate. An indexed saved version is not proof of deployment or successful validation.
 
 ## DigitalOcean iterations
 

@@ -1,4 +1,5 @@
 import { getD1 } from "../../../db/d1";
+import { isLocalOnlyAnalyticsPath } from "../../experiments/analytics-boundary";
 import { ANALYTICS_RETENTION_QUERY,validExperimentEvent } from "../../experiments/ingestion.ts";
 import { verifyAssignmentReceipt } from "../../experiments/assignment-receipt.ts";
 
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
   }catch{return new Response(null,{status:400})}
   const sessionId=String(body.sessionId||""),eventType=String(body.eventType||""),path=String(body.path||"");
   if(!identifier.test(sessionId)||!allowedEvents.has(eventType)||!path.startsWith("/")||path.length>180)return new Response(null,{status:400});
+  if(isLocalOnlyAnalyticsPath(path))return new Response(null,{status:400});
   const safe=safeMetadata(body.metadata);
   const experimentEvent=eventType.startsWith("experiment_");
   if(experimentEvent&&!validExperimentEvent(eventType,path,safe))return new Response(null,{status:400});

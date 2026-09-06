@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /account
+Disallow: /login
+Disallow: /api/account
 
 # Agent-readable guides
 # /llms.txt

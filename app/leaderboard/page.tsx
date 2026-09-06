@@ -59,7 +59,7 @@ export default function Leaderboard() {
   return <main className="rankingsPage">
     <SiteNav />
     <section className="rankingsHero shell">
-      <div><span className="kicker">ROBOT RANKINGS / EVIDENCE MENU</span><h1>Models meet<br/><em>machines.</em></h1><a href="/arenagpt">Open ArenaGPT model comparisons →</a></div>
+      <div><span className="kicker">ROBOT RANKINGS / EVIDENCE MENU</span><h1>Models meet<br/><em>machines.</em></h1><p><a href="/arenagpt">Open ArenaGPT model comparisons →</a></p><a href="/account">Manage my contact profile →</a></div>
       <div className="rankingsHeroCopy"><p>Explore robot intelligence, embodiments, edge compute, benchmarks, realtime behavior, and long-horizon deployment evidence in one index.</p><span><b>Important:</b> Jetson is an edge-compute platform—not a robot model. Embodied Arena keeps model, runtime, hardware, and embodiment separate.</span></div>
     </section>
 
