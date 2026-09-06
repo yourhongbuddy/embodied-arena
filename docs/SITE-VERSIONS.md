@@ -57,6 +57,10 @@ Every `sites-vNN` tag points to the exact source commit recorded for that saved 
 | 40 | `sites-v40` | `c28e10c` | Remove scan footer upload notice |
 | 41 | `sites-v41` | `591ddba` | Add ArenaGPT model analysis and comparison charts |
 | 42 | `sites-v42` | `6292924` | Integrate rotator, ArenaGPT, and campaign controls; saved without deployment |
+| 43 | `sites-v43` | `36914ac` | Add private sign-in and contact profiles with D1 storage |
+| 44 | `sites-v44` | `cad5da8` | Document separate Node and Sites account release artifacts |
+
+Versions 43–44 are preserved from the `login-profiles` branch. They include account storage and authentication changes that have not yet been integrated into this branch. Version 42 must not be treated as the latest release candidate; reconcile the newer account work before a public release. An indexed saved version is not proof of deployment or successful validation.
 
 ## DigitalOcean iterations
 
