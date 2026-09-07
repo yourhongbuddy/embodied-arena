@@ -151,6 +151,7 @@ Versions 43–44 are preserved from the `login-profiles` branch and integrated h
 
 | 82 | `digitalocean-v82` | `e2787ef` | Add chart-first robot leaderboard with task filters, sortable scores, model profiles, and hfxaa llc privacy, terms, about, and contact pages |
 | 83 | `digitalocean-v83` | `affaa09` | Add private PostgreSQL benchmark workspaces, CSV/JSON import, bar/line/scatter charts, exports, scoped REST/MCP agent access, stable Studio entry, and honest preview/contact flows |
+| 84 | `digitalocean-v84` | `076b325` | Reject malformed agent field types, preserve Unicode chart labels, and display tiny nonzero scores without rounding them to zero |
 
 ## Release convention
 
