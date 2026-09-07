@@ -36,3 +36,43 @@ test("charts escape user markup and keep negative, missing, and equal-valued dat
   assert.doesNotMatch(renderBenchmarkSvg(doc), /NaN|Infinity/);
   doc.rows = []; assert.match(renderBenchmarkSvg(doc), /Add numeric results/);
 });
+
+test("machine documents reject coerced arrays, objects, and blank strings at the validation boundary", () => {
+  for (const mutate of [
+    doc => { doc.metrics[0].direction = ["higher"]; },
+    doc => { doc.chart.type = ["bar"]; },
+    doc => { doc.chart.type = { toString: "bar" }; },
+    doc => { doc.chart.metric = ["success"]; },
+    doc => { doc.chart = { type: "scatter", metric: "success", xMetric: ["latency"] }; },
+    doc => { doc.chart.xMetric = 4; },
+    doc => { doc.rows[0].values.success = ""; },
+  ]) {
+    const doc = structuredClone(starterBenchmark); mutate(doc);
+    assert.equal(validateBenchmark(doc).ok, false, JSON.stringify(doc));
+  }
+});
+
+test("Unicode labels remain valid in previews and exports and XML-invalid characters are rejected", () => {
+  const doc = structuredClone(starterBenchmark);
+  doc.title = `Title ${"🤖".repeat(52)}`;
+  doc.rows[0].label = `X${"🤖".repeat(22)}`;
+  assert.equal(validateBenchmark(doc).ok, true);
+  const svg = renderBenchmarkSvg(doc);
+  assert.doesNotThrow(() => encodeURIComponent(svg));
+  assert.equal(svg.isWellFormed(), true);
+  for (const invalid of ["\uFFFE", "\uFFFF", "\uD800"]) {
+    doc.title = `Invalid ${invalid}`;
+    assert.equal(validateBenchmark(doc).ok, false);
+  }
+});
+
+test("tiny nonzero scores are legible as scientific notation instead of zero", () => {
+  const doc = structuredClone(starterBenchmark);
+  doc.rows[0].values.success = 0.000001;
+  doc.rows[1].values.success = -0.000002;
+  doc.rows[2].values.success = 0;
+  const svg = renderBenchmarkSvg(doc);
+  assert.match(svg, />1E-6<\/text>/);
+  assert.match(svg, />-2E-6<\/text>/);
+  assert.match(svg, />0<\/text>/);
+});

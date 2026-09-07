@@ -1,7 +1,13 @@
 import { validateBenchmark, type BenchmarkDocument } from "./contract.ts";
 
 const escapeXml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
-const number = (value: number) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 3, notation: Math.abs(value) >= 1e6 ? "compact" : "standard" }).format(value);
+const number = (value: number) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 3, notation: value !== 0 && Math.abs(value) < 0.001 ? "scientific" : Math.abs(value) >= 1e6 ? "compact" : "standard" }).format(value === 0 ? 0 : value);
+function truncate(value: string, limit: number) {
+  if (value.length <= limit) return value;
+  let shortened = "";
+  for (const char of value) { if (shortened.length + char.length >= limit) break; shortened += char; }
+  return `${shortened}…`;
+}
 function extent(values: number[], zero: boolean): [number, number] {
   let min = Math.min(...values), max = Math.max(...values);
   if (zero) { min = Math.min(0, min); max = Math.max(0, max); }
@@ -20,7 +26,7 @@ export function renderBenchmarkSvg(input: BenchmarkDocument): string {
   const drawable = doc.rows.filter(row => row.values[metric.id] !== null && (!scatter || (xMetric && row.values[xMetric.id] !== null)));
   const width = Math.max(960, !scatter ? Math.min(16000, doc.rows.length * 65 + 150) : 960), height = 560;
   const left = 95, right = width - 40, top = 110, bottom = 395, plotWidth = right - left;
-  const title = escapeXml(doc.title), displayTitle = escapeXml(doc.title.length > Math.floor((width - left - 40) / 14) ? doc.title.slice(0, Math.floor((width - left - 40) / 14) - 1) + "…" : doc.title), label = escapeXml(`${metric.name}${metric.unit ? ` (${metric.unit})` : ""}`);
+  const title = escapeXml(doc.title), displayTitle = escapeXml(truncate(doc.title, Math.floor((width - left - 40) / 14))), label = escapeXml(`${metric.name}${metric.unit ? ` (${metric.unit})` : ""}`);
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="chart-title chart-desc"><title id="chart-title">${title} — ${label}</title><desc id="chart-desc">${escapeXml(doc.chart.type)} chart. ${doc.evidence === "example" ? "Example data." : "Self-reported data; not independently verified."} ${drawable.length} plotted results; ${doc.rows.length - drawable.length} missing results omitted. ${metric.direction === "higher" ? "Higher" : "Lower"} is better.</desc><rect width="100%" height="100%" fill="#ffffff"/><g font-family="Arial,Helvetica,sans-serif" fill="#17271c"><text x="${left}" y="40" font-size="24" font-weight="700">${displayTitle}</text><text x="${left}" y="69" font-size="14" fill="#53675a">${label} · ${metric.direction === "higher" ? "Higher" : "Lower"} is better · ${doc.evidence === "example" ? "EXAMPLE DATA" : "SELF-REPORTED"}</text>`;
   if (!drawable.length) return `${svg}<text x="${left}" y="250" font-size="18">Add numeric results to draw this chart.</text></g></svg>`;
   const [yMin, yMax] = extent(drawable.map(row => row.values[metric.id]!), !scatter && doc.chart.type === "bar");
@@ -41,7 +47,7 @@ export function renderBenchmarkSvg(input: BenchmarkDocument): string {
       if (score === null) { flush(); svg += `<text x="${x(index)}" y="${bottom + 20}" text-anchor="middle" font-size="12" fill="#7a827b">No data</text>`; }
       else if (doc.chart.type === "bar") { const base = y(0), pos = y(score), barWidth = Math.min(56, slot * .65); svg += `<rect x="${x(index) - barWidth / 2}" y="${Math.min(base, pos)}" width="${barWidth}" height="${Math.max(1, Math.abs(base - pos))}" rx="3" fill="#376542"><title>${escapeXml(row.label)}: ${escapeXml(number(score))} ${escapeXml(metric.unit)}</title></rect><text x="${x(index)}" y="${score >= 0 ? pos - 9 : pos + 18}" text-anchor="middle" font-size="13" font-weight="700">${escapeXml(number(score))}</text>`; }
       else { segment.push(`${x(index)},${y(score)}`); svg += `<circle cx="${x(index)}" cy="${y(score)}" r="5" fill="#376542"><title>${escapeXml(row.label)}: ${escapeXml(number(score))}</title></circle>`; }
-      const displayLabel = row.label.length > 24 ? `${row.label.slice(0, 22)}…` : row.label;
+      const displayLabel = truncate(row.label, 24);
       svg += `<text x="${x(index)}" y="${bottom + 46}" transform="rotate(30 ${x(index)} ${bottom + 46})" text-anchor="start" font-size="13">${escapeXml(displayLabel)}<title>${escapeXml(row.label)}</title></text>`;
     });
     flush();

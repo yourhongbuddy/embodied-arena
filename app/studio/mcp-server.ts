@@ -39,7 +39,7 @@ export async function handleStudioMcp(request: Request, factory: () => StudioSto
     if (!spec) return rpc(body.id, { code: -32602, message: "Unknown tool." }, true, 400);
     const args = params.arguments && typeof params.arguments === "object" && !Array.isArray(params.arguments) ? params.arguments as Record<string, unknown> : {};
     try {
-      if (Object.keys(args).some(key => !(key in spec.inputSchema.properties)) || spec.inputSchema.required.some(key => !(key in args))) throw new StudioError(422, "Arguments do not match the tool's schema.");
+      if (Object.keys(args).some(key => !Object.hasOwn(spec.inputSchema.properties, key)) || spec.inputSchema.required.some(key => !Object.hasOwn(args, key))) throw new StudioError(422, "Arguments do not match the tool's schema.");
       if ("id" in spec.inputSchema.properties && typeof args.id !== "string") throw new StudioError(422, "id must be a benchmark UUID.");
       if ("version" in spec.inputSchema.properties && (!Number.isSafeInteger(args.version) || Number(args.version) < 1)) throw new StudioError(422, "version must be a positive integer.");
       const id = String(args.id || ""); let data: Record<string, unknown>;
@@ -47,7 +47,7 @@ export async function handleStudioMcp(request: Request, factory: () => StudioSto
       else if (spec.name === "get_benchmark") data = { benchmark: await store.get(identity, id) };
       else if (spec.name === "delete_benchmark") { await store.remove(identity, id, Number(args.version)); data = { deleted: true, id }; }
       else if (spec.name === "render_benchmark") {
-        if (!["svg", "csv", "json"].includes(String(args.format))) throw new StudioError(422, "format must be svg, csv, or json.");
+        if (args.format !== "svg" && args.format !== "csv" && args.format !== "json") throw new StudioError(422, "format must be svg, csv, or json.");
         const saved = await store.get(identity, id);
         data = { id, version: saved.version, format: args.format, mimeType: args.format === "svg" ? "image/svg+xml" : args.format === "csv" ? "text/csv" : "application/json", content: args.format === "svg" ? renderBenchmarkSvg(saved.document) : args.format === "csv" ? benchmarkCsv(saved.document) : JSON.stringify(saved.document, null, 2) };
       } else {

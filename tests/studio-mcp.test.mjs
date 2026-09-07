@@ -24,6 +24,8 @@ test("authenticated MCP creates, reads, charts, versions, and deletes the same P
   assert.equal((await store.list(owner))[0].id, saved.id);
   assert.equal((await call("get_benchmark", { id: saved.id })).structuredContent.benchmark.document.title, starterBenchmark.title);
   const svg = await call("render_benchmark", { id: saved.id, format: "svg" }); assert.match(svg.structuredContent.content, /<svg/); assert.equal(svg.structuredContent.mimeType, "image/svg+xml");
+  assert.equal((await call("render_benchmark", { id: saved.id, format: ["svg"] })).structuredContent.status, 422);
+  assert.equal((await call("get_benchmark", { id: saved.id, toString: "unexpected" })).structuredContent.status, 422);
   const updated = await call("update_benchmark", { id: saved.id, version: 1, document: { ...starterBenchmark, chart: { type: "scatter", metric: "success", xMetric: "latency" } } }); assert.equal(updated.structuredContent.benchmark.version, 2);
   const stale = await call("update_benchmark", { id: saved.id, version: 1, document: starterBenchmark }); assert.equal(stale.isError, true); assert.equal(stale.structuredContent.status, 409);
   assert.equal((await call("get_benchmark", { id: saved.id, unexpected: true })).isError, true);

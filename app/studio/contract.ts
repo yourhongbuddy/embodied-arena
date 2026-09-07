@@ -7,7 +7,12 @@ export type StoredBenchmark = { id: string; version: number; createdAt: string; 
 export type ValidationResult = { ok: true; document: BenchmarkDocument } | { ok: false; errors: string[] };
 
 function object(value: unknown): value is Record<string, unknown> { return typeof value === "object" && value !== null && !Array.isArray(value); }
-function text(value: unknown, max: number, empty = false): value is string { return typeof value === "string" && value.length <= max && (empty || value.trim().length > 0) && ![...value].some(char => (char.charCodeAt(0) < 32 && ![9, 10, 13].includes(char.charCodeAt(0))) || (char.length === 1 && char.charCodeAt(0) >= 0xd800 && char.charCodeAt(0) <= 0xdfff)); }
+function text(value: unknown, max: number, empty = false): value is string {
+  return typeof value === "string" && value.length <= max && (empty || value.trim().length > 0) && ![...value].some(char => {
+    const point = char.codePointAt(0)!;
+    return (point < 32 && ![9, 10, 13].includes(point)) || (point >= 0xd800 && point <= 0xdfff) || point === 0xfffe || point === 0xffff;
+  });
+}
 const identifier = /^[a-zA-Z][a-zA-Z0-9_-]{0,39}$/;
 const forbiddenIds = new Set(["__proto__", "constructor", "prototype"]);
 function id(value: unknown): value is string { return typeof value === "string" && identifier.test(value) && !forbiddenIds.has(value); }
@@ -26,7 +31,7 @@ export function validateBenchmark(value: unknown): ValidationResult {
   const metrics: MetricDefinition[] = [];
   if (!Array.isArray(value.metrics) || value.metrics.length < 1 || value.metrics.length > BENCHMARK_LIMITS.metrics) errors.push("Define between 1 and 12 metrics.");
   else for (const [index, entry] of value.metrics.entries()) {
-    if (!object(entry) || Object.keys(entry).some(key => !["id", "name", "unit", "direction"].includes(key)) || !id(entry.id) || !text(entry.name, 80) || !text(entry.unit, 30, true) || !["higher", "lower"].includes(String(entry.direction))) { errors.push(`Metric ${index + 1} needs a valid id, name, unit, and direction.`); continue; }
+    if (!object(entry) || Object.keys(entry).some(key => !["id", "name", "unit", "direction"].includes(key)) || !id(entry.id) || !text(entry.name, 80) || !text(entry.unit, 30, true) || (entry.direction !== "higher" && entry.direction !== "lower")) { errors.push(`Metric ${index + 1} needs a valid id, name, unit, and direction.`); continue; }
     if (metrics.some(metric => metric.id === entry.id)) errors.push(`Metric id “${entry.id}” is duplicated.`);
     metrics.push({ id: entry.id, name: entry.name.trim(), unit: entry.unit.trim(), direction: entry.direction as MetricDefinition["direction"] });
   }
@@ -42,14 +47,18 @@ export function validateBenchmark(value: unknown): ValidationResult {
     if (Object.keys(entry.values).some(key => !metricIds.has(key))) errors.push(`Result ${index + 1} includes an unknown metric.`);
     for (const metric of metrics) {
       const score = entry.values[metric.id];
-      if (score === null || score === undefined || score === "") values[metric.id] = null;
+      if (score === null || score === undefined) values[metric.id] = null;
       else if (typeof score !== "number" || !Number.isFinite(score) || Math.abs(score) > 1e12) errors.push(`Result ${index + 1}, ${metric.name}: use a finite number between −1 trillion and 1 trillion, or leave it blank.`);
       else values[metric.id] = score;
     }
     rows.push({ id: entry.id, label: entry.label.trim(), values });
   }
   const chart = value.chart;
-  if (!object(chart) || Object.keys(chart).some(key => !["type", "metric", "xMetric"].includes(key)) || !["bar", "line", "scatter"].includes(String(chart.type)) || !metricIds.has(String(chart.metric)) || (chart.type === "scatter" && (!metricIds.has(String(chart.xMetric)) || chart.xMetric === chart.metric))) errors.push("Choose a valid chart and metric; scatter plots need two different metrics.");
+  if (!object(chart) || Object.keys(chart).some(key => !["type", "metric", "xMetric"].includes(key))
+    || (chart.type !== "bar" && chart.type !== "line" && chart.type !== "scatter")
+    || typeof chart.metric !== "string" || !metricIds.has(chart.metric)
+    || (chart.xMetric !== undefined && (typeof chart.xMetric !== "string" || !metricIds.has(chart.xMetric)))
+    || (chart.type === "scatter" && (chart.xMetric === undefined || chart.xMetric === chart.metric))) errors.push("Choose a valid chart and metric; scatter plots need two different metrics.");
   if (errors.length) return { ok: false, errors: errors.slice(0, 20) };
   const validChart = chart as Record<string, string>;
   return { ok: true, document: { schemaVersion: 1, title: (value.title as string).trim(), description: (value.description as string).trim(), methodology: (value.methodology as string).trim(), evidence: value.evidence as BenchmarkDocument["evidence"], metrics, rows, chart: { type: validChart.type as ChartDefinition["type"], metric: validChart.metric, ...(validChart.type === "scatter" ? { xMetric: validChart.xMetric } : {}) } } };
