@@ -94,6 +94,18 @@ test("preserves newer Sites pages alongside the WANTED rotator", async () => {
   assert.match(await campaigns.text(), /approval-and-delivery audit trail/);
 });
 
+test("Studio is the stable homepage and exposes its editor, guide and private API without database fallback", async () => {
+  const home = await request("/"); assert.equal(new URL(home.url).pathname, "/studio"); assert.equal(home.status, 200);
+  const html = await home.text();
+  for (const phrase of ["From results", "Results &amp; metrics", "Create benchmarks", "Save benchmark", "Example data", "hfxaa llc"]) assert.ok(html.includes(phrase), phrase);
+  const guide = await request("/studio/agents"); assert.equal(guide.status, 200); assert.match(await guide.text(), /create_benchmark/);
+  const schema = await request("/studio/openapi.json"); assert.equal(schema.status, 200); const contract = await schema.json(); assert.equal(contract.openapi, "3.1.0"); assert.ok(contract.paths["/benchmarks/{id}"].put);
+  const state = await request("/api/studio/status"); assert.equal(state.status, 200); assert.deepEqual(await state.json(), { available: false, authenticated: false }); assert.match(state.headers.get("cache-control"), /no-store/);
+  const saved = await request("/api/studio/benchmarks"); assert.equal(saved.status, 503); assert.match(saved.headers.get("cache-control"), /no-store/);
+  const mcp = await request("/studio/mcp"); assert.equal(mcp.status, 405);
+  const manifest = await request("/agent.json"); assert.equal((await manifest.json()).studio.mcpEndpoint, "/studio/mcp");
+});
+
 test("renders the comparison leaderboard with honest data labels and URL search", async () => {
   const response = await request("/leaderboard");
   assert.equal(response.status, 200);

@@ -55,7 +55,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
 
   return <main className="rankingsPage">
     <SiteNav />
-    <header className="lbHero shell"><span className="kicker">EMBODIED ARENA / ROBOT INTELLIGENCE</span><h1>Leaderboard</h1><p>Explore robot models across manipulation, navigation, and reasoning.</p><div className="lbHeroLinks"><a href="/wanted-10k/audit">Prepare results →</a><a href="#benchmarks">Browse benchmarks →</a></div></header>
+    <header className="lbHero shell"><span className="kicker">EMBODIED ARENA / ROBOT INTELLIGENCE</span><h1>Leaderboard</h1><p>Explore robot models across manipulation, navigation, and reasoning.</p><div className="lbHeroLinks"><a href="/studio">Create your own benchmark & charts →</a><a href="/wanted-10k/audit">Prepare audited results →</a><a href="#benchmarks">Browse benchmarks →</a></div></header>
     <LeaderboardExplorer initialQuery={initialQuery} />
 
     <div className="rankingsShell shell">
