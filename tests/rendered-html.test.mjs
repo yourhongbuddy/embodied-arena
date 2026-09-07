@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { once } from "node:events";
 import { createServer } from "node:net";
+import { get as httpGet, request as httpRequest } from "node:http";
 import { dirname } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import test, { after } from "node:test";
@@ -37,7 +38,7 @@ async function standaloneServer() {
       const baseUrl = `http://127.0.0.1:${port}/`;
       serverProcess = spawn(process.execPath, ["dist/standalone/server.js"], {
         cwd: projectRoot,
-        env: { ...process.env, HOST: "127.0.0.1", PORT: String(port) },
+        env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), VINEXT_TRUSTED_HOSTS: "www.getrobotrouter.com,getrobotrouter.com,shark-app-pqh5h.ondigitalocean.app" },
         stdio: ["ignore", "pipe", "pipe"],
       });
       for (const stream of [serverProcess.stdout, serverProcess.stderr]) {
@@ -69,6 +70,30 @@ async function request(path, accept = "text/html") {
   const baseUrl = await standaloneServer();
   return fetch(new URL(path, baseUrl), { headers: { accept } });
 }
+
+test("news section and shared Ask Robot are present across public and tool pages", async () => {
+  for (const path of ["/news", "/studio", "/leaderboard", "/privacy", "/terms", "/about", "/contact", "/wanted-10k"]) {
+    const response = await request(path); assert.equal(response.status, 200, path);
+    const html = await response.text(); assert.match(html, /id="ask-robot-question"/, path);
+    assert.match(html, /Ask Robot/, path);
+    if (path === "/news") { assert.match(html, /The Dispatch/); assert.match(html, /News topics/); assert.match(html, /Robot Dispatch/); }
+  }
+  const unavailable = await request("/api/ask-robot", "application/json");
+  assert.equal(unavailable.status, 200); assert.equal(typeof (await unavailable.json()).available, "boolean");
+  assert.equal((await request("/api/news?topic=unlisted", "application/json")).status, 400);
+  const serverBase = await standaloneServer();
+  const separateDomain = await new Promise((resolve, reject) => {
+    httpGet(new URL("/", serverBase), { headers: { Host: "shark-app-pqh5h.ondigitalocean.app" } }, response => {
+      let html = ""; response.setEncoding("utf8"); response.on("data", chunk => { html += chunk; }); response.on("end", () => resolve({ status: response.statusCode, html })); response.on("error", reject);
+    }).on("error", reject);
+  });
+  assert.equal(separateDomain.status, 200); assert.match(separateDomain.html, /The Dispatch/); assert.match(separateDomain.html, /Robot Dispatch — News/);
+  const throughHttpsProxy = await new Promise((resolve, reject) => {
+    const req = httpRequest(new URL("/api/ask-robot", serverBase), { method: "POST", headers: { Host: "shark-app-pqh5h.ondigitalocean.app", "X-Forwarded-Proto": "https", Origin: "https://shark-app-pqh5h.ondigitalocean.app", "Content-Type": "application/json", "X-RobotRouter-Request": "ask" } }, response => { response.resume(); response.on("end", () => resolve(response.statusCode)); response.on("error", reject); });
+    req.on("error", reject); req.end(JSON.stringify({ question: "How do I create a benchmark?" }));
+  });
+  assert.equal(throughHttpsProxy, 503, "valid HTTPS questions reach the unconfigured provider boundary, not a cross-origin rejection");
+});
 
 after(async () => {
   if (serverProcess && serverProcess.exitCode === null) {

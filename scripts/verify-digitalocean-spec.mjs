@@ -19,6 +19,7 @@ const requiredDeploymentContract = [
   "http_path: /wanted-10k",
   "prefix: /",
   "key: NODE_ENV",
+  "key: VINEXT_TRUSTED_HOSTS",
   "value: production",
   "rule: DEPLOYMENT_FAILED",
 ];

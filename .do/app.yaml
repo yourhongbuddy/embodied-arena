@@ -22,6 +22,10 @@ services:
       failure_threshold: 6
       success_threshold: 1
     envs:
+      - key: VINEXT_TRUSTED_HOSTS
+        value: www.getrobotrouter.com,getrobotrouter.com,shark-app-pqh5h.ondigitalocean.app
+        scope: RUN_TIME
+        type: GENERAL
       - key: NODE_ENV
         value: production
         scope: RUN_TIME
