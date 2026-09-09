@@ -154,6 +154,7 @@ Versions 43–44 are preserved from the `login-profiles` branch and integrated h
 | 84 | `digitalocean-v84` | `076b325` | Reject malformed agent field types, preserve Unicode chart labels, and display tiny nonzero scores without rounding them to zero |
 | 85 | `digitalocean-v85` | `aae3141` | Prepare Robot Dispatch news, independent-host routing, shared Ask Robot with cited AI answers and request limits, and HTTPS proxy configuration; validated locally, not deployed |
 | 86 | `digitalocean-v86` | `0154d9a` | Check AI activation before submitting questions and handle HTML hosting errors without exposing parser messages; record the approved Robot Dispatch deployment |
+| 87 | `digitalocean-v87` | `0c7e007` | Reserve room for rotated result labels in bar and line chart exports, including the final result and wide names, with coverage through 500 rows |
 
 ## Release convention
 

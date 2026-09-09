@@ -76,3 +76,20 @@ test("tiny nonzero scores are legible as scientific notation instead of zero", (
   assert.match(svg, />-2E-6<\/text>/);
   assert.match(svg, />0<\/text>/);
 });
+
+test("rotated result labels fit inside bar and line exports without touching the footer", () => {
+  for (const type of ["bar", "line"]) for (const rowCount of [1, 20, 500]) {
+    const doc = structuredClone(starterBenchmark);
+    doc.chart.type = type;
+    doc.rows = Array.from({ length: rowCount }, (_, i) => ({ id: `r${i}`, label: "W".repeat(24), values: { success: i, latency: i } }));
+    const svg = renderBenchmarkSvg(doc);
+    const [, width, height] = svg.match(/viewBox="0 0 (\d+) (\d+)"/).map(Number);
+    const labels = [...svg.matchAll(/<text x="([\d.]+)" y="([\d.]+)" transform="rotate\(30 [^"]+\)" text-anchor="start" font-size="13">([^<]*)<title>/g)];
+    assert.equal(labels.length, rowCount);
+    for (const [, x, y, text] of labels) {
+      const length = text.length * 13;
+      assert.ok(Number(x) + length * Math.cos(Math.PI / 6) < width, "The final label must not cross the right edge");
+      assert.ok(Number(y) + length * Math.sin(Math.PI / 6) + 13 < height - 40, "Labels must remain above the footer");
+    }
+  }
+});
