@@ -153,6 +153,7 @@ Versions 43–44 are preserved from the `login-profiles` branch and integrated h
 | 83 | `digitalocean-v83` | `affaa09` | Add private PostgreSQL benchmark workspaces, CSV/JSON import, bar/line/scatter charts, exports, scoped REST/MCP agent access, stable Studio entry, and honest preview/contact flows |
 | 84 | `digitalocean-v84` | `076b325` | Reject malformed agent field types, preserve Unicode chart labels, and display tiny nonzero scores without rounding them to zero |
 | 85 | `digitalocean-v85` | `aae3141` | Prepare Robot Dispatch news, independent-host routing, shared Ask Robot with cited AI answers and request limits, and HTTPS proxy configuration; validated locally, not deployed |
+| 86 | `digitalocean-v86` | `0154d9a` | Check AI activation before submitting questions and handle HTML hosting errors without exposing parser messages; record the approved Robot Dispatch deployment |
 
 ## Release convention
 
