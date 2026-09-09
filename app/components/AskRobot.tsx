@@ -1,6 +1,7 @@
 "use client";
 import { Fragment, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { AnswerPart, RobotAnswer } from "../ask-robot/service";
+import { requestAnswer } from "../ask-robot/client";
 import { publicLink } from "../news/catalog";
 import "./ask-robot.css";
 
@@ -45,9 +46,8 @@ export function AskRobot({ newsHref = "/news" }: { newsHref?: string }) {
     setOpen(true); setError(""); setPending(text); const abort = new AbortController(); controller.current = abort;
     try {
       const history = turns.slice(-2).flatMap(turn => [{ role: "user", content: turn.question }, { role: "assistant", content: turn.answer.parts.map(part => part.text).join("\n").slice(0, 3000) }]);
-      const response = await fetch("/api/ask-robot", { method: "POST", headers: { "Content-Type": "application/json", "X-RobotRouter-Request": "ask" }, body: JSON.stringify({ question: text, history }), signal: abort.signal });
-      const result = await response.json(); if (!response.ok) throw new Error(result.error || "Robot couldn’t answer. Please try again.");
-      setTurns(items => [...items.slice(-9), { question: text, answer: result as RobotAnswer }]); setQuestion(""); setAvailable(true);
+      const result = await requestAnswer({ question: text, history }, { signal: abort.signal, available });
+      setTurns(items => [...items.slice(-9), { question: text, answer: result }]); setQuestion(""); setAvailable(true);
     } catch (failure) { if (!abort.signal.aborted) setError(failure instanceof Error ? failure.message : "Robot couldn’t connect. Please try again."); }
     finally { setPending(""); controller.current = null; input.current?.focus(); }
   }

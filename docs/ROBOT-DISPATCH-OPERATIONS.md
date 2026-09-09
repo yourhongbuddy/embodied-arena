@@ -1,15 +1,15 @@
 # Robot Dispatch and Ask Robot
 
-This source update is prepared locally. It has not been published to GitHub or deployed to DigitalOcean. The existing app resources, database form, DNS records, and live environment variables have not been changed.
+This update was published to GitHub and deployed to DigitalOcean on September 9, 2026 after explicit approval. The trusted-host runtime setting was added to the existing app. Resource sizing and DNS records are unchanged; no database or AI credential has been added.
 
 ## Pages and addresses
 
 - `/news`: Robot Dispatch, an original brand with an IJR-inspired topical news layout. Eight categories, headline/publisher search within the loaded feed, refresh, direct source links, and responsive layout.
-- The existing DigitalOcean address `shark-app-pqh5h.ondigitalocean.app` opens the news homepage at `/` after deployment. Robot Router's main domain keeps `/studio` as its entry point.
+- The existing DigitalOcean address `shark-app-pqh5h.ondigitalocean.app` opens the news homepage at `/`. Robot Router's main domain keeps `/studio` as its entry point.
 - Set `ROBOT_DISPATCH_DOMAIN` to an owned hostname without a scheme or path to replace that default. Add and validate the hostname in the existing App Platform app, then configure its DNS with the registrar. This update does not purchase or register a domain. Keep HTTPS enabled.
 - Ask Robot appears through the root layout on all rendered pages, including study pages and not-found pages. News links in the shared bar open the separate domain; localhost previews use `/news`.
 
-The trusted-host setting is necessary behind DigitalOcean's HTTPS proxy so browser-origin checks receive the public HTTPS origin. The starter specifications now include it, but the live app still needs this single runtime setting added when deployment is approved. Do not replace the live app's resources with the starter specification.
+The trusted-host setting is necessary behind DigitalOcean's HTTPS proxy so browser-origin checks receive the public HTTPS origin. It is now applied to the live component and included in the starter specifications. Do not replace the live app's resources with the starter specification.
 
 ## News feeds
 
@@ -46,4 +46,6 @@ Primary documentation: [OpenAI web search and citations](https://developers.open
 
 The shared bar changes the visual presentation of historical study routes. Their existing frozen presentation profile only hashes the previous six study sources, not the shared root layout. Do not treat historical study presentation equivalence as revalidated by this release or enable data collection against that profile without a new cohort/presentation baseline. The current DigitalOcean app has no analytics database and this update does not add one.
 
-Publication to the public source repository remains pending explicit authorization following automatic approval review. No alternate upload method should bypass that decision. The earlier PostgreSQL resource and registrar-access approvals remain separate; neither is needed to read news or ask AI questions.
+Public source publication and DigitalOcean deployment were explicitly authorized on September 9, 2026. PR #3 was merged and deployed, with the trusted-host runtime setting applied. The earlier PostgreSQL resource and registrar-access approvals remain separate; neither is needed to read news or ask AI questions. AI remains disabled until its runtime key and enable flag are configured.
+
+Live deployment checks observed App Platform replacing the application's JSON 503 response with an HTML 504 page. The Ask Robot client checks availability before submitting an initial question and displays a readable connection message for non-JSON hosting errors. A direct API call while AI is disabled may still receive the platform's HTML error; the browser handles this without exposing a JSON parser error.
