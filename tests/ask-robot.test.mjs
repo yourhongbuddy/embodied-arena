@@ -1,6 +1,38 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createAskHandler, parseAnswer, validateQuestion } from "../app/ask-robot/service.ts";
+import { requestAnswer } from "../app/ask-robot/client.ts";
+
+test("inactive UI avoids POST and handles a first question before availability loads", async () => {
+  for (const available of [false, null]) {
+    let calls = 0;
+    await assert.rejects(requestAnswer({ question: "Hello", history: [] }, { signal: new AbortController().signal, available, fetcher: async (_url, init) => {
+      calls++; assert.notEqual(init.method, "POST"); return Response.json({ available: false });
+    } }), /awaiting activation/);
+    assert.equal(calls, available === false ? 0 : 1);
+  }
+});
+
+test("HTML hosting errors display a friendly connection message", async () => {
+  for (const available of [true, null]) {
+    await assert.rejects(requestAnswer({ question: "Hello", history: [] }, { signal: new AbortController().signal, available, fetcher: async () => new Response("<!DOCTYPE html><h1>via_upstream (503 -)</h1>", { status: 504, headers: { "Content-Type": "text/html" } }) }), /Robot couldn’t connect/);
+  }
+});
+
+test("activated client preserves questions, cancellation, answers and structured errors", async () => {
+  const body = { question: "Explain benchmarks", history: [{ role: "user", content: "I use Studio" }] };
+  const signal = new AbortController().signal;
+  const answer = { parts: [{ text: "A benchmark compares performance.", citations: [] }], incomplete: false };
+  let calls = 0;
+  const result = await requestAnswer(body, { signal, available: null, fetcher: async (_url, init) => {
+    calls++; assert.equal(init.signal, signal);
+    if (calls === 1) return Response.json({ available: true });
+    assert.equal(init.method, "POST"); assert.deepEqual(JSON.parse(init.body), body); assert.equal(init.headers["X-RobotRouter-Request"], "ask");
+    return Response.json(answer);
+  } });
+  assert.deepEqual(result, answer); assert.equal(calls, 2);
+  await assert.rejects(requestAnswer(body, { signal, available: true, fetcher: async () => Response.json({ error: "Robot is busy." }, { status: 429 }) }), /Robot is busy/);
+});
 
 const env = { ASK_ROBOT_ENABLED: "true", OPENAI_API_KEY: "synthetic-test-credential" };
 const response = { status: "completed", output: [{ type: "message", role: "assistant", content: [{ type: "output_text", text: "A sourced answer.", annotations: [] }] }] };
