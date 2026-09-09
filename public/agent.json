@@ -14,8 +14,23 @@
   },
   "safety": {
     "actuationToolsExposed": false,
-    "mutatingToolsExposed": false,
+    "mutatingToolsExposed": true,
+    "mutationScope": "Only authenticated private benchmark records at /studio/mcp. The public /mcp endpoint remains read-only.",
     "boundary": "Agent outputs are informational or proposed actions. Physical execution requires a separate authenticated safety kernel."
+  },
+  "studio": {
+    "human": "/studio",
+    "guide": "/studio/agents",
+    "openapi": "/studio/openapi.json",
+    "restBase": "/api/studio",
+    "mcpEndpoint": "/studio/mcp",
+    "transport": "streamable-http",
+    "protocolVersions": ["2025-11-25", "2025-03-26"],
+    "authentication": "Manually configured Authorization: Bearer agent API key, created by the workspace owner in Studio. No OAuth discovery.",
+    "access": "private-workspace-read-write",
+    "tools": ["create_benchmark", "delete_benchmark", "get_benchmark", "list_benchmarks", "render_benchmark", "update_benchmark"],
+    "physicalActuation": false,
+    "dataNotice": "User benchmarks are private, self-reported or illustrative, and not independently verified. Updates and deletions require the current record version."
   },
   "routes": {
     "agentGuide": "/agents",

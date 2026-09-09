@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
-import { dailyExperienceForDate } from "./daily-rotation";
+import { headers } from "next/headers";
+import { isDispatchHost } from "./news/domain";
+import { Newsroom } from "./news/Newsroom";
 
 export const dynamic = "force-dynamic";
 
-export default function Home(){redirect(dailyExperienceForDate().path)}
+export default async function Home(){
+  if (isDispatchHost((await headers()).get("host"))) return <Newsroom />;
+  redirect("/studio");
+}

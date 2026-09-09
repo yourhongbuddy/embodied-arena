@@ -52,12 +52,16 @@ const hiloProtocol = {
 
 const siteMap = {
   human: [
+    { path: "/studio", purpose: "Create private benchmarks and bar, line, or scatter charts" },
+    { path: "/studio/agents", purpose: "Authenticated authoring API and MCP guide" },
     { path: "/agents", purpose: "Agent and MCP integration guide" },
     { path: "/leaderboard", purpose: "Robot models, edge hardware, and evidence explorer" },
     { path: "/wanted-10k", purpose: "Long-horizon WANTED-10K benchmark" },
     { path: "/wanted-10k/realtime", purpose: "HILO Realtime Protocol" },
   ],
   machine: [
+    { path: "/studio/openapi.json", purpose: "Private benchmark REST API and document schema" },
+    { path: "/studio/mcp", purpose: "Authenticated benchmark authoring tools; requires an agent API key" },
     { path: "/mcp", purpose: "MCP Streamable HTTP endpoint; POST only" },
     { path: "/agent.json", purpose: "Agent discovery manifest" },
     { path: "/llms.txt", purpose: "Concise model-readable site guide" },

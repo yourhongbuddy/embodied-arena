@@ -12,7 +12,7 @@
     "start": "node dist/standalone/server.js",
     "test": "npm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/experiment-rotator.test.mjs tests/experiment-assignment-lab.test.mjs tests/experiment-design-lab.test.mjs tests/experiment-design-plan-sdk.test.mjs tests/experiment-design-registration-sdk.test.mjs tests/experiment-decision-policy-sdk.test.mjs tests/experiment-rotator-sdk.test.mjs tests/experiment-snapshot-sdk.test.mjs tests/diagnostics.test.mjs tests/scoring-robustness.test.mjs tests/preflight.test.mjs tests/leaderboard.test.mjs tests/safety.test.mjs tests/certification.test.mjs tests/preregistration-integrity.test.mjs tests/protocol-deviations.test.mjs tests/sampling-stopping.test.mjs tests/cohort-integrity.test.mjs tests/site-heterogeneity.test.mjs tests/exposure-ledger.test.mjs tests/root-envelope-sdk.test.mjs tests/root-commitment-witness.test.mjs tests/root-witness-sdk.test.mjs tests/root-witness-receipt-sdk.test.mjs tests/analysis-reproduction.test.mjs tests/analysis-conformance.test.mjs tests/analysis-conformance-sdk.test.mjs tests/endpoint-adjudication.test.mjs tests/human-measures.test.mjs tests/revealed-preference.test.mjs tests/learning-generalization.test.mjs tests/assistance-integrity.test.mjs tests/policy-evolution.test.mjs tests/privacy-integrity.test.mjs tests/service-continuity.test.mjs tests/realtime.test.mjs tests/withdrawal.test.mjs tests/telemetry-authenticity.test.mjs tests/telemetry-sdk.test.mjs tests/audit-seal.test.mjs tests/auditor-credential.test.mjs tests/audit-sdk.test.mjs tests/mcp.test.mjs tests/monitoring.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "verify": "npm run lint && npm test && npm run test:evidence && npm run test:approval && npm run test:rollout && npm run test:rollout-authorization && npm run test:rollout-ledger && npm run test:rollout-simulator && npm run test:rollout-config && npm run test:rollout-runtime && npm run test:rollout-buckets && npm run test:rollout-distribution && npm run test:rollout-cohort-separation && npm run test:accounts && npm run verify:digitalocean",
+    "verify": "npm run lint && npm test && npm run test:evidence && npm run test:approval && npm run test:rollout && npm run test:rollout-authorization && npm run test:rollout-ledger && npm run test:rollout-simulator && npm run test:rollout-config && npm run test:rollout-runtime && npm run test:rollout-buckets && npm run test:rollout-distribution && npm run test:rollout-cohort-separation && npm run test:accounts && npm run verify:digitalocean && npm run test:studio && npm run test:dispatch",
     "test:evidence": "node --experimental-strip-types --test tests/experiment-decision-evidence-sdk.test.mjs",
     "test:approval": "node --experimental-strip-types --test tests/experiment-decision-approval-sdk.test.mjs",
     "test:rollout": "node --experimental-strip-types --test tests/experiment-rollout-package-sdk.test.mjs",
@@ -29,20 +29,26 @@
     "test:mcp": "node --experimental-strip-types --test tests/mcp.test.mjs",
     "test:accounts": "node --experimental-strip-types --test tests/account.test.mjs tests/account-http.test.mjs",
     "test:monitoring": "node --experimental-strip-types --test tests/monitoring.test.mjs",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "db:studio:migrate": "node scripts/migrate-studio.mjs",
+    "test:studio": "node --experimental-strip-types --test tests/studio-contract.test.mjs tests/studio-api.test.mjs tests/studio-mcp.test.mjs",
+    "test:dispatch": "node --experimental-strip-types --test tests/ask-robot.test.mjs tests/news.test.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
+    "pg": "8.23.0",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
+    "@electric-sql/pglite": "0.5.8",
     "@eslint/js": "9.39.4",
     "@next/eslint-plugin-next": "16.2.6",
     "@openai/sites-vite-plugin": "0.1.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
+    "@types/pg": "8.23.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",

@@ -149,6 +149,11 @@ Versions 43–44 are preserved from the `login-profiles` branch and integrated h
 | 80 | `digitalocean-v80` | `cc523ba` | Bind the million-unit distribution certificate to the exact downloadable staged-rollout implementation and 16 independently reproduced boundary vectors so source drift cannot retain a passing audit |
 | 81 | `digitalocean-v81` | `bf02383` | Place the FNV-based C9 candidate on a source-bound activation hold after a million-unit C8-to-C9 audit reveals zero exact bucket matches and only odd modulo-16 differences despite low aggregate association |
 
+| 82 | `digitalocean-v82` | `e2787ef` | Add chart-first robot leaderboard with task filters, sortable scores, model profiles, and hfxaa llc privacy, terms, about, and contact pages |
+| 83 | `digitalocean-v83` | `affaa09` | Add private PostgreSQL benchmark workspaces, CSV/JSON import, bar/line/scatter charts, exports, scoped REST/MCP agent access, stable Studio entry, and honest preview/contact flows |
+| 84 | `digitalocean-v84` | `076b325` | Reject malformed agent field types, preserve Unicode chart labels, and display tiny nonzero scores without rounding them to zero |
+| 85 | `digitalocean-v85` | `aae3141` | Prepare Robot Dispatch news, independent-host routing, shared Ask Robot with cited AI answers and request limits, and HTTPS proxy configuration; validated locally, not deployed |
+
 ## Release convention
 
 1. Keep benchmark changes platform-neutral whenever possible.

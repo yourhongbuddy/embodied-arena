@@ -1,6 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { rankRegistry } from "../app/wanted-10k/leaderboard/registry.ts";
+import { models } from "../app/leaderboard/models.ts";
+import { selectModels, scoreRank } from "../app/leaderboard/explorer.ts";
+
+const explorerDefaults = { query: "", environment: "all", openOnly: false, sort: "overall", ascending: false };
+test("model explorer combines filters, handles no matches, and preserves shared fixtures", () => {
+  const original = structuredClone(models);
+  assert.deepEqual(selectModels(models, { ...explorerDefaults, environment: "SIM", openOnly: true }).map(model => model.name), ["RoboBrain 2.0"]);
+  assert.equal(selectModels(models, { ...explorerDefaults, query: "  NVIDIA " })[0].name, "GR00T N1.6");
+  assert.equal(selectModels(models, { ...explorerDefaults, query: "nothing matches" }).length, 0);
+  assert.equal(selectModels(models, { ...explorerDefaults, sort: "navigation" })[0].name, "GR00T N1.6");
+  assert.equal(selectModels(models, { ...explorerDefaults, sort: "reasoning", ascending: true })[0].name, "SmolVLA");
+  assert.deepEqual(models, original);
+});
+test("model ranks remain score-based after name sorting and ties share a rank", () => {
+  const rows = selectModels(models, { ...explorerDefaults, sort: "name", ascending: true });
+  assert.equal(scoreRank(models[0], rows, "overall"), 1);
+  const tied = [models[0], { ...models[1], overall: models[0].overall }, models[2]];
+  assert.deepEqual(tied.map(model => scoreRank(model, tied, "overall")), [1, 1, 3]);
+  assert.equal(scoreRank(models[2], [models[2]], "overall"), 1);
+});
 
 const hash = prefix => `${prefix}${"0123456789abcdef".repeat(4)}`.slice(0,64);
 const entry = (submission_id, public_label, wanted_score, overrides = {}) => ({
