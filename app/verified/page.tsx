@@ -1,5 +1,0 @@
-import { ApplicationForm } from "./ApplicationForm";
-export default function Page() {
-  return <><header className="verifiedHeader"><span className="verifiedBadge">HILO / APPLICATION INTAKE</span><h1>Apply for HILO Verified</h1><p>Tell us about your robot and its deployment. The one-time US $1 fee submits your application for verification intake.</p></header>
-    <div className="verifiedGrid"><ApplicationForm /><aside className="verifiedCard verifiedAside"><span className="verifiedEyebrow">ONE-TIME INTAKE FEE</span><p className="verifiedPrice">$1 <span>USD</span></p><h2>An application, then a review</h2><p>Payment does not guarantee certification, a verified badge, a benchmark score, or acceptance.</p><ol><li>Submit your robot and contact details.</li><li>Pay securely through Stripe Checkout.</li><li>Keep your application reference. HILO can contact you about the evidence needed for review.</li></ol><p>Your card details are handled by Stripe. Your application details are stored privately for intake and follow-up.</p><a href="/verified/terms">Read the intake terms</a></aside></div></>;
-}

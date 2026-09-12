@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const analyticsEvents = sqliteTable("analytics_events", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -40,21 +40,3 @@ export const accountProfiles = sqliteTable("account_profiles", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
-
-// Private intake records. Never expose application_json through analytics or MCP.
-export const hiloApplications = sqliteTable("hilo_applications", {
-  id: text("id").primaryKey(),
-  email: text("email").notNull(),
-  applicationJson: text("application_json").notNull(),
-  termsVersion: text("terms_version").notNull(),
-  createdAt: integer("created_at").notNull(),
-  paymentStatus: text("payment_status").notNull().default("pending"),
-  sessionId: text("session_id"),
-  checkoutUrl: text("checkout_url"),
-  stripeEventId: text("stripe_event_id"),
-  paymentIntent: text("payment_intent"),
-  paidAt: integer("paid_at"),
-}, table => [
-  uniqueIndex("idx_hilo_applications_session").on(table.sessionId),
-  index("idx_hilo_applications_email_created").on(table.email, table.createdAt),
-]);

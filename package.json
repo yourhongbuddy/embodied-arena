@@ -29,9 +29,7 @@
     "test:mcp": "node --experimental-strip-types --test tests/mcp.test.mjs",
     "test:accounts": "node --experimental-strip-types --test tests/account.test.mjs tests/account-http.test.mjs",
     "test:monitoring": "node --experimental-strip-types --test tests/monitoring.test.mjs",
-    "db:generate": "drizzle-kit generate",
-    "test:intake": "node --experimental-strip-types --test tests/intake.test.mjs",
-    "db:intake:local": "node --env-file=.env.local scripts/intake-db.mjs"
+    "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
