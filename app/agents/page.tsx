@@ -59,8 +59,7 @@ export default function AgentsPage() {
         <span className="kicker">AGENT INTERFACE / MCP 2026-07-28</span>
         <h1>Robots need an<br/><em>agent contract.</em></h1>
         <p>Embodied Arena now exposes HILO knowledge as deterministic, structured, read-only tools. Agents can reason over benchmark evidence without gaining a path around physical safety.</p>
-        <div className="agentsActions"><a className="primary" href="/studio/agents">Create benchmarks with your agent <span>↗</span></a><a className="secondary" href="#connect">Read-only discovery tools</a></div>
-        <p>The <a href="/studio/agents">authenticated Studio API and MCP tools</a> let an agent save benchmarks and create charts in its owner’s private workspace.</p>
+        <div className="agentsActions"><a className="primary" href="/agent.json">Read the manifest <span>↗</span></a><a className="secondary" href="#connect">Connect an agent</a></div>
       </div>
       <aside className="endpointCard">
         <header><span className="liveDot"/>MCP ENDPOINT <b>READ ONLY</b></header>

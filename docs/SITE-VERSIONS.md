@@ -163,3 +163,7 @@ Versions 43–44 are preserved from the `login-profiles` branch and integrated h
 3. Keep DigitalOcean runtime adaptations on `digitalocean`, then tag meaningful deployment milestones `digitalocean-vNN`.
 4. Never commit `dist/`, dependency directories, credentials, environment files, or generated release archives.
 5. Use a new tag for every published iteration. Do not move or overwrite historical tags.
+
+## HILO restoration — 2026-09-12
+
+Restored the application, public assets, and package definitions to pre-RobotRouter commit 6ae1d815670a35d8a805d7964227cf52ec4dc2fb at the owner's request. Preserved the current DigitalOcean specifications and PostgreSQL migration records. This is a source-only restoration: no database rollback, deletion, or runtime secret change is performed.

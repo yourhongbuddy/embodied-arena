@@ -3,7 +3,6 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { once } from "node:events";
 import { createServer } from "node:net";
-import { get as httpGet, request as httpRequest } from "node:http";
 import { dirname } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import test, { after } from "node:test";
@@ -38,7 +37,7 @@ async function standaloneServer() {
       const baseUrl = `http://127.0.0.1:${port}/`;
       serverProcess = spawn(process.execPath, ["dist/standalone/server.js"], {
         cwd: projectRoot,
-        env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), VINEXT_TRUSTED_HOSTS: "www.getrobotrouter.com,getrobotrouter.com,shark-app-pqh5h.ondigitalocean.app" },
+        env: { ...process.env, HOST: "127.0.0.1", PORT: String(port) },
         stdio: ["ignore", "pipe", "pipe"],
       });
       for (const stream of [serverProcess.stdout, serverProcess.stderr]) {
@@ -71,30 +70,6 @@ async function request(path, accept = "text/html") {
   return fetch(new URL(path, baseUrl), { headers: { accept } });
 }
 
-test("news section and shared Ask Robot are present across public and tool pages", async () => {
-  for (const path of ["/news", "/studio", "/leaderboard", "/privacy", "/terms", "/about", "/contact", "/wanted-10k"]) {
-    const response = await request(path); assert.equal(response.status, 200, path);
-    const html = await response.text(); assert.match(html, /id="ask-robot-question"/, path);
-    assert.match(html, /Ask Robot/, path);
-    if (path === "/news") { assert.match(html, /The Dispatch/); assert.match(html, /News topics/); assert.match(html, /Robot Dispatch/); }
-  }
-  const unavailable = await request("/api/ask-robot", "application/json");
-  assert.equal(unavailable.status, 200); assert.equal(typeof (await unavailable.json()).available, "boolean");
-  assert.equal((await request("/api/news?topic=unlisted", "application/json")).status, 400);
-  const serverBase = await standaloneServer();
-  const separateDomain = await new Promise((resolve, reject) => {
-    httpGet(new URL("/", serverBase), { headers: { Host: "shark-app-pqh5h.ondigitalocean.app" } }, response => {
-      let html = ""; response.setEncoding("utf8"); response.on("data", chunk => { html += chunk; }); response.on("end", () => resolve({ status: response.statusCode, html })); response.on("error", reject);
-    }).on("error", reject);
-  });
-  assert.equal(separateDomain.status, 200); assert.match(separateDomain.html, /The Dispatch/); assert.match(separateDomain.html, /Robot Dispatch — News/);
-  const throughHttpsProxy = await new Promise((resolve, reject) => {
-    const req = httpRequest(new URL("/api/ask-robot", serverBase), { method: "POST", headers: { Host: "shark-app-pqh5h.ondigitalocean.app", "X-Forwarded-Proto": "https", Origin: "https://shark-app-pqh5h.ondigitalocean.app", "Content-Type": "application/json", "X-RobotRouter-Request": "ask" } }, response => { response.resume(); response.on("end", () => resolve(response.statusCode)); response.on("error", reject); });
-    req.on("error", reject); req.end(JSON.stringify({ question: "How do I create a benchmark?" }));
-  });
-  assert.equal(throughHttpsProxy, 503, "valid HTTPS questions reach the unconfigured provider boundary, not a cross-origin rejection");
-});
-
 after(async () => {
   if (serverProcess && serverProcess.exitCode === null) {
     serverProcess.kill("SIGTERM");
@@ -117,51 +92,6 @@ test("preserves newer Sites pages alongside the WANTED rotator", async () => {
   const campaigns = await request("/campaigns");
   assert.equal(campaigns.status, 200);
   assert.match(await campaigns.text(), /approval-and-delivery audit trail/);
-});
-
-test("Studio is the stable homepage and exposes its editor, guide and private API without database fallback", async () => {
-  const home = await request("/"); assert.equal(new URL(home.url).pathname, "/studio"); assert.equal(home.status, 200);
-  const html = await home.text();
-  for (const phrase of ["From results", "Results &amp; metrics", "Create benchmarks", "Save benchmark", "Example data", "hfxaa llc"]) assert.ok(html.includes(phrase), phrase);
-  const guide = await request("/studio/agents"); assert.equal(guide.status, 200); assert.match(await guide.text(), /create_benchmark/);
-  const schema = await request("/studio/openapi.json"); assert.equal(schema.status, 200); const contract = await schema.json(); assert.equal(contract.openapi, "3.1.0"); assert.ok(contract.paths["/benchmarks/{id}"].put);
-  const state = await request("/api/studio/status"); assert.equal(state.status, 200); assert.deepEqual(await state.json(), { available: false, authenticated: false }); assert.match(state.headers.get("cache-control"), /no-store/);
-  const saved = await request("/api/studio/benchmarks"); assert.equal(saved.status, 503); assert.match(saved.headers.get("cache-control"), /no-store/);
-  const mcp = await request("/studio/mcp"); assert.equal(mcp.status, 405);
-  const manifest = await request("/agent.json"); assert.equal((await manifest.json()).studio.mcpEndpoint, "/studio/mcp");
-});
-
-test("renders the comparison leaderboard with honest data labels and URL search", async () => {
-  const response = await request("/leaderboard");
-  assert.equal(response.status, 200);
-  const html = await response.text();
-  assert.match(html, /<h1>Leaderboard<\/h1>/);
-  assert.match(html, /not measured benchmark results/);
-  assert.match(html, /Sortable model rankings/);
-  assert.match(html, /aria-sort="descending"/);
-  assert.match(html, /Illustrative scores only/);
-  assert.match(html, /href="\/privacy"/);
-  const filtered = await request("/leaderboard?q=NVIDIA");
-  const filteredHtml = await filtered.text();
-  const table = filteredHtml.match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1] || "";
-  assert.match(table, /GR00T N1.6/);
-  assert.doesNotMatch(table, /SmolVLA|RoboBrain/);
-  const empty = await request("/leaderboard?q=no-such-robot");
-  assert.match(await empty.text(), /No models match these filters/);
-});
-
-test("publishes the four company pages with working contact and footer links", async () => {
-  for (const [path, title] of [["/about", "About us"], ["/contact", "Contact us"], ["/privacy", "Privacy Policy"], ["/terms", "Terms and Conditions"]]) {
-    const response = await request(path);
-    assert.equal(response.status, 200);
-    const html = await response.text();
-    assert.ok(html.includes(`<h1>${title}</h1>`));
-    assert.match(html, /hfxaa llc/);
-    assert.match(html, /mailto:privacy@getrobotrouter.com/);
-    for (const link of ["/about", "/contact", "/privacy", "/terms"]) assert.ok(html.includes(`href="${link}"`));
-  }
-  const watch = await request("/watch");
-  assert.match(await watch.text(), /Company and legal/);
 });
 
 test("server-renders the WANTED-10K benchmark and protocol kit", async () => {

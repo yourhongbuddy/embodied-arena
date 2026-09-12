@@ -3,8 +3,6 @@ Allow: /
 Disallow: /account
 Disallow: /login
 Disallow: /api/account
-Disallow: /api/studio
-Disallow: /studio/mcp
 
 # Agent-readable guides
 # /llms.txt

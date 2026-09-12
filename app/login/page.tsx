@@ -25,10 +25,10 @@ export default async function LoginPage() {
       <section className="accountCard" aria-labelledby="login-title">
         <span className="accountBadge">PRIVATE PROFILE</span>
         <h2 id="login-title">{user ? "You’re signed in." : "Welcome to the Arena."}</h2>
-        <p>{user ? "Open your profile to save or update your contact details." : sitesAuthEnabled() ? "Sign in or create your Arena profile with your ChatGPT account. No new password to remember." : "Contact-profile sign-in is unavailable here. To save benchmarks and connect agents, use a private Studio workspace."}</p>
+        <p>{user ? "Open your profile to save or update your contact details." : "Sign in or create your Arena profile with your ChatGPT account. No new password to remember."}</p>
         {user ? <a className="accountPrimary" href="/account">Open my profile <span aria-hidden="true">↗</span></a>
           : sitesAuthEnabled() ? <a className="accountPrimary" href={chatGPTSignInPath("/account")} target="_top">Sign in with ChatGPT <span aria-hidden="true">↗</span></a>
-            : <div className="accountNotice" role="status">Sign-in is not enabled on this host yet. <a href="/studio">Open Benchmark Studio to create or recover a workspace →</a></div>}
+            : <div className="accountNotice" role="status">Sign-in is not enabled on this host yet. You can still explore all public benchmarks.</div>}
         <div className="accountLoginNotes"><p><strong>You choose what to save.</strong> We receive your account email at sign-in. Your contact profile is stored only when you save it.</p><p>Phone numbers are optional. Creating a profile does not subscribe you to marketing or text messages.</p></div>
         <a className="accountTextLink" href="/account/privacy">How we handle contact details ↗</a>
       </section>
