@@ -1,0 +1,45 @@
+name: HILO data-engine checks and daily plan
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 15 * * *'
+  pull_request:
+    paths:
+      - 'tools/hilo_data_engine.py'
+      - 'tools/test_hilo_data_engine.py'
+      - 'config/hilo-data-engine.json'
+      - 'schemas/hilo-collection-episode.schema.json'
+      - 'public/wanted-10k/data-engine.html'
+      - '.github/workflows/hilo-data-engine.yml'
+permissions:
+  contents: read
+concurrency:
+  group: hilo-data-engine-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  validate-and-plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run offline validation
+        run: python -m unittest discover -s tools -p 'test_hilo_data_engine.py' -v
+      - name: Produce explicit offline plan
+        run: python tools/hilo_data_engine.py plan
+      - name: Run approved live workers
+        if: github.event_name != 'pull_request' && vars.HILO_ENABLE_LIVE == '1'
+        env:
+          HILO_ENABLE_LIVE: '1'
+          OPENAI_MODEL: ${{ vars.HILO_OPENAI_MODEL }}
+          OPENAI_API_KEY: ${{ secrets.HILO_OPENAI_API_KEY }}
+        run: python tools/hilo_data_engine.py run
+      - name: Retain execution evidence, including failed runs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hilo-data-engine-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/hilo-data-engine/
+          retention-days: 30

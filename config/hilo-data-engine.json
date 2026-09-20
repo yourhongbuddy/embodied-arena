@@ -1,0 +1,110 @@
+{
+  "version": "0.1",
+  "project": "HILO / WANTED-10K",
+  "worker_count": 100,
+  "maximum_concurrency": 5,
+  "live_execution_default": false,
+  "source_discovery": "Daily research automation proposes source-card updates; runner uses reviewed manifest snapshots and does not crawl.",
+  "official_score_modified": false,
+  "sources": [
+    {
+      "id": "human-preferences",
+      "title": "Learning from human preferences",
+      "published_on": "2017-06-13",
+      "url": "https://openai.com/index/learning-from-human-preferences/",
+      "checked_on": "2026-09-20",
+      "finding": "Human judgments between behavior clips guide a learned reward; uncertain comparisons inform further feedback.",
+      "hilo_adaptation": "Collect consented pairwise robot-behavior judgments; retain ties, abstentions, rater disagreement and delayed outcomes.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "dactyl",
+      "title": "Learning dexterity",
+      "published_on": "2018-07-30",
+      "url": "https://openai.com/index/learning-dexterity/",
+      "checked_on": "2026-09-20",
+      "finding": "Dactyl learned control in randomized simulation and was tested on a physical robot.",
+      "hilo_adaptation": "Vary friction, lighting, geometry, latency and wear in simulation; validate transfer separately on real robots.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "rubiks",
+      "title": "Solving Rubik\u2019s Cube with a robot hand",
+      "published_on": "2019-10-15",
+      "url": "https://openai.com/index/solving-rubiks-cube/",
+      "checked_on": "2026-09-20",
+      "finding": "Automatic domain randomization expanded training-environment variation as the system improved.",
+      "hilo_adaptation": "Expand stress-test ranges only after predefined simulated performance checks; never equate simulated time with residence time.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "instructgpt",
+      "title": "Aligning language models to follow instructions",
+      "published_on": "2022-01-27",
+      "url": "https://openai.com/index/instruction-following/",
+      "checked_on": "2026-09-20",
+      "finding": "Human demonstrations and output comparisons supported supervised training and reward-model-based optimization.",
+      "hilo_adaptation": "Keep high-quality demonstrations, corrections and real-human preference pairs in separate, purpose-authorized datasets.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "vpt",
+      "title": "Learning to play Minecraft with Video PreTraining",
+      "published_on": "2022-06-23",
+      "url": "https://openai.com/index/vpt/",
+      "checked_on": "2026-09-20",
+      "finding": "Action-labeled contractor recordings trained an inverse-dynamics model used to label additional video.",
+      "hilo_adaptation": "Explore action inference from permissioned robot video; mark inferred actions as weak labels, not sensor ground truth.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "red-team",
+      "title": "OpenAI Red Teaming Network",
+      "published_on": "2023-09-19",
+      "url": "https://openai.com/index/red-teaming-network/",
+      "checked_on": "2026-09-20",
+      "finding": "External domain specialists contributed risk taxonomies and adversarial evaluation across development stages.",
+      "hilo_adaptation": "Maintain independent safety reviewers and a failure-to-regression-test queue; bot review cannot issue certification.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "partnerships",
+      "title": "OpenAI Data Partnerships",
+      "published_on": "2023-11-09",
+      "url": "https://openai.com/index/data-partnerships/",
+      "checked_on": "2026-09-20",
+      "finding": "The program described public and private dataset partnerships, curation and access controls.",
+      "hilo_adaptation": "Arrange explicit-purpose data contributions from labs, manufacturers and consenting participants; no agreement is implied.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "long-term-feedback",
+      "title": "Sycophancy in GPT-4o",
+      "published_on": "2025-04-29",
+      "url": "https://openai.com/index/sycophancy-in-gpt-4o/",
+      "checked_on": "2026-09-20",
+      "finding": "OpenAI reported that overemphasis on short-term feedback contributed to overly agreeable behavior.",
+      "hilo_adaptation": "Measure lasting benefit, burden and freedom to reject; do not reward flattery, dependency or distress at withdrawal.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    },
+    {
+      "id": "continuous-evals",
+      "title": "Evaluation best practices",
+      "published_on": null,
+      "url": "https://developers.openai.com/api/docs/guides/evaluation-best-practices",
+      "checked_on": "2026-09-20",
+      "finding": "The guide advocates production-relevant cases, human calibration, logging and evaluation as systems change.",
+      "hilo_adaptation": "Mine verified failures into versioned regression suites; protect sealed holdouts and a frozen official scoring protocol.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only"
+    }
+  ]
+}
