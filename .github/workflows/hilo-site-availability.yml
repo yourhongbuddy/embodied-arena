@@ -1,0 +1,107 @@
+name: HILO read-only site availability diagnostic
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/hilo-site-availability.yml'
+permissions: {}
+concurrency:
+  group: hilo-site-diagnostic-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Probe public origins without credentials or deployment access
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import concurrent.futures
+          import datetime
+          import json
+          import os
+          import re
+          import socket
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          urls = [
+              'https://getrobotrouter.com/',
+              'https://getrobotrouter.com/wanted-10k',
+              'https://getrobotrouter.com/wanted-10k/data-engine.html',
+              'https://www.getrobotrouter.com/',
+              'http://getrobotrouter.com/',
+              'https://shark-app-pqh5h.ondigitalocean.app/',
+              'https://shark-app-pqh5h.ondigitalocean.app/wanted-10k',
+              'https://embodied-arena.chrishongap.chatgpt.site/',
+              'https://embodied-arena.chrishongap.chatgpt.site/wanted-10k',
+              'https://example.com/',
+          ]
+          def probe(url):
+              start = time.monotonic()
+              result = {'url': url, 'checked_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              host = urllib.parse.urlparse(url).hostname
+              try:
+                  result['dns_addresses'] = sorted({x[4][0] for x in socket.getaddrinfo(host, 443)})
+              except OSError as error:
+                  result['dns_error'] = str(error)
+              try:
+                  request = urllib.request.Request(url, headers={
+                      'User-Agent': 'Mozilla/5.0 (compatible; HILO-Availability-Diagnostic/1.0)',
+                      'Accept-Encoding': 'identity',
+                  })
+                  try:
+                      response = urllib.request.urlopen(request, timeout=15)
+                  except urllib.error.HTTPError as error:
+                      response = error
+                  with response:
+                      result['http_status'] = response.code
+                      result['final_url'] = response.geturl()
+                      allowed = ('server', 'content-type', 'location', 'cf-ray', 'x-request-id', 'cache-control')
+                      result['headers'] = {k.lower(): v for k, v in response.headers.items() if k.lower() in allowed}
+                      body = response.read(32768).decode('utf-8', 'replace')
+                      title = re.search(r'<title[^>]*>(.*?)</title>', body, re.I | re.S)
+                      result['title'] = title.group(1).strip() if title else None
+                      result['body_excerpt'] = body[:1800]
+              except Exception as error:
+                  result['request_error'] = str(error)
+                  result['error_type'] = type(error).__name__
+              result['elapsed_seconds'] = round(time.monotonic() - start, 3)
+              return result
+
+          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+              results = list(pool.map(probe, urls))
+          report = {
+              'checked_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              'execution_kind': 'public_http_diagnostic',
+              'vantage': 'github_hosted_runner',
+              'github_run_id': os.environ.get('GITHUB_RUN_ID'),
+              'repository_sha': os.environ.get('GITHUB_SHA'),
+              'production_modified': False,
+              'model_requests': 0,
+              'note': 'A successful diagnostic job means probes were recorded, not that the site is healthy. One vantage does not establish global availability.',
+              'results': results,
+          }
+          Path('diagnostics').mkdir(exist_ok=True)
+          Path('diagnostics/site-availability.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps(report, indent=2))
+          summary = os.environ.get('GITHUB_STEP_SUMMARY')
+          if summary:
+              with open(summary, 'a', encoding='utf-8') as stream:
+                  stream.write('## Read-only public availability probes\n\nNo production changes or API model requests.\n\n')
+                  stream.write('| URL | HTTP | DNS | Time (s) |\n|---|---|---|---|\n')
+                  for result in results:
+                      stream.write('| ' + result['url'] + ' | ' + str(result.get('http_status', 'no response')) + ' | ' + ('resolved' if result.get('dns_addresses') else 'failed') + ' | ' + str(result['elapsed_seconds']) + ' |\n')
+                  stream.write('\nSee JSON for exact errors. A green workflow is not a healthy-site certificate.\n')
+          PY
+      - name: Retain diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: hilo-site-availability-${{ github.run_id }}
+          path: diagnostics/
+          retention-days: 7
