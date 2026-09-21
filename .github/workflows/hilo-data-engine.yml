@@ -5,15 +5,20 @@ on:
     branches: [digitalocean]
     paths:
       - '.github/workflows/hilo-data-engine.yml'
+      - 'config/hilo-data-engine.json'
+      - 'tools/hilo_data_engine.py'
+      - 'tools/test_hilo*.py'
+      - 'docs/HILO-DATA-ENGINE*.md'
   schedule:
     - cron: '17 15 * * *'
   pull_request:
     paths:
       - 'tools/hilo_data_engine.py'
-      - 'tools/test_hilo_data_engine.py'
+      - 'tools/test_hilo*.py'
       - 'config/hilo-data-engine.json'
       - 'schemas/hilo-collection-episode.schema.json'
       - 'public/wanted-10k/data-engine.html'
+      - 'docs/HILO-DATA-ENGINE*.md'
       - '.github/workflows/hilo-data-engine.yml'
 permissions:
   contents: read
@@ -30,7 +35,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Run offline validation
-        run: python -m unittest discover -s tools -p 'test_hilo_data_engine.py' -v
+        run: python -m unittest discover -s tools -p 'test_hilo*.py' -v
       - name: Produce explicit offline plan
         run: python tools/hilo_data_engine.py plan
       - name: Check live execution configuration without exposing secrets
@@ -46,15 +51,24 @@ jobs:
           from datetime import datetime, timezone
           from pathlib import Path
 
+          enabled = os.environ.get("HILO_ENABLE_LIVE") == "1"
           checks = {
-              "HILO_ENABLE_LIVE=1": os.environ.get("HILO_ENABLE_LIVE") == "1",
+              "HILO_ENABLE_LIVE=1": enabled,
               "HILO_OPENAI_MODEL": bool(os.environ.get("OPENAI_MODEL", "").strip()),
               "HILO_OPENAI_API_KEY": bool(os.environ.get("OPENAI_API_KEY", "").strip()),
           }
-          missing = [name for name, present in checks.items() if not present]
+          missing = []
+          if enabled:
+              missing = [name for name in ("HILO_OPENAI_MODEL", "HILO_OPENAI_API_KEY") if not checks[name]]
+          if not enabled:
+              status = "live_disabled"
+          elif missing:
+              status = "blocked_missing_configuration"
+          else:
+              status = "ready_for_live_attempt"
           report = {
               "checked_at": datetime.now(timezone.utc).isoformat(),
-              "status": "blocked_missing_configuration" if missing else "ready_for_live_attempt",
+              "status": status,
               "checks": checks,
               "missing": missing,
               "live_started": 0,
@@ -68,13 +82,15 @@ jobs:
           if summary:
               with open(summary, "a", encoding="utf-8") as stream:
                   stream.write("## HILO live execution preflight\n\n")
-                  stream.write("Status: **" + report["status"] + "**\n\n")
+                  stream.write("Status: **" + status + "**\n\n")
                   stream.write("No model requests are made by this check.\n\n")
-                  if missing:
-                      stream.write("Required configuration not available to this workflow: " + ", ".join(missing) + ".\n")
+                  if status == "live_disabled":
+                      stream.write("Live workers remain intentionally disabled; offline validation and planning still run.\n")
+                  elif missing:
+                      stream.write("Live execution was requested but required configuration is unavailable: " + ", ".join(missing) + ".\n")
           print(json.dumps(report, indent=2))
-          if missing:
-              raise SystemExit("Live workers not started: required configuration is missing.")
+          if enabled and missing:
+              raise SystemExit("Live workers not started: live execution was enabled but required configuration is missing.")
           PY
       - name: Run approved live workers
         if: github.event_name != 'pull_request' && vars.HILO_ENABLE_LIVE == '1'
