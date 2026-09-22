@@ -6,9 +6,11 @@ on:
     paths:
       - '.github/workflows/hilo-data-engine.yml'
       - 'config/hilo-data-engine.json'
+      - 'config/hilo-source-intake-*.json'
       - 'tools/hilo_data_engine.py'
       - 'tools/test_hilo*.py'
       - 'docs/HILO-DATA-ENGINE*.md'
+      - 'docs/HILO-SOURCE-ADMISSION.md'
   schedule:
     - cron: '17 15 * * *'
   pull_request:
@@ -16,9 +18,11 @@ on:
       - 'tools/hilo_data_engine.py'
       - 'tools/test_hilo*.py'
       - 'config/hilo-data-engine.json'
+      - 'config/hilo-source-intake-*.json'
       - 'schemas/hilo-collection-episode.schema.json'
       - 'public/wanted-10k/data-engine.html'
       - 'docs/HILO-DATA-ENGINE*.md'
+      - 'docs/HILO-SOURCE-ADMISSION.md'
       - '.github/workflows/hilo-data-engine.yml'
 permissions:
   contents: read
