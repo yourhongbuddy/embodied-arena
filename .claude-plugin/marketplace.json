@@ -1,0 +1,6 @@
+{
+  "name": "hilo-tools",
+  "owner": {"name": "HILO / RobotRouter"},
+  "metadata": {"description": "Independent robot benchmark review tools; not official certification."},
+  "plugins": [{"name": "hilo-benchmark", "source": "./plugins/hilo-benchmark", "description": "Review HILO/WANTED-10K telemetry and study designs without inventing robot hours or certifications."}]
+}

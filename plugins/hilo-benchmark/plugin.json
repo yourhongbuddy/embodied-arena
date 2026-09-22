@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "hilo-benchmark",
+  "version": "0.1.0",
+  "description": "Review HILO/WANTED-10K telemetry and study designs without inventing robot hours or certifications.",
+  "author": {"name": "HILO / RobotRouter"},
+  "homepage": "https://getrobotrouter.com/wanted-10k",
+  "repository": "https://github.com/yourhongbuddy/embodied-arena",
+  "keywords": ["robotics", "benchmark", "HILO", "WANTED-10K", "telemetry"]
+}
