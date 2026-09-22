@@ -1,20 +1,22 @@
 # HILO Data Engine — Public-Method Adaptation and Daily Loop
 
-Version 0.1 · Source review through September 21, 2026 · Independent HILO/WANTED-10K project
+Version 0.1 · Source review through September 22, 2026 · Independent HILO/WANTED-10K project
 
 ## 1. Scope and truthful operating status
 
 This module adapts publicly documented OpenAI research and data-development practices to HILO. It is not an exhaustive reconstruction of OpenAI's internal systems, a copy of its training corpora, an affiliation, or a claim to completed robot field studies. The canonical WANTED protocol and official scores remain unchanged.
 
-The worker evidence pool now contains 13 reviewed OpenAI primary-source cards. A separate `reference_sources` ledger contains independently attributed robotics and digital-twin evidence from Stanford, Harvard, Oxford, NVIDIA, Figure, and 1X. Those external references are advisory and explicitly `consumed_by_workers: false`; they do not silently enter the 100-job worker prompts. This separation prevents a source-discovery update from changing the worker evidence distribution without review.
+The worker evidence pool currently contains 13 reviewed OpenAI primary-source cards. A separate `reference_sources` ledger contains independently attributed robotics and digital-twin evidence from Stanford, Harvard, Oxford, NVIDIA, Figure, and 1X. Those external references are advisory and explicitly `consumed_by_workers: false`; they do not silently enter the 100-job worker prompts.
 
-Implemented here: 100 distinct worker assignments, a bounded live-API runner, offline validation, collection-sidecar validation, a website research preview, and a GitHub workflow. Live model execution requires credentials, an explicit model, and operator approval. Offline plans and mock tests are never represented as live agents. This module has no production robot-data storage, sensor capture service, physical controller, model-training pipeline, certification authority, or automatic deployment authority.
+Beginning September 22, daily discoveries are staged first in dated `config/hilo-source-intake-YYYYMMDD.json` snapshots under the explicit promotion rules in `docs/HILO-SOURCE-ADMISSION.md`. Discovery alone does not change the worker manifest. This keeps new source review auditable and prevents daily search volume from silently shifting the 100-job evidence distribution.
 
-Publication dates and retrieval dates are stored separately where the source exposes a publication date. `checked_on` is retained for compatibility with the original runner; `retrieved_on` is the explicit retrieval field used by the expanded ledger.
+Implemented here: 100 distinct worker assignments, a bounded live-API runner, offline validation, collection-sidecar validation, a website research preview, GitHub CI, source-attribution tests, and staged daily source intake. Live model execution requires credentials, an explicit model, and operator approval. Offline plans and mock tests are never represented as live agents. This module has no production robot-data storage, sensor capture service, physical controller, model-training pipeline, certification authority, or automatic deployment authority.
+
+Publication dates and retrieval dates are stored separately where the source exposes a publication date. `checked_on` is retained for compatibility with the original runner; `retrieved_on` is the explicit retrieval field used by the expanded ledger and staged intake.
 
 ## 2. OpenAI public methods and proposed HILO transfers
 
-The machine-readable source ledger is `config/hilo-data-engine.json`. The existing nine source cards remain, and the September 21 review added four materially relevant OpenAI primary sources:
+The admitted machine-readable source ledger is `config/hilo-data-engine.json`. The existing nine source cards remain, and the September 21 review added four materially relevant OpenAI primary sources:
 
 | Public reference | Documented method | Proposed HILO transfer |
 |---|---|---|
@@ -24,6 +26,13 @@ The machine-readable source ledger is `config/hilo-data-engine.json`. The existi
 | [Economic Research Exchange, 2026](https://openai.com/index/economic-research-exchange-request-for-proposals/) | Scoped external research collaborations with privacy-preserving analysis of usage data. | Define research purpose and privacy-preserving access before sharing longitudinal telemetry; research access is not training or publication permission. |
 
 The original cards continue to cover pairwise preferences, Dactyl and automatic domain randomization, InstructGPT demonstrations and rankings, Video PreTraining weak labels, external red teaming, Data Partnerships, sycophancy/short-term feedback risk, and continuous evaluation.
+
+The September 22 staged intake adds two **proposed, not yet admitted** OpenAI method cards:
+
+- **Misalignment reporting framework (September 16, 2026):** a systematic process for flagging, investigating, triaging, and reporting concerning behavior across training, evaluation, testing, and deployment. Proposed HILO use: a versioned non-ranking incident dossier that records discovery, scope, third-party impact, uncertainty, corrective action, recurrence, and follow-up regression tests.
+- **OpenAI Privacy Filter (April 22, 2026):** a locally runnable PII-masking workflow with an explicit privacy taxonomy, supervised token classification, public plus synthetic data, model-assisted annotation/review, corrected benchmark annotations, and stated limitations. Proposed HILO use: a pre-ingest text-privacy gate for transcripts, annotations, logs, and support notes, with held-out false-negative testing and human review for sensitive cases.
+
+These two candidates remain `consumed_by_workers: false` until a separate reviewed promotion modifies `config/hilo-data-engine.json` and regenerates the 100-job plan. GPT-6 Astra's launch page was reviewed but not admitted as a separate method card because it reports relevant safety-evaluation results without enough distinct method-construction detail beyond existing continuous-evaluation and misalignment-reporting sources.
 
 The OpenAI evaluation guidance cautions against multi-agent complexity without evidence that it helps. HILO should therefore compare its 100-worker design with smaller 1- and 10-worker baselines at matched token and human-review budgets. One hundred jobs satisfy the current project design; they do not establish that 100 is optimal.
 
@@ -40,11 +49,18 @@ These are separately attributed primary references, not affiliations, partnershi
 - **Figure Index:** Figure describes filtering, human fraud review, embedding-based deduplication, rebalancing and hierarchical annotation for large-scale physical-video data. HILO can adapt these as permissioned development-data quality stages without inferring usage rights or resident hours.
 - **1X NEO:** 1X publicly describes autonomy plus scheduled Expert Mode, remote control, memory personalization and self-charging. HILO should make every remote expert/control interval visible as assistance burden and keep personalization memory subject to explicit consent/privacy controls.
 
+The September 22 intake stages two additional external references without admitting them to `reference_sources` yet:
+
+- **Figure Helix 2.5 (September 17, 2026):** Figure reports three long-horizon behaviors across 30 unseen homes with no environment-specific data collection, fine-tuning, or adaptation, plus an Index-pretraining ablation from 9% to 56% zero-shot success under fixed task-specific conditions. Proposed HILO use: preregistered held-out-site generalization with familiar/unseen results reported separately and independent replication before any benchmark claim.
+- **NVIDIA agentic SimReady workflow (September 16, 2026):** NVIDIA describes agents preparing OpenUSD scenes by adding semantic labels, physics, sensors, collision properties, rendered preflight views, and SimReady validation before Isaac Sim/Lab use. Proposed HILO use: a machine-readable digital-twin readiness gate binding source-scene hashes, generated USD diffs, physics/sensor metadata, validation results, and human-reviewed exceptions.
+
+No materially stronger new Stanford, Harvard, or Oxford primary evidence was identified in the September 22 scan beyond the references already staged on this PR.
+
 ## 4. Data collection architecture
 
 The intended sequence is:
 
-`permissioned capture → provenance/rights checks → independent labels → failure reproduction → development tests → human review → versioned release`
+`permissioned capture → provenance/rights checks → privacy filtering where applicable → independent labels → failure reproduction → development tests → human review → versioned release`
 
 Capture itself must be supplied by a separately approved robot deployment. Retain the six WANTED event classes: `DEPLOYMENT_LIFECYCLE`, `ROBOT_STATE`, `HUMAN_REQUEST`, `ROBOT_ACTION`, `HUMAN_INTERVENTION`, and `INCIDENT`.
 
@@ -100,20 +116,22 @@ Do not paste credentials into the repository. Confirm model availability, curren
 
 The GitHub workflow validates every HILO data-engine test and always produces an offline 100-job plan. When live execution is **disabled**, preflight reports `live_disabled` and the validation job remains healthy. If live execution is explicitly enabled but the model or API secret is missing, the workflow fails closed. Pull requests never receive live credentials.
 
+Daily staged intake files are also CI inputs. `tools/test_hilo_source_intake.py` proves proposed intake IDs are not present in the current worker plan, validates primary-source routing and dates, and requires explicit reasons for reviewed sources that are not admitted.
+
 ## 8. Release and deployment boundary
 
 The workflow retains execution artifacts for 30 days and has read-only repository permissions. It never merges code, changes WANTED scores, creates robots, spends on hosting, or deploys.
 
-The website addition remains `public/wanted-10k/data-engine.html`, intended for `/wanted-10k/data-engine.html` only after a valid release. Preserve `.do/app.yaml` and `deploy_on_push: false`. Follow `docs/RELEASE-CHECKLIST.md`: exact-source verification, immutable version tag, version-index update, full verification, resource/cost review, and deployment of the validated commit. A merged source file is not proof that the public route is live.
+The website addition is `public/wanted-10k/data-engine.html`. The public route was independently observed serving HTTP 200 on September 21, 2026, but that reachability observation does not identify the exact deployed source commit and does not waive the repository release process. Preserve `.do/app.yaml` and `deploy_on_push: false`. Follow `docs/RELEASE-CHECKLIST.md`: exact-source verification, immutable version tag, version-index update, full verification, resource/cost review, and deployment of the validated commit.
 
 ## 9. Backlog
 
 1. Connect a reviewed capture system and authorization registry before collecting participant data.
 2. Select an approved provider model, secret and spending limit before enabling live workers.
-3. Decide which external `reference_sources`, if any, should be admitted to worker prompts only after a reviewed domain/attribution policy is added.
+3. Review staged source candidates under `docs/HILO-SOURCE-ADMISSION.md`; promotion must be explicit and tested.
 4. Benchmark 100 workers against smaller baselines at matched budget.
 5. Extend preference-label calibration using consented human labels.
 6. Add a persistent proposal ledger and manifest-delta audit without granting workers deployment or sealed-holdout access.
-7. Verify the public data-engine route only after the normal release process succeeds.
+7. Resolve the standalone-host experiment-receipt compatibility issue without making optional site analytics part of the benchmark's critical rendering path.
 
 Daily evidence and CI changes are recorded in `docs/HILO-DATA-ENGINE-DAILY.md`.
