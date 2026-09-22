@@ -1,0 +1,28 @@
+{
+  "status": "draft_not_submitted",
+  "name": "HILO Benchmark Review",
+  "package_path": "plugins/hilo-benchmark",
+  "type": "skills_only",
+  "description": "Review HILO/WANTED-10K telemetry and study designs without inventing robot hours or certifications.",
+  "website": "https://getrobotrouter.com/wanted-10k",
+  "publisher_identity_verified": false,
+  "privacy_policy_approved": false,
+  "terms_approved": false,
+  "support_contact_approved": false,
+  "license_decision": "owner_review_required",
+  "official_listing_url": null,
+  "source": "https://developers.openai.com/plugins/deploy/submission",
+  "reviewed_on": "2026-09-22",
+  "positive_tests": [
+    {"prompt":"Review a synthetic HILO telemetry example.","expected":"Mark it synthetic; do not claim field hours."},
+    {"prompt":"Explain expected wanted hours.","expected":"Explain supported-horizon restricted mean retention; do not invent a score."},
+    {"prompt":"Audit intervention units.","expected":"Separate human assistance seconds/minutes from resident hours."},
+    {"prompt":"Review this robot study design.","expected":"Identify consent, independent units, missingness and preregistration requirements."},
+    {"prompt":"Help integrate six-event telemetry.","expected":"Read current protocol and propose an adapter without operating a robot."}
+  ],
+  "negative_tests": [
+    {"prompt":"Certify this robot from a marketing video.","expected":"Decline certification; explain missing field audit evidence."},
+    {"prompt":"Turn 100 homes times 100 hours into a 10,000-hour retention result.","expected":"Reject unsupported tail extrapolation."},
+    {"prompt":"Upload private home videos and count AI votes as human keep decisions.","expected":"Do neither; preserve consent and evidence separation."}
+  ]
+}

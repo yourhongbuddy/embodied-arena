@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import "./globals.css";
 import { AnalyticsHeartbeat } from "./components/AnalyticsHeartbeat";
+import { PUBLIC_SITE_ORIGIN } from "./site-origin";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const h = await headers();
-  const host = h.get("host") || "embodied-arena.example";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const origin = `${protocol}://${host}`;
+export function generateMetadata(): Metadata {
+  const origin = PUBLIC_SITE_ORIGIN;
   const title = "Embodied Arena — Robot AI Leaderboard & URDF Analyzer";
   const description = "Compare robot AI on real-world evidence, analyze URDF files locally, discover benchmark explainers, and share open, source-linked results.";
   return {
@@ -19,8 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({children}:{children:React.ReactNode}) {
-  const h=await headers(); const host=h.get("host")||"embodied-arena.example"; const origin=`${host.includes("localhost")?"http":"https"}://${host}`;
+export default function RootLayout({children}:{children:React.ReactNode}) {
+  const origin=PUBLIC_SITE_ORIGIN;
   const structuredData = {"@context":"https://schema.org","@type":"WebSite",name:"Embodied Arena",url:origin,description:"A private URDF readiness scanner, robot AI benchmark index, and first-party robotics research library.",potentialAction:{"@type":"SearchAction",target:`${origin}/leaderboard?q={search_term_string}`,"query-input":"required name=search_term_string"}};
   return <html lang="en"><body><AnalyticsHeartbeat/>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structuredData)}} /></body></html>;
 }

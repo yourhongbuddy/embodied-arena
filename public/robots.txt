@@ -7,3 +7,5 @@ Disallow: /api/account
 # Agent-readable guides
 # /llms.txt
 # /agent.json
+
+Sitemap: https://getrobotrouter.com/sitemap.xml

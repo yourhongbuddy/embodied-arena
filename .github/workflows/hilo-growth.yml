@@ -1,0 +1,58 @@
+name: HILO GrowthOps read-only audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 15 * * *'
+  pull_request:
+    paths:
+      - 'tools/hilo_growth.py'
+      - 'tools/test_hilo_growth.py'
+      - 'config/hilo-growth.json'
+      - 'docs/HILO-GROWTH*.md'
+      - 'plugins/hilo-benchmark/**'
+      - '.claude-plugin/marketplace.json'
+      - 'distribution/openai-submission.json'
+      - 'public/hilo/**'
+      - 'public/sitemap.xml'
+      - 'public/robots.txt'
+      - 'app/layout.tsx'
+      - 'app/site-origin.ts'
+      - '.github/workflows/hilo-growth.yml'
+permissions:
+  contents: read
+concurrency:
+  group: hilo-growth-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Test queue, evidence boundaries and metadata
+        run: python3 -m unittest discover -s tools -p 'test_hilo_growth.py' -v
+      - name: Execute bounded read-only audits, not paid model agents
+        run: python3 tools/hilo_growth.py run --online --cycle "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Render static developer page without a web service
+        shell: bash
+        run: |
+          chrome="$(command -v google-chrome || command -v chromium || true)"
+          if [ -n "$chrome" ]; then
+            timeout 30 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --window-size=1440,1100 --screenshot="$PWD/artifacts/hilo-growth/developer-preview.png" "file://$PWD/public/hilo/developers.html"
+          else
+            printf 'Browser unavailable; visual test not performed.\n' > artifacts/hilo-growth/browser-status.txt
+          fi
+      - name: Preserve actual evidence and source bundle
+        if: always()
+        run: |
+          mkdir -p artifacts/hilo-growth
+          git diff --name-only HEAD^ HEAD > artifacts/hilo-growth/last-commit-paths.txt || true
+          git rev-parse HEAD > artifacts/hilo-growth/source-commit.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: hilo-growth-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/hilo-growth/
+          retention-days: 14
