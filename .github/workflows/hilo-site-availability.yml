@@ -32,7 +32,12 @@ jobs:
           urls = [
               'https://getrobotrouter.com/',
               'https://getrobotrouter.com/wanted-10k',
+              'https://getrobotrouter.com/wanted-10k/protocol',
+              'https://getrobotrouter.com/wanted-10k/sdk',
               'https://getrobotrouter.com/wanted-10k/data-engine.html',
+              'https://getrobotrouter.com/hilo/developers.html',
+              'https://getrobotrouter.com/robots.txt',
+              'https://getrobotrouter.com/sitemap.xml',
               'https://www.getrobotrouter.com/',
               'http://getrobotrouter.com/',
               'https://shark-app-pqh5h.ondigitalocean.app/',
