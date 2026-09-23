@@ -1,0 +1,12 @@
+{
+  "name": "hilo-tools",
+  "interface": {"displayName": "HILO / WANTED-10K Tools"},
+  "plugins": [
+    {
+      "name": "hilo-benchmark",
+      "source": {"source": "local", "path": "./plugins/hilo-benchmark"},
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Developer Tools"
+    }
+  ]
+}

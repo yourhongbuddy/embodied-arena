@@ -50,7 +50,7 @@ class GrowthTests(unittest.TestCase):
     def test_atomic_claims_do_not_duplicate(self):
         with tempfile.TemporaryDirectory() as tmp:
             q=h.Queue(Path(tmp)/'q.sqlite',self.config,'test')
-            with ThreadPoolExecutor(max_workers=10) as pool: claims=list(pool.map(lambda _:q.claim(),range(40)))
+            with ThreadPoolExecutor(max_workers=10) as pool: claims=list(pool.map(lambda _:q.claim(),range(50)))
             ids=[c[0] for c in claims if c]
             self.assertEqual(len(ids),len(set(ids)))
             self.assertEqual(len(ids),sum(j['status']=='queued' for j in h.make_plan(self.config)))
@@ -63,7 +63,7 @@ class GrowthTests(unittest.TestCase):
     def test_cycle_cannot_change_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'q.sqlite';h.Queue(path,self.config,'test')
-            other=copy.deepcopy(self.config);other['version']='0.2'
+            other=copy.deepcopy(self.config);other['version']='0.3'
             with self.assertRaises(ValueError):h.Queue(path,other,'test')
     def test_stuck_jobs_are_not_automatically_replayed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -87,18 +87,25 @@ class GrowthTests(unittest.TestCase):
         self.assertEqual(manifest['name'],'hilo-benchmark')
         self.assertTrue((p/'skills/hilo-audit/SKILL.md').is_file())
         self.assertFalse((p/'hooks').exists());self.assertFalse((p/'mcp.json').exists())
+    def test_openai_repo_marketplace_points_to_local_plugin(self):
+        market=json.loads((ROOT/'.agents/plugins/marketplace.json').read_text())
+        self.assertEqual(market['name'],'hilo-tools')
+        entry=market['plugins'][0]
+        self.assertEqual(entry['name'],'hilo-benchmark')
+        self.assertEqual(entry['source'],{'source':'local','path':'./plugins/hilo-benchmark'})
+        self.assertEqual(entry['policy']['installation'],'AVAILABLE')
     def test_submission_has_five_positive_three_negative_cases(self):
         submission=json.loads((ROOT/'distribution/openai-submission.json').read_text())
         self.assertEqual(submission['status'],'draft_not_submitted')
         self.assertEqual(len(submission['positive_tests']),5);self.assertEqual(len(submission['negative_tests']),3)
         self.assertIsNone(submission['official_listing_url'])
-
     def test_completed_cycle_does_not_repeat_network(self):
         with tempfile.TemporaryDirectory() as tmp,patch.object(h,'public_get') as fetch:
             fetch.return_value={'status_code':200,'content_type':'text/html','body':'<title>HILO</title>'}
             h.run(self.config,Path(tmp),'test',True)
             first=fetch.call_count
-            self.assertEqual(first,5)
+            expected=len({t['url'] for t in self.config['targets'] if t['kind']=='site'} | {'https://example.com/'})
+            self.assertEqual(first,expected)
             report=h.run(self.config,Path(tmp),'test',True)
             self.assertEqual(fetch.call_count,first)
             self.assertEqual(report['public_url_probes_attempted_this_execution'],0)
@@ -118,5 +125,11 @@ class GrowthTests(unittest.TestCase):
         source=(ROOT/'app/layout.tsx').read_text()
         self.assertIn('PUBLIC_SITE_ORIGIN',source)
         self.assertNotIn('h.get("host")',source)
+    def test_new_targets_have_reviewed_rules_and_no_submission_claim(self):
+        ids={t['id']:t for t in self.config['targets']}
+        for ident in ('developer-page','agent-skill-exchange'):
+            self.assertEqual(ids[ident]['retrieved_on'],'2026-09-23')
+            self.assertEqual(ids[ident]['status'],'candidate_not_submitted')
+            self.assertTrue(ids[ident]['rules_url'].startswith('https://'))
 
 if __name__=='__main__':unittest.main()
