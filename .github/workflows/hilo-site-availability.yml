@@ -42,8 +42,16 @@ jobs:
               'http://getrobotrouter.com/',
               'https://shark-app-pqh5h.ondigitalocean.app/',
               'https://shark-app-pqh5h.ondigitalocean.app/wanted-10k',
+              'https://shark-app-pqh5h.ondigitalocean.app/wanted-10k/data-engine.html',
+              'https://shark-app-pqh5h.ondigitalocean.app/hilo/developers.html',
+              'https://shark-app-pqh5h.ondigitalocean.app/robots.txt',
+              'https://shark-app-pqh5h.ondigitalocean.app/sitemap.xml',
               'https://embodied-arena.chrishongap.chatgpt.site/',
               'https://embodied-arena.chrishongap.chatgpt.site/wanted-10k',
+              'https://embodied-arena.chrishongap.chatgpt.site/wanted-10k/data-engine.html',
+              'https://embodied-arena.chrishongap.chatgpt.site/hilo/developers.html',
+              'https://embodied-arena.chrishongap.chatgpt.site/robots.txt',
+              'https://embodied-arena.chrishongap.chatgpt.site/sitemap.xml',
               'https://example.com/',
           ]
           def probe(url):
