@@ -142,4 +142,17 @@ class GrowthTests(unittest.TestCase):
         self.assertNotIn('termsOfServiceURL',interface)
 
 
+    def test_non_success_http_pages_cannot_pass_health_or_seo(self):
+        with tempfile.TemporaryDirectory() as tmp,patch.object(h,'public_get') as fetch:
+            fetch.return_value={'status_code':404,'content_type':'text/html','body':'<title>Not found</title><h1>Missing</h1>'}
+            out=Path(tmp);report=h.run(self.config,out,'http-404',True)
+            site_count=sum(t['kind']=='site' for t in self.config['targets'])
+            self.assertEqual(report['deterministic_job_statuses']['measurement_failed'],2*site_count)
+            saved=json.loads((out/'report.json').read_text())
+            seo=next(r['result'] for r in saved['records'] if r['id']=='HILO-seo-0001')
+            self.assertEqual(seo['status'],'measurement_failed')
+            self.assertFalse(seo['seo']['checks']['http_success'])
+            self.assertIn('http_success',seo['seo']['missing'])
+
+
 if __name__=='__main__':unittest.main()

@@ -226,9 +226,15 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
             elif online:
                 measurement = dict(cached[target['url']]); body = measurement.pop('body', '')
                 result['measurement'] = measurement
-                if measurement.get('status_code') is None: result['status'] = 'measurement_failed'
+                status_code = measurement.get('status_code')
+                http_success = isinstance(status_code, int) and 200 <= status_code < 300
+                if not http_success:
+                    result['status'] = 'measurement_failed'
+                    result['reason'] = 'http_status_not_success' if status_code is not None else 'request_failed'
                 if job['lane'] == 'seo' and 'text/html' in measurement.get('content_type', ''):
                     result['seo'] = inspect_html(body)
+                    result['seo']['checks']['http_success'] = http_success
+                    result['seo']['missing'] = [key for key, value in result['seo']['checks'].items() if not value]
             else:
                 result.update(status='measurement_failed', reason='network_not_requested')
             result['finished_at'] = stamp(); queue.finish(ident, token, result)
