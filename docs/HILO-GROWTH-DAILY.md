@@ -1,5 +1,13 @@
 # HILO GrowthOps daily log
 
+## September 24, 2026 — plugin packaging refresh; no new venue admitted yet
+
+OpenAI's current September 24 documentation was rechecked. Public plugin submission starts a review rather than immediate publication; after approval the developer separately chooses when to publish, and skills-only plugins are eligible for the universal directory shared by ChatGPT and Codex. Personal Free/Go/Plus/Pro accounts still cannot create or publish new GPTs. The HILO portable manifest now includes OpenAI install-surface presentation metadata and two representative default prompts, but deliberately omits privacy/terms URLs that have not been owner-approved. The submission ledger remains draft_not_submitted and now lists the exact publisher, policy, license, and install-test blockers.
+
+Skills.sh was rechecked: skills are sourced from GitHub and enter its leaderboard through genuine CLI installs; no manual leaderboard submission exists. Hugging Face Spaces was rechecked: public Spaces expose source and are searchable/clonable, so any future HILO demo must use explicitly synthetic examples and pass license/account review. Smithery was reviewed as an additional ecosystem surface, but its clearly documented public publishing path is MCP-centric while HILO's current package is skills-only; it is therefore not added to the registry today rather than inventing a supported submission route.
+
+A fresh GrowthOps CI run is required after this change before today's deterministic counts or public-route status are recorded. No message, social post, store submission, deployment, paid model call, or robot evidence is created by this repository update.
+
 ## September 23, 2026 — source refresh and deployment checks queued
 
 PR #9 is merged on `digitalocean` at `145c0e353a576c7cade6b16fab49a0e9aa5b16b7`; the full repository verification after merge succeeded. The last independently retained GrowthOps run had 10,000 registered slots, 53 assigned slots, 23 completed deterministic audits, 9,947 waiting for targets, 30 awaiting connector/review, five public probes with a 200 network control, zero live LLM agents, zero store submissions, zero runner-sent messages, zero deployments and zero robot hours. Its data-engine public route returned 404 even though the source file exists on the merged branch, so deployment/routing remains the likely repair boundary rather than regenerating that HTML.

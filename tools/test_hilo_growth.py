@@ -132,4 +132,14 @@ class GrowthTests(unittest.TestCase):
             self.assertEqual(ids[ident]['status'],'candidate_not_submitted')
             self.assertTrue(ids[ident]['rules_url'].startswith('https://'))
 
+    def test_openai_interface_metadata_is_present_without_policy_claims(self):
+        manifest=json.loads((ROOT/'plugins/hilo-benchmark/plugin.json').read_text())
+        interface=manifest['extensions']['com.openai']['interface']
+        self.assertEqual(interface['displayName'],'HILO Benchmark Review')
+        self.assertEqual(interface['websiteURL'],'https://getrobotrouter.com/wanted-10k')
+        self.assertGreaterEqual(len(interface['defaultPrompt']),2)
+        self.assertNotIn('privacyPolicyURL',interface)
+        self.assertNotIn('termsOfServiceURL',interface)
+
+
 if __name__=='__main__':unittest.main()

@@ -30,6 +30,10 @@ The registry distinguishes ChatGPT/Codex plugins, legacy GPTs, portable skills, 
 
 OpenAI's checked September 22 guidance says personal accounts cannot create/publish new GPTs and provides a plugin submission route. Skills.sh documents discovery through genuine installations. Rebind's publishing guide requires a real script package, a signed-in app and publishing access; a website is not such a package. Show HN requires a substantial usable artifact. The official MCP registry requires publisher authentication and compliant server metadata. These are researched candidates, not submissions or affiliations.
 
+### OpenAI packaging state
+
+The portable plugins/hilo-benchmark/plugin.json may include extensions.com.openai.interface presentation metadata while remaining skills-only. Do not add privacy-policy, terms-of-service, support, logo, capability, or publisher assertions unless their URLs/claims are actually approved and verified. Preparing install-surface metadata is not submission, review, approval, publication, installation, or reach.
+
 ## Outreach and inreach
 
 Start with real inbound replies and contribution requests, not cold volume. Use connected Gmail to read entire relevant threads and check sent history and opt-outs before a reply. The default shared daily ceiling is three new individually relevant professional contacts and five substantive existing-thread replies; no repeated nonresponse follow-ups. Store/message limits apply across all lanes, not per worker. Keep one active submission per venue and one owned social post per day. These caps must be enforced by the authorized connector operator; the deterministic runner has no sending adapter.
