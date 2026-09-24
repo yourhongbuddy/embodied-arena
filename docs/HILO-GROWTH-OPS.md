@@ -16,7 +16,7 @@ python tools/hilo_growth.py plan
 python tools/hilo_growth.py run --online --cycle 2026-09-22
 ```
 
-`--online` performs bounded GET requests only to fixed public project hosts and a control domain. It does not crawl stores, authenticate or post. Store evidence is a dated source inventory; only an actual research pass can refresh it. A network failure is a failed measurement, not automatic proof the site is down. SQLite and raw execution artifacts stay in an operator-controlled artifact directory, not the public repository. One cycle is bound to one manifest. Reconcile stranded running jobs; never auto-replay an uncertain external write.
+`--online` performs bounded GET requests only to fixed public project hosts and a control domain. It also compares a small reviewed set of custom-domain routes against the DigitalOcean origin and records status drift without changing routing. It does not crawl stores, authenticate or post. Store evidence is a dated source inventory; only an actual research pass can refresh it. A network failure is a failed measurement, not automatic proof the site is down. SQLite and raw execution artifacts stay in an operator-controlled artifact directory, not the public repository. One cycle is bound to one manifest. Reconcile stranded running jobs; never auto-replay an uncertain external write.
 
 ## Repair and SEO priorities
 

@@ -104,7 +104,7 @@ class GrowthTests(unittest.TestCase):
             fetch.return_value={'status_code':200,'content_type':'text/html','body':'<title>HILO</title>'}
             h.run(self.config,Path(tmp),'test',True)
             first=fetch.call_count
-            expected=len({t['url'] for t in self.config['targets'] if t['kind']=='site'} | {'https://example.com/'})
+            expected=len(h.public_probe_urls(self.config))
             self.assertEqual(first,expected)
             report=h.run(self.config,Path(tmp),'test',True)
             self.assertEqual(fetch.call_count,first)
@@ -140,6 +140,24 @@ class GrowthTests(unittest.TestCase):
         self.assertGreaterEqual(len(interface['defaultPrompt']),2)
         self.assertNotIn('privacyPolicyURL',interface)
         self.assertNotIn('termsOfServiceURL',interface)
+
+    def test_route_baselines_are_fixed_public_read_only_origins(self):
+        h.validate_config(self.config)
+        self.assertGreaterEqual(len(self.config.get('route_baselines', [])), 5)
+        for row in self.config['route_baselines']:
+            self.assertTrue(row['public_url'].startswith('https://getrobotrouter.com/'))
+            self.assertTrue(row['baseline_url'].startswith('https://shark-app-pqh5h.ondigitalocean.app/'))
+
+    def test_route_baseline_status_drift_is_explicit(self):
+        cached={}
+        for url in h.public_probe_urls(self.config):
+            status=404 if url=='https://getrobotrouter.com/wanted-10k/data-engine.html' else 200
+            cached[url]={'status_code':status,'body_sha256':'x'}
+        rows={r['id']:r for r in h.compare_route_baselines(self.config,cached)}
+        self.assertTrue(rows['data-engine-origin']['status_mismatch'])
+        self.assertEqual(rows['data-engine-origin']['public_status'],404)
+        self.assertEqual(rows['data-engine-origin']['baseline_status'],200)
+        self.assertFalse(rows['wanted-origin']['status_mismatch'])
 
 
 if __name__=='__main__':unittest.main()

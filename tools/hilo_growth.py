@@ -61,6 +61,16 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError('This runner has no live-model or publication adapter')
     if not 1 <= config.get('max_concurrency', 0) <= 10:
         raise ValueError('Concurrency must be 1..10')
+    baseline_ids = set()
+    for row in config.get('route_baselines', []):
+        if row.get('id') in baseline_ids:
+            raise ValueError('Route baseline IDs must be unique')
+        baseline_ids.add(row.get('id'))
+        datetime.fromisoformat(row['retrieved_on'])
+        for key, host in (('public_url', 'getrobotrouter.com'), ('baseline_url', 'shark-app-pqh5h.ondigitalocean.app')):
+            u = urllib.parse.urlsplit(row[key])
+            if u.scheme != 'https' or u.hostname != host or u.port not in (None, 443) or u.username or u.password:
+                raise ValueError('Route baselines must compare fixed public and DigitalOcean HTTPS origins')
     slots, ids = set(), set()
     for target in config.get('targets', []):
         slot, ident = target['slot'], target['id']
@@ -204,6 +214,26 @@ def public_get(url: str) -> dict[str, Any]:
     return {'url': original, 'finished_at': stamp(), 'error_type': 'RedirectLimit', 'status_code': None}
 
 
+def public_probe_urls(config: dict[str, Any]) -> list[str]:
+    urls = {t['url'] for t in config['targets'] if t['kind'] == 'site'} | {'https://example.com/'}
+    for row in config.get('route_baselines', []):
+        urls.add(row['public_url']); urls.add(row['baseline_url'])
+    return sorted(urls)
+
+
+def compare_route_baselines(config: dict[str, Any], cached: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    checks = []
+    for row in config.get('route_baselines', []):
+        public = cached.get(row['public_url'], {}); baseline = cached.get(row['baseline_url'], {})
+        pstatus, bstatus = public.get('status_code'), baseline.get('status_code')
+        checks.append({'id': row['id'], 'public_url': row['public_url'], 'baseline_url': row['baseline_url'],
+            'public_status': pstatus, 'baseline_status': bstatus,
+            'comparable': pstatus is not None and bstatus is not None,
+            'status_mismatch': pstatus is not None and bstatus is not None and pstatus != bstatus,
+            'body_sha256_equal': bool(public.get('body_sha256') and public.get('body_sha256') == baseline.get('body_sha256'))})
+    return checks
+
+
 def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[str, Any]:
     plan = make_plan(config); queue = Queue(output / 'queue.sqlite', config, cycle)
     write_json(output / 'plan.json', {'capacity': 10000, 'manifest_sha256': digest(config), 'jobs': plan})
@@ -213,7 +243,7 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
     queued_ids = {r['id'] for r in queue.records() if r['status'] == 'queued'}
     has_network_work = any(by_id[j]['lane'] in ('site_health', 'seo') for j in queued_ids)
     if online and has_network_work:
-        urls = sorted({t['url'] for t in targets.values() if t['kind'] == 'site'} | {'https://example.com/'})
+        urls = public_probe_urls(config)
         with ThreadPoolExecutor(max_workers=config['max_concurrency']) as pool:
             cached = dict(zip(urls, pool.map(public_get, urls)))
     def worker():
@@ -237,10 +267,13 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
     records = queue.records(); counts = {}
     for record in records: counts[record['status']] = counts.get(record['status'], 0) + 1
     control = cached.get('https://example.com/', {})
+    route_checks = compare_route_baselines(config, cached) if cached else []
     report = {'version': '0.1', 'cycle': cycle, 'finished_at': stamp(), 'manifest_sha256': digest(config),
         'registered_slots': 10000, 'assigned_slots': sum(j['target_id'] is not None for j in plan),
         'deterministic_job_statuses': counts, 'public_url_probes_attempted_this_execution': len(cached),
         'network_control_status': control.get('status_code'),
+        'route_baseline_checks': route_checks,
+        'route_status_mismatches': [row['id'] for row in route_checks if row['status_mismatch']],
         'live_llm_agents_started': 0, 'live_llm_agents_completed': 0, 'live_llm_agents_failed': 0,
         'outbound_messages_sent_by_runner': 0, 'store_submissions_by_runner': 0, 'deployments_by_runner': 0,
         'real_robot_hours_collected': 0, 'note': 'Slots are capacity, not people, contacts, live LLM agents, impressions, or certified robot evidence. Pending/running work requires reconciliation; no automatic replay.',

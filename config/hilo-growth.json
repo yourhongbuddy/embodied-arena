@@ -370,5 +370,37 @@
         "No submission has been made."
       ]
     }
+  ],
+  "route_baselines": [
+    {
+      "id": "wanted-origin",
+      "public_url": "https://getrobotrouter.com/wanted-10k",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/wanted-10k",
+      "retrieved_on": "2026-09-24"
+    },
+    {
+      "id": "data-engine-origin",
+      "public_url": "https://getrobotrouter.com/wanted-10k/data-engine.html",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/wanted-10k/data-engine.html",
+      "retrieved_on": "2026-09-24"
+    },
+    {
+      "id": "developer-origin",
+      "public_url": "https://getrobotrouter.com/hilo/developers.html",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/hilo/developers.html",
+      "retrieved_on": "2026-09-24"
+    },
+    {
+      "id": "robots-origin",
+      "public_url": "https://getrobotrouter.com/robots.txt",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/robots.txt",
+      "retrieved_on": "2026-09-24"
+    },
+    {
+      "id": "sitemap-origin",
+      "public_url": "https://getrobotrouter.com/sitemap.xml",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/sitemap.xml",
+      "retrieved_on": "2026-09-24"
+    }
   ]
 }

@@ -8,6 +8,16 @@ Skills.sh was rechecked: skills are sourced from GitHub and enter its leaderboar
 
 A fresh GrowthOps CI run is required after this change before today's deterministic counts or public-route status are recorded. No message, social post, store submission, deployment, paid model call, or robot evidence is created by this repository update.
 
+### September 24 execution evidence and routing follow-up
+
+GitHub-hosted run `36031629711` on PR #10 head `a656d5dd551570787c90b31b049ddade36632c03` completed successfully after the packaging refresh. **27/27 GrowthOps tests passed.** Its retained artifact records 10,000 registered slots, 61 assigned slots, 27 completed deterministic audit jobs, 9,939 waiting for real targets, 34 awaiting connector/review, six public URL probes, a 200 network-control response, zero live LLM agents, zero runner-sent messages, zero store submissions, zero deployments, and zero robot hours.
+
+The same independent run observed `/wanted-10k`, `/wanted-10k/protocol`, and `/wanted-10k/sdk` at HTTP 200, while the custom-domain `/wanted-10k/data-engine.html` and `/hilo/developers.html` remained HTTP 404. PR #8's prior origin comparison found those newer routes and the sitemap on the DigitalOcean origin while the custom domain matched the saved Sites build. No DNS/hosting setting was changed here, so this remains a deployment/domain-binding blocker rather than a source-file repair.
+
+This follow-up adds fixed read-only custom-domain versus DigitalOcean baseline probes to GrowthOps. The report will now record comparable status mismatches for WANTED, data-engine, developer, robots.txt, and sitemap routes on every online audit. It does not change DNS, deploy, restart services, or treat a failed probe as proof of an outage. New CI is required before relying on the new comparison fields.
+
+Distribution recheck found no newly eligible HILO publication today: OpenAI still requires plugin submission access plus verified publisher/listing materials and review; personal accounts still cannot publish new GPTs; Skills.sh still derives discoverability from genuine GitHub-backed installs rather than manual leaderboard submissions. No store submission or social post was made.
+
 ## September 23, 2026 — source refresh and deployment checks queued
 
 PR #9 is merged on `digitalocean` at `145c0e353a576c7cade6b16fab49a0e9aa5b16b7`; the full repository verification after merge succeeded. The last independently retained GrowthOps run had 10,000 registered slots, 53 assigned slots, 23 completed deterministic audits, 9,947 waiting for targets, 30 awaiting connector/review, five public probes with a 200 network control, zero live LLM agents, zero store submissions, zero runner-sent messages, zero deployments and zero robot hours. Its data-engine public route returned 404 even though the source file exists on the merged branch, so deployment/routing remains the likely repair boundary rather than regenerating that HTML.
