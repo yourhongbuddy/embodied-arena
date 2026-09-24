@@ -69,13 +69,22 @@ class DailySourceIntakeTests(unittest.TestCase):
                 self.assertRegex(row.get("retrieved_on", ""), r"^\d{4}-\d{2}-\d{2}$")
                 self.assertTrue(row.get("reason"))
 
-    def test_latest_intake_records_rle_bench_without_worker_promotion(self):
-        latest = json.loads((h.ROOT / "config/hilo-source-intake-20260923.json").read_text(encoding="utf-8"))
-        row = next(item for item in latest["candidates"] if item["id"] == "rle-bench-robot-learning-engineers")
+    def test_latest_intake_records_mentalhealthbench_without_worker_promotion(self):
+        latest = json.loads((h.ROOT / "config/hilo-source-intake-20260924.json").read_text(encoding="utf-8"))
+        row = next(item for item in latest["candidates"] if item["id"] == "openai-mentalhealthbench-expert-rubrics")
+        self.assertEqual(row["admission_target"], "worker_sources")
+        self.assertFalse(row["consumed_by_workers"])
+        self.assertEqual(row["publisher"], "OpenAI")
+        self.assertEqual(row["published_on"], "2026-09-23")
+        self.assertEqual(row["retrieved_on"], "2026-09-24")
+        self.assertIn("at least three experts", row["finding"])
+        self.assertIn("non-ranking diagnostic", row["hilo_adaptation"])
+
+    def test_prior_rle_bench_intake_remains_staged(self):
+        prior = json.loads((h.ROOT / "config/hilo-source-intake-20260923.json").read_text(encoding="utf-8"))
+        row = next(item for item in prior["candidates"] if item["id"] == "rle-bench-robot-learning-engineers")
         self.assertEqual(row["admission_target"], "reference_sources")
         self.assertFalse(row["consumed_by_workers"])
-        self.assertIn("Harvard", row["publisher"])
-        self.assertEqual(row["retrieved_on"], "2026-09-23")
 
 
 if __name__ == "__main__":

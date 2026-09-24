@@ -56,6 +56,12 @@ The September 22 intake stages two additional external references without admitt
 
 No materially stronger new Stanford, Harvard, or Oxford primary evidence was identified in the September 22 scan beyond the references already staged on this PR.
 
+### September 24 staged intake
+
+OpenAI's September 23 **MentalHealthBench** publication is staged, not admitted, as a new worker-source candidate. The documented pattern is useful for HILO's difficult interaction diagnostics: privacy-preserving synthetic scenarios, scenario-specific expert rubrics, at least three expert reviews per conversation, consensus filtering before criteria are retained, automated grading against expert-written criteria, and a separate user-perspective analysis that does not silently rewrite the benchmark's expert criteria. HILO's proposed adaptation keeps this diagnostic separate from the frozen WANTED score and requires any automated grader to be calibrated against held-out human review. The staged source has consumed_by_workers=false.
+
+The September 22 Zero Data Retention update was reviewed but not added as a distinct method card because its public description does not materially extend the already staged Privacy Filter and purpose-limited access methods for this data engine. Stanford BEHAVIOR was rechecked and remains covered by its existing reference card rather than duplicated. No new Harvard or Oxford source found in the September 24 scan materially exceeded the already staged references. Zero novelty is recorded explicitly instead of manufacturing a daily addition.
+
 ## 4. Data collection architecture
 
 The intended sequence is:
