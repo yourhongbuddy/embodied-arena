@@ -86,6 +86,18 @@ class DailySourceIntakeTests(unittest.TestCase):
         self.assertEqual(row["admission_target"], "reference_sources")
         self.assertFalse(row["consumed_by_workers"])
 
+    def test_latest_intake_stages_third_party_assessment_principles(self):
+        latest = json.loads((h.ROOT / "config/hilo-source-intake-20260925.json").read_text(encoding="utf-8"))
+        row = next(item for item in latest["candidates"] if item["id"] == "openai-third-party-assessment-principles")
+        self.assertEqual(row["publisher"], "OpenAI")
+        self.assertEqual(row["published_on"], "2026-09-22")
+        self.assertEqual(row["retrieved_on"], "2026-09-25")
+        self.assertFalse(row["consumed_by_workers"])
+        self.assertEqual(row["admission_target"], "worker_sources")
+        self.assertIn("independent", row["finding"].lower())
+        self.assertIn("not a certification", row["hilo_adaptation"])
+
+
 
 if __name__ == "__main__":
     unittest.main()

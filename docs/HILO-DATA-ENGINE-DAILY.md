@@ -1,5 +1,15 @@
 # HILO Data Engine — Daily Changelog
 
+## 2026-09-25
+
+### Public-source review
+
+Staged `openai-third-party-assessment-principles` from OpenAI's September 22 publication on independent third-party assessments. The source supports an audit-design pattern in which outside assessors can challenge assumptions, identify missed risks, reach independent conclusions about safeguard effectiveness, and receive meaningful access across training, evaluation, and deployment. The proposed HILO adaptation is an independent release-auditor role with explicit evidence-access limits and conclusions kept separate from sponsor claims. It remains `consumed_by_workers: false`, creates no certification, and does not modify WANTED scoring.
+
+The September 25 institutional scan found no stronger Stanford or Oxford method source worth duplicating into the ledger. Stanford IPRL's current page confirms CoRL 2026 work but lacks enough method detail on the checked page for a new HILO card; an Oxford autonomy/agency publication is relevant conceptually but is not a robotics collection/simulation/longitudinal evaluation method. Harvard RLE-Bench remains staged from September 23. These non-admissions are recorded rather than manufacturing novelty.
+
+Fresh CI is required before reporting today's exact test count or 100-job plan status. No live model execution, robot hours, human keep votes, publication, or deployment is created by this intake.
+
 This file records source-ledger, runner, CI and deployment changes. It is not a field-study log and does not create WANTED evidence, certification, or leaderboard entries.
 
 ## 2026-09-22
