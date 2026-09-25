@@ -183,6 +183,19 @@ def inspect_html(body: str) -> dict[str, Any]:
             'missing': [k for k, v in checks.items() if not v]}
 
 
+def inspect_seo_response(status_code: int | None, content_type: str, body: str) -> dict[str, Any]:
+    """Only score metadata after a successful HTML response."""
+    if status_code != 200:
+        return {'eligible': False, 'reason': f'http_status_{status_code}', 'checks': {},
+                'missing': ['http_200']}
+    if 'text/html' not in content_type.lower():
+        return {'eligible': False, 'reason': 'non_html_response', 'checks': {},
+                'missing': ['html_response']}
+    result = inspect_html(body)
+    result['eligible'] = True
+    result['reason'] = None
+    return result
+
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
@@ -257,8 +270,8 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
                 measurement = dict(cached[target['url']]); body = measurement.pop('body', '')
                 result['measurement'] = measurement
                 if measurement.get('status_code') is None: result['status'] = 'measurement_failed'
-                if job['lane'] == 'seo' and 'text/html' in measurement.get('content_type', ''):
-                    result['seo'] = inspect_html(body)
+                if job['lane'] == 'seo':
+                    result['seo'] = inspect_seo_response(measurement.get('status_code'), measurement.get('content_type', ''), body)
             else:
                 result.update(status='measurement_failed', reason='network_not_requested')
             result['finished_at'] = stamp(); queue.finish(ident, token, result)

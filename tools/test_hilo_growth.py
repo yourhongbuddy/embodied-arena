@@ -159,5 +159,17 @@ class GrowthTests(unittest.TestCase):
         self.assertEqual(rows['data-engine-origin']['baseline_status'],200)
         self.assertFalse(rows['wanted-origin']['status_mismatch'])
 
+    def test_seo_response_requires_http_200_html_before_metadata(self):
+        good=h.inspect_seo_response(200,'text/html; charset=utf-8','<title>HILO</title><h1>HILO</h1>')
+        missing=h.inspect_seo_response(404,'text/html','<title>Not Found</title><meta name="description" content="error"><h1>Missing</h1>')
+        nonhtml=h.inspect_seo_response(200,'application/xml','<urlset/>')
+        self.assertTrue(good['eligible'])
+        self.assertFalse(missing['eligible'])
+        self.assertEqual(missing['reason'],'http_status_404')
+        self.assertEqual(missing['missing'],['http_200'])
+        self.assertFalse(nonhtml['eligible'])
+        self.assertEqual(nonhtml['reason'],'non_html_response')
+
+
 
 if __name__=='__main__':unittest.main()

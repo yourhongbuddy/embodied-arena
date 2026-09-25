@@ -1,5 +1,13 @@
 # HILO GrowthOps daily log
 
+## September 25, 2026 — error-page SEO correction and distribution recheck
+
+GrowthOps now refuses to score metadata from an HTTP error page as if the page were healthy. A 404 HTML response is recorded as SEO-ineligible with an explicit `http_200` failure instead of parsing the error template's metadata as a successful page. Successful non-HTML responses are likewise excluded from page-metadata scoring. This corrects an audit defect found during the September 24 route review without changing production routing or deployment.
+
+OpenAI's current September 25 documentation was rechecked. Skills-only plugins remain eligible for the shared ChatGPT/Codex Plugins Directory, but submission starts review and still requires verified publisher/listing information, public support/privacy/terms URLs, test cases, and policy attestations. Personal Free/Go/Plus/Pro accounts still cannot create or publish new GPTs. No external listing, social publication, paid model call, hosting purchase, or deployment is claimed by this source update.
+
+Fresh CI and public-route evidence are required after this change before today's deterministic counts or route status are recorded.
+
 ## September 24, 2026 — plugin packaging refresh; no new venue admitted yet
 
 OpenAI's current September 24 documentation was rechecked. Public plugin submission starts a review rather than immediate publication; after approval the developer separately chooses when to publish, and skills-only plugins are eligible for the universal directory shared by ChatGPT and Codex. Personal Free/Go/Plus/Pro accounts still cannot create or publish new GPTs. The HILO portable manifest now includes OpenAI install-surface presentation metadata and two representative default prompts, but deliberately omits privacy/terms URLs that have not been owner-approved. The submission ledger remains draft_not_submitted and now lists the exact publisher, policy, license, and install-test blockers.
