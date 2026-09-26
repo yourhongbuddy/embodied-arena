@@ -1,0 +1,25 @@
+name: HILO research reference tests
+on:
+  push:
+    paths: ['public/hilo/**', 'tests/hilo-review-mining.test.mjs', '.github/workflows/hilo-research.yml']
+  pull_request:
+    paths: ['public/hilo/**', 'tests/hilo-review-mining.test.mjs', '.github/workflows/hilo-research.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hilo-research-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  reference-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Test reference logic without dependency installation
+        run: node --test tests/hilo-review-mining.test.mjs
