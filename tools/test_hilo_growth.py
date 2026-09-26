@@ -50,7 +50,7 @@ class GrowthTests(unittest.TestCase):
     def test_atomic_claims_do_not_duplicate(self):
         with tempfile.TemporaryDirectory() as tmp:
             q=h.Queue(Path(tmp)/'q.sqlite',self.config,'test')
-            with ThreadPoolExecutor(max_workers=10) as pool: claims=list(pool.map(lambda _:q.claim(),range(40)))
+            with ThreadPoolExecutor(max_workers=10) as pool: claims=list(pool.map(lambda _:q.claim(),range(50)))
             ids=[c[0] for c in claims if c]
             self.assertEqual(len(ids),len(set(ids)))
             self.assertEqual(len(ids),sum(j['status']=='queued' for j in h.make_plan(self.config)))
@@ -63,7 +63,7 @@ class GrowthTests(unittest.TestCase):
     def test_cycle_cannot_change_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'q.sqlite';h.Queue(path,self.config,'test')
-            other=copy.deepcopy(self.config);other['version']='0.2'
+            other=copy.deepcopy(self.config);other['version']='0.3'
             with self.assertRaises(ValueError):h.Queue(path,other,'test')
     def test_stuck_jobs_are_not_automatically_replayed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -87,18 +87,25 @@ class GrowthTests(unittest.TestCase):
         self.assertEqual(manifest['name'],'hilo-benchmark')
         self.assertTrue((p/'skills/hilo-audit/SKILL.md').is_file())
         self.assertFalse((p/'hooks').exists());self.assertFalse((p/'mcp.json').exists())
+    def test_openai_repo_marketplace_points_to_local_plugin(self):
+        market=json.loads((ROOT/'.agents/plugins/marketplace.json').read_text())
+        self.assertEqual(market['name'],'hilo-tools')
+        entry=market['plugins'][0]
+        self.assertEqual(entry['name'],'hilo-benchmark')
+        self.assertEqual(entry['source'],{'source':'local','path':'./plugins/hilo-benchmark'})
+        self.assertEqual(entry['policy']['installation'],'AVAILABLE')
     def test_submission_has_five_positive_three_negative_cases(self):
         submission=json.loads((ROOT/'distribution/openai-submission.json').read_text())
         self.assertEqual(submission['status'],'draft_not_submitted')
         self.assertEqual(len(submission['positive_tests']),5);self.assertEqual(len(submission['negative_tests']),3)
         self.assertIsNone(submission['official_listing_url'])
-
     def test_completed_cycle_does_not_repeat_network(self):
         with tempfile.TemporaryDirectory() as tmp,patch.object(h,'public_get') as fetch:
             fetch.return_value={'status_code':200,'content_type':'text/html','body':'<title>HILO</title>'}
             h.run(self.config,Path(tmp),'test',True)
             first=fetch.call_count
-            self.assertEqual(first,5)
+            expected=len(h.public_probe_urls(self.config))
+            self.assertEqual(first,expected)
             report=h.run(self.config,Path(tmp),'test',True)
             self.assertEqual(fetch.call_count,first)
             self.assertEqual(report['public_url_probes_attempted_this_execution'],0)
@@ -118,5 +125,51 @@ class GrowthTests(unittest.TestCase):
         source=(ROOT/'app/layout.tsx').read_text()
         self.assertIn('PUBLIC_SITE_ORIGIN',source)
         self.assertNotIn('h.get("host")',source)
+    def test_new_targets_have_reviewed_rules_and_no_submission_claim(self):
+        ids={t['id']:t for t in self.config['targets']}
+        for ident in ('developer-page','agent-skill-exchange'):
+            self.assertEqual(ids[ident]['retrieved_on'],'2026-09-23')
+            self.assertEqual(ids[ident]['status'],'candidate_not_submitted')
+            self.assertTrue(ids[ident]['rules_url'].startswith('https://'))
+
+    def test_openai_interface_metadata_is_present_without_policy_claims(self):
+        manifest=json.loads((ROOT/'plugins/hilo-benchmark/plugin.json').read_text())
+        interface=manifest['extensions']['com.openai']['interface']
+        self.assertEqual(interface['displayName'],'HILO Benchmark Review')
+        self.assertEqual(interface['websiteURL'],'https://getrobotrouter.com/wanted-10k')
+        self.assertGreaterEqual(len(interface['defaultPrompt']),2)
+        self.assertNotIn('privacyPolicyURL',interface)
+        self.assertNotIn('termsOfServiceURL',interface)
+
+    def test_route_baselines_are_fixed_public_read_only_origins(self):
+        h.validate_config(self.config)
+        self.assertGreaterEqual(len(self.config.get('route_baselines', [])), 5)
+        for row in self.config['route_baselines']:
+            self.assertTrue(row['public_url'].startswith('https://getrobotrouter.com/'))
+            self.assertTrue(row['baseline_url'].startswith('https://shark-app-pqh5h.ondigitalocean.app/'))
+
+    def test_route_baseline_status_drift_is_explicit(self):
+        cached={}
+        for url in h.public_probe_urls(self.config):
+            status=404 if url=='https://getrobotrouter.com/wanted-10k/data-engine.html' else 200
+            cached[url]={'status_code':status,'body_sha256':'x'}
+        rows={r['id']:r for r in h.compare_route_baselines(self.config,cached)}
+        self.assertTrue(rows['data-engine-origin']['status_mismatch'])
+        self.assertEqual(rows['data-engine-origin']['public_status'],404)
+        self.assertEqual(rows['data-engine-origin']['baseline_status'],200)
+        self.assertFalse(rows['wanted-origin']['status_mismatch'])
+
+    def test_seo_response_requires_http_200_html_before_metadata(self):
+        good=h.inspect_seo_response(200,'text/html; charset=utf-8','<title>HILO</title><h1>HILO</h1>')
+        missing=h.inspect_seo_response(404,'text/html','<title>Not Found</title><meta name="description" content="error"><h1>Missing</h1>')
+        nonhtml=h.inspect_seo_response(200,'application/xml','<urlset/>')
+        self.assertTrue(good['eligible'])
+        self.assertFalse(missing['eligible'])
+        self.assertEqual(missing['reason'],'http_status_404')
+        self.assertEqual(missing['missing'],['http_200'])
+        self.assertFalse(nonhtml['eligible'])
+        self.assertEqual(nonhtml['reason'],'non_html_response')
+
+
 
 if __name__=='__main__':unittest.main()

@@ -3,8 +3,32 @@
   "name": "hilo-benchmark",
   "version": "0.1.0",
   "description": "Review HILO/WANTED-10K telemetry and study designs without inventing robot hours or certifications.",
-  "author": {"name": "HILO / RobotRouter"},
+  "author": {
+    "name": "HILO / RobotRouter"
+  },
   "homepage": "https://getrobotrouter.com/wanted-10k",
   "repository": "https://github.com/yourhongbuddy/embodied-arena",
-  "keywords": ["robotics", "benchmark", "HILO", "WANTED-10K", "telemetry"]
+  "keywords": [
+    "robotics",
+    "benchmark",
+    "HILO",
+    "WANTED-10K",
+    "telemetry"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "HILO Benchmark Review",
+        "shortDescription": "Audit longitudinal robot evidence without inventing field hours.",
+        "longDescription": "Review HILO/WANTED-10K study designs, telemetry provenance, intervention burden, and supported retention horizons while preserving consent, safety, and evidence-class boundaries.",
+        "developerName": "HILO / RobotRouter",
+        "category": "Developer Tools",
+        "websiteURL": "https://getrobotrouter.com/wanted-10k",
+        "defaultPrompt": [
+          "Audit this robot benchmark claim for evidence provenance and unsupported 10,000-hour conclusions.",
+          "Review this HILO study design for consent, intervention burden, missingness, and supported horizon."
+        ]
+      }
+    }
+  }
 }
