@@ -1,0 +1,104 @@
+{
+  "slug": "gpt-6-astra-robot-longevity",
+  "title": "GPT-6 Astra Shows Why Robots Need a Longevity Benchmark",
+  "published_on": "2026-09-06",
+  "excerpt": "A successful manipulation trial is not a lifetime reliability claim. How HILO connects capability evidence to the harder question: will people keep the robot?",
+  "source": {
+    "publisher": "RoboCurve",
+    "title": "GPT-6 Astra on robotic manipulation",
+    "url": "https://openai.robocurve.org/gpt-6-astra/",
+    "published_on": "2026-09-04",
+    "checked_on": "2026-09-06"
+  },
+  "evidence_status": "source_reported",
+  "embodiment": "I2RT YAM robotic arms",
+  "hilo": {
+    "verified_resident_hours": null,
+    "verified_autonomous_hours": null,
+    "human_interventions": null,
+    "independent_environments": null,
+    "wanted_score": null,
+    "certification": null
+  },
+  "results": [
+    {
+      "model": "GPT-6 Astra",
+      "task": "Block into bowl",
+      "completed": 19,
+      "trials": 20,
+      "minutes_per_run": 2.5,
+      "estimated_usd_per_run": 0.94
+    },
+    {
+      "model": "Fable 5.1",
+      "task": "Block into bowl",
+      "completed": 8,
+      "trials": 20,
+      "minutes_per_run": 6.8,
+      "estimated_usd_per_run": 2.12
+    },
+    {
+      "model": "GPT-6 Astra",
+      "task": "Puzzle insertion",
+      "completed": 2,
+      "trials": 20,
+      "minutes_per_run": 3.4,
+      "estimated_usd_per_run": 1.36
+    },
+    {
+      "model": "Fable 5.1",
+      "task": "Puzzle insertion",
+      "completed": 2,
+      "trials": 20,
+      "minutes_per_run": 5.9,
+      "estimated_usd_per_run": 2.18
+    }
+  ],
+  "limitations": [
+    "Only 20 trials per model and task; runs were not interleaved, with Astra evaluated two days later.",
+    "The bowl comparison used different rigs; the puzzle comparison used the same rig.",
+    "Operators knew the model while grading, and objects were reset manually between trials.",
+    "Costs are report-time list-price estimates from wire-level tokens, not verified bills or total deployment costs."
+  ],
+  "sections": [
+    {
+      "heading": "A completed task is only the beginning",
+      "paragraphs": [
+        "A robot that works once has demonstrated a capability. A robot that remains useful over months must do more: tolerate changing conditions, recover from mistakes, respect human boundaries, and avoid turning its owner into an unpaid technician.",
+        "That is the HILO question. Not just whether a robot can perform an action, but whether living or working with the complete system continues to be worthwhile. A narrow task test can inform that question without answering it."
+      ]
+    },
+    {
+      "heading": "Why 95% does not mean 10,000 reliable hours",
+      "paragraphs": [
+        "Consider a hypothetical process with an independent, constant 5% failure probability on every attempt. It has an expected 19 successful attempts before the first failure, or 20 attempts including the failing attempt. Its chance of completing 100 attempts without a failure is 0.95^100, approximately 0.59%.",
+        "This is an illustration, not an estimate of the tested robot’s lifetime. Twenty observations cannot establish a stable long-run failure rate. Real attempts may be dependent; conditions, recovery behavior, hardware, and software can change. A task failure is also not necessarily a safety incident, a human intervention, or a reason to reject the robot.",
+        "Adding short trial durations together does not establish an uninterrupted autonomous deployment. Resident time, active time, and intervention-free time answer different questions and must remain separately labeled."
+      ]
+    },
+    {
+      "heading": "HILO follows the human, not just the hardware",
+      "paragraphs": [
+        "Embodied Arena’s WANTED-10K protocol makes permanent voluntary rejection the primary endpoint. The central question is how long people choose to keep living or working with a robot, over a horizon of up to 10,000 resident hours.",
+        "Resident time is not motor-on time. Under the protocol, charging and normal downtime remain part of the lived experience. Reliability, assistance burden, recovery, privacy, safety, and service continuity remain auditable diagnostics or gates rather than arbitrary ingredients in a weighted score.",
+        "A capable robot can still be unwanted because it is intrusive, unreliable, or too demanding. A narrower robot can remain valuable because it consistently performs a useful job with little burden. Neither outcome should be inferred from a short demonstration."
+      ]
+    },
+    {
+      "heading": "Turn external results into traceable evidence",
+      "paragraphs": [
+        "The right integration is an evidence record, not an automatic certification. Preserve the source, model, embodiment, task, trial count, completion count, time, estimated cost, and methodological limitations. Link to original evidence instead of copying its videos or transcripts.",
+        "Unknown fields must remain unknown. This article does not establish HILO-verified resident hours, intervention counts, independent deployment environments, a WANTED score, or certification. The accompanying JSON uses null for these fields rather than inventing a zero or converting short trials into longevity.",
+        "External experiments can suggest what to test next. Reviews can suggest failure categories. Audited deployment logs can support longitudinal claims. Those evidence types should be connected, but never silently treated as interchangeable."
+      ]
+    },
+    {
+      "heading": "The next experiment should measure the whole relationship",
+      "paragraphs": [
+        "A useful follow-up would predeclare tasks, environments, stopping conditions, intervention definitions, and safety gates. It would record resets, assistance time, recovery attempts, incidents, updates, downtime, and whether participants still choose to keep the robot.",
+        "Longer deployments should preserve the right to pause or permanently remove the robot without pressure. More operating hours cannot compensate for unacceptable harm, and pooled fleet hours cannot be presented as one robot’s uninterrupted lifetime.",
+        "The goal is not to replace capability benchmarks. It is to connect them to a tougher outcome: a robot that people continue to want, with evidence strong enough to explain why."
+      ]
+    }
+  ]
+}
