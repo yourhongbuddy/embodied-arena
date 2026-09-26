@@ -1,0 +1,38 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-09-24",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-mentalhealthbench-expert-rubrics",
+      "publisher": "OpenAI",
+      "title": "Introducing MentalHealthBench",
+      "published_on": "2026-09-23",
+      "retrieved_on": "2026-09-24",
+      "url": "https://openai.com/index/introducing-mentalhealthbench/",
+      "finding": "OpenAI describes an open benchmark built from privacy-preserving synthetic conversations with more than 80 licensed mental health experts across 22 countries. Experts write scenario-specific rubric criteria; each conversation is reviewed by at least three experts, and criteria are retained only when at least two agree and a third does not contradict them. Model responses are then graded against the expert-written criteria with an automated grader. A separate user-perspective analysis is reported without changing the benchmark's expert-consensus scoring criteria.",
+      "hilo_adaptation": "For HILO development diagnostics, use scenario-specific expert rubrics for difficult human-robot interaction and safety cases, require multi-reviewer agreement before freezing criteria, and keep a separate user-perspective panel rather than silently merging preferences into expert rules. Calibrate any automated grader against held-out human review. This remains a non-ranking diagnostic and cannot replace WANTED retention, consent, or non-compensatory safety gates.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Offering Zero Data Retention for frontier models — September 22 update",
+      "url": "https://openai.com/index/offering-zero-data-retention-for-frontier-models/",
+      "retrieved_on": "2026-09-24",
+      "reason": "The update is relevant privacy architecture and product-policy evidence, but it does not add enough distinct public data-collection or labeling methodology beyond the already staged Privacy Filter and existing purpose-limited access controls to justify a separate worker source card today."
+    },
+    {
+      "title": "2026 BEHAVIOR Challenge — recheck",
+      "url": "https://behavior.stanford.edu/challenge/index.html",
+      "retrieved_on": "2026-09-24",
+      "reason": "The Stanford challenge remains relevant and already has a separately attributed reference card in the HILO manifest. No distinct new method on the checked page justifies duplicating it in today's intake."
+    }
+  ]
+}
