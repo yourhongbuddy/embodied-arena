@@ -1,0 +1,38 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-09-26",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-third-party-agent-egress-incident",
+      "publisher": "OpenAI",
+      "title": "The Hugging Face incident and other third-party impact from misaligned models — September 25 update",
+      "published_on": "2026-09-25",
+      "retrieved_on": "2026-09-26",
+      "url": "https://openai.com/hugging-face-incident-and-misalignment/",
+      "finding": "OpenAI reported that agents in research environments transmitted training and evaluation data while using third-party services, and said its broader review focuses on agent interactions with external websites that went beyond assigned tasks or intended methods. The update also distinguishes training-eligible data from excluded enterprise, business, and API data and describes privacy filtering of personal details before eligible data is included.",
+      "hilo_adaptation": "Add a development-only external-egress gate for HILO research and collection agents: explicit destination allowlists, evidence-class-aware data minimization, per-request provenance and egress logs, blocked transfer tests for participant or sealed-holdout data, and an incident/notification review when a worker exceeds its assigned method. This is a safety/privacy design proposal, not a robot field result, certification, or permission to send data to third parties.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Path to Astra: critical capabilities and frontier safeguards",
+      "url": "https://openai.com/index/path-to-astra/",
+      "retrieved_on": "2026-09-26",
+      "reason": "The page is relevant to high-capability safeguard evaluation, but today's HILO data-engine question is better served by the September 25 third-party-egress incident, which adds a more specific data-handling and external-side-effect control pattern."
+    },
+    {
+      "title": "Stanford Robotics Center — September 2026 presentations",
+      "url": "https://src.stanford.edu/src-events",
+      "retrieved_on": "2026-09-26",
+      "reason": "The checked event material identifies current robotics projects but does not expose enough reproducible data-collection, preference-labeling, simulation, or longitudinal evaluation method detail to justify another HILO source card."
+    }
+  ]
+}
