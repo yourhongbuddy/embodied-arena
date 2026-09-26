@@ -1,0 +1,284 @@
+[
+  {
+    "id": "paper-explorer",
+    "url": "https://gisbi-kim.github.io/iros2026-explorer/output/iros2026_explorer.html",
+    "reported_original_url": "https://2026.ieee-iros.org/program/paper_index/",
+    "retrieved_at": "2026-09-26T19:53:24.565088+00:00",
+    "published_on": null,
+    "source_type": "community_program_mirror",
+    "original_sha256": "fd4332aa9f4d4ba44173ba198809fc997c491d619148958660889f9c9da7a573",
+    "status": "retrieved"
+  },
+  {
+    "id": "explorer-parser",
+    "url": "https://raw.githubusercontent.com/gisbi-kim/iros2026-explorer/main/scripts/parse_iros_index.py",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "community_program_parser",
+    "status": "retrieved_not_executed"
+  },
+  {
+    "id": "exhibitor-portal",
+    "url": "https://iros.exhibitprospectus.com/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "organizer_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "floorplan",
+    "url": "https://hallerickson.ungerboeck.com/prod/app85.cshtml?aat=476536577156495637675968556c4f314c492f76754b5257434e747373646c334968316d386978777138553d",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "organizer_primary",
+    "status": "robots_disallowed"
+  },
+  {
+    "id": "touch-to-action",
+    "url": "https://iros-touch2action.github.io/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "human-robot-dialogue",
+    "url": "https://human-robot-dialogue.github.io/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "public_web_text_verified_spa_snapshot_incomplete"
+  },
+  {
+    "id": "human-aware-ai",
+    "url": "https://heai-iros26-workshop.github.io/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "compositional",
+    "url": "https://compositional-robotics.github.io/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "physical-world-models",
+    "url": "https://physical-world-models.github.io/IROS2026/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "formal-methods",
+    "url": "https://lafr-workshop.github.io/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "robot-teammates",
+    "url": "https://ontoagenticai26.info/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "self-driving-labs",
+    "url": "https://sites.tufts.edu/selfdrivinglabs-iros2026/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "workshop_primary",
+    "status": "retrieved"
+  },
+  {
+    "id": "dexmate",
+    "url": "https://www.dexmate.ai/iros-2026",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "abaka",
+    "url": "https://luma.com/iros2026-booth",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "deccan",
+    "url": "https://luma.com/1js63655",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "eyou",
+    "url": "https://eyoubot.com/en/company-news/eyou-robotics-iros-2026-pittsburgh-booth-407",
+    "retrieved_on": "2026-09-26",
+    "published_on": "2026-09-19",
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "pal",
+    "url": "https://pal-robotics.com/event/iros26/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "viam",
+    "url": "https://www.viam.com/press-releases/viam-debuts-box-opening-robot-at-iros-2026",
+    "retrieved_on": "2026-09-26",
+    "published_on": "2026-09-22",
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "vicon",
+    "url": "https://www.vicon.com/event/iros-2026/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "rokoko",
+    "url": "https://www.rokoko.com/mocap/iros-2026",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "flexiv",
+    "url": "https://www.flexiv.com/news/Flexiv_IROS%202026",
+    "retrieved_on": "2026-09-26",
+    "published_on": "2026-09-17",
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "robotiq",
+    "url": "https://event.robotiq.com/iros2026",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "nexdata",
+    "url": "https://www.linkedin.com/posts/nexdata-ai_meet-nexdata-at-iros-2026-physical-ai-data-activity-7503742517582962688-eQOb",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "symbotic",
+    "url": "https://www.symbotic.com/event/iros-2026/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "framos",
+    "url": "https://framos.com/events/framos-at-iros-2026/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "manus",
+    "url": "https://www.manus-meta.com/iros-2026",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "robotis",
+    "url": "https://dk.linkedin.com/company/robotis",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "telus",
+    "url": "https://telus-international-telus-international-global-production.pr.gke.telus.digital/events/iros",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "xsens",
+    "url": "https://www.linkedin.com/company/xsensinc/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "aether",
+    "url": "https://luma.com/iros2026-event",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "official-iros-social",
+    "url": "https://www.linkedin.com/company/iros2026pittsburgh",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "organizer_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "organizer-post-mirror",
+    "url": "https://wew.twstalker.com/ieeeiros",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "secondary_organizer_post_mirror",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "amazon-primary",
+    "url": "https://www.linkedin.com/company/amazon-fulfillment-technologies-robotics",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "seti",
+    "url": "https://www.seti.org/events/space-robotics-workshop/",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "institution_primary",
+    "status": "public_web_text_verified"
+  },
+  {
+    "id": "autoware",
+    "url": "https://tw.linkedin.com/company/the-autoware-foundation",
+    "retrieved_on": "2026-09-26",
+    "published_on": null,
+    "source_type": "vendor_primary",
+    "status": "public_web_text_verified"
+  }
+]

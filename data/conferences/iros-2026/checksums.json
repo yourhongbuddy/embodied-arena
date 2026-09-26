@@ -1,0 +1,12 @@
+{
+  "affiliations.csv": "3505a43606ce444d584fcce632c88c0b036fe81b0751963c5e27d4a13ff0d80f",
+  "affiliations.jsonl": "173c5c94526267083a9c3f11709b31554e986f72d84472e9caed270ec9eba4eb",
+  "coverage.json": "06f40e872f55c38aed38cc20276fd5acc2f759603aecb02bde91dfb0a9eeb5eb",
+  "organizations.csv": "671c069c1cf63e086806636cbe33f5856c60fc04bb648743f60da06c57ec3d69",
+  "organizations.jsonl": "fcb0e8e7414171ea6142a155ca3ff967c8a957b6a8d232678234f2e6f41ef7d9",
+  "papers.jsonl": "88864db557e072d3be2e1fcf263798020d5a327b69612ecf8e6fa7515423763d",
+  "people.csv": "7398bc817a8f35efaf695103c6769f6cfb2a8503c0d0f1ed73eed6379c9ee111",
+  "people.jsonl": "6468ce4b2115aa1cb94ff4a2a045e88c1974daee26a0aca6d3880e120c9c0c6d",
+  "seed.json": "3d87a1f6284c085b12efeaa8f1e2eb2efbf14455621a1ee864fe546652ed4a83",
+  "sources.json": "c46075cf56bb94517431e3a6fdfb1a6164ba1ff9a446bde4b55dfdad2c8b9a32"
+}

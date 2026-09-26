@@ -1,0 +1,45 @@
+﻿id,name,roles,booths,primary_evidence_present,source_urls,verification_levels,hilo_member,outreach_authorized
+org-820f5f364aabf924fd81,Abaka AI,exhibitor_announcement,927,True,https://luma.com/iros2026-booth,vendor_primary,False,False
+org-baf99ba519c87793aa8a,Aether AI,exhibitor_announcement,116,True,https://luma.com/iros2026-event,vendor_primary,False,False
+org-00d3940984225e33849f,Amazon,conference_sponsor | conference_sponsor_reported,,True,https://www.linkedin.com/company/amazon-fulfillment-technologies-robotics | https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror | vendor_primary,False,False
+org-c59b69adbdd05ab9275b,Analog Devices,side_event_cohost,,True,https://www.dexmate.ai/iros-2026,vendor_primary,False,False
+org-275c320f3ee0be4c6f8f,Arm,conference_sponsor,,True,https://www.linkedin.com/company/iros2026pittsburgh,organizer_primary,False,False
+org-67f55cbbe4ca2944003c,Autoware Foundation,competition_sponsor,,True,https://tw.linkedin.com/company/the-autoware-foundation,vendor_primary,False,False
+org-9d1b2b9041cb839f7ca2,Carnegie Mellon University,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-b3d265c6d183dc945a84,Daimon Robotics,workshop_sponsor,,True,https://iros-touch2action.github.io/,workshop_primary,False,False
+org-17746ce4953d47641c73,Deccan AI,exhibitor_announcement,1114,True,https://luma.com/1js63655,vendor_primary,False,False
+org-d37e0bac93ec3ec64e21,Dexmate,exhibitor_announcement,200,True,https://www.dexmate.ai/iros-2026,vendor_primary,False,False
+org-cc37b7d63b7c16bab5fc,EYOU Robotics,exhibitor_announcement,407,True,https://eyoubot.com/en/company-news/eyou-robotics-iros-2026-pittsburgh-booth-407,vendor_primary,False,False
+org-e29b95e70311652bccbd,Flexiv,exhibitor_announcement,922,True,https://www.flexiv.com/news/Flexiv_IROS%202026,vendor_primary,False,False
+org-28787ab7e744c44a7962,FRAMOS,exhibitor_announcement,832,True,https://framos.com/events/framos-at-iros-2026/,vendor_primary,False,False
+org-c1cdc9b4312511b422a3,Franka Robotics,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-0b70167da91513bb8815,Fujitsu,exhibitor_announcement,300,True,https://www.linkedin.com/company/iros2026pittsburgh,organizer_primary,False,False
+org-dc2ce041f21758ee39be,Galbot,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-476dde44183218f94a55,Generative Bionics,workshop_sponsor,,True,https://heai-iros26-workshop.github.io/,workshop_primary,False,False
+org-dabb18a3c20e2547f1b9,ICRA 2027,conference_promotion_exhibitor,134,True,https://www.linkedin.com/company/iros2026pittsburgh,organizer_primary,False,False
+org-75a597f71b770ea663f6,John Deere,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-660ff9eb33eb49a613a0,Lightwheel,side_event_cohost,,True,https://www.dexmate.ai/iros-2026,vendor_primary,False,False
+org-28550dd481db90b9dec2,LINKERBOT,conference_sponsor,,True,https://www.linkedin.com/company/iros2026pittsburgh,organizer_primary,False,False
+org-061b8137fadf067d84a9,MANUS,exhibitor_announcement,408,True,https://www.manus-meta.com/iros-2026,vendor_primary,False,False
+org-f84c7bb70311900911dd,Motional,conference_sponsor,,True,https://www.linkedin.com/company/iros2026pittsburgh,organizer_primary,False,False
+org-93de6e4801baf9affce7,Nexdata,exhibitor_announcement,640,True,https://www.linkedin.com/posts/nexdata-ai_meet-nexdata-at-iros-2026-physical-ai-data-activity-7503742517582962688-eQOb,vendor_primary,False,False
+org-7854d2102ab21e31bc88,PAL Robotics,exhibitor_announcement,1005,True,https://pal-robotics.com/event/iros26/,vendor_primary,False,False
+org-c0dd1d7ed997c022987d,Path Robotics,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-d0c22d7463e1738d9dd4,PaXini Tech,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-c1e89dd6b4ae44b64499,RoboSense,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-5d58135d49d8266e44ee,Robotera,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-14ba19ac7a05c8543003,Robotics and AI Institute,conference_sponsor_reported,,False,https://wew.twstalker.com/ieeeiros,secondary_organizer_post_mirror,False,False
+org-ea02af4d4022d190f596,Robotiq,exhibitor_announcement,427,True,https://event.robotiq.com/iros2026,vendor_primary,False,False
+org-8ad769f107002ee45f4b,ROBOTIS,conference_sponsor_reported | exhibitor_announcement,422,True,https://wew.twstalker.com/ieeeiros | https://dk.linkedin.com/company/robotis,secondary_organizer_post_mirror | vendor_primary,False,False
+org-3a45cae65c49878f7643,Rokoko,exhibitor_announcement,227,True,https://www.rokoko.com/mocap/iros-2026,vendor_primary,False,False
+org-09b926797acd104d1315,RysenRobotics,conference_sponsor,,True,https://www.linkedin.com/company/iros2026pittsburgh,organizer_primary,False,False
+org-551f291cd9ca94989dfc,SETI Institute,workshop_sponsor,,True,https://www.seti.org/events/space-robotics-workshop/,institution_primary,False,False
+org-8327aa02393f74abe653,Social AI CDT,workshop_sponsor,,True,https://heai-iros26-workshop.github.io/,workshop_primary,False,False
+org-acf29a7df67f1ac7afd7,Symbotic,conference_sponsor | exhibitor_announcement,831,True,https://www.linkedin.com/company/iros2026pittsburgh | https://www.symbotic.com/event/iros-2026/,organizer_primary | vendor_primary,False,False
+org-0444d489f5e6fb375c07,Technology Innovation Institute,conference_sponsor,,True,https://www.linkedin.com/company/iros2026pittsburgh,organizer_primary,False,False
+org-35ebe3660193c4e19dc0,TELUS Digital,exhibitor_announcement,814,True,https://telus-international-telus-international-global-production.pr.gke.telus.digital/events/iros,vendor_primary,False,False
+org-295d88bed99386220848,TIER IV,competition_sponsor,,True,https://tw.linkedin.com/company/the-autoware-foundation,vendor_primary,False,False
+org-4b64c1a413264526d7d3,Viam,exhibitor_announcement,828,True,https://www.viam.com/press-releases/viam-debuts-box-opening-robot-at-iros-2026,vendor_primary,False,False
+org-0ff5678fabae6a522515,Vicon,exhibitor_announcement,1106,True,https://www.vicon.com/event/iros-2026/,vendor_primary,False,False
+org-ac0c281d3ebc6b4ac5b3,XELA Robotics,workshop_sponsor,,True,https://iros-touch2action.github.io/,workshop_primary,False,False
+org-3b9ef475d292315f9105,Xsens,exhibitor_announcement,721,True,https://www.linkedin.com/company/xsensinc/,vendor_primary,False,False
