@@ -1,0 +1,105 @@
+name: HILO IROS directory build and scoped intake commit
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/hilo-iros-build.yml'
+      - 'tools/hilo_iros_directory.py'
+      - 'tools/hilo_iros_viewer.html'
+      - 'tools/test_hilo_iros_directory.py'
+      - 'data/conferences/iros-2026/seed.json'
+permissions:
+  contents: read
+concurrency:
+  group: hilo-iros-build
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'hilo/iros-2026-directory'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: hilo/iros-2026-directory
+          fetch-depth: 1
+      - name: Validate importer and reviewed seed
+        run: python3 -m unittest discover -s tools -p 'test_hilo_iros_directory.py' -v
+      - name: Read one pinned public program snapshot only when crawler rules allow
+        run: |
+          python3 - <<'PY'
+          import sys,urllib.request,urllib.error,urllib.robotparser
+          from pathlib import Path
+          sys.path.insert(0,'tools')
+          from hilo_iros_directory import MIRROR,SOURCE_SHA256
+          import hashlib
+          origin='https://gisbi-kim.github.io'
+          rp=urllib.robotparser.RobotFileParser()
+          try:
+              with urllib.request.urlopen(origin+'/robots.txt',timeout=15) as r:
+                  rp.parse(r.read(200000).decode('utf-8','replace').splitlines())
+          except urllib.error.HTTPError as e:
+              if e.code==404: rp.parse([])
+              else: raise
+          if not all(rp.can_fetch(a,MIRROR) for a in ['*','GPTBot','ChatGPT-User','HILO-Conference-Directory/0.1']):
+              raise SystemExit('Crawl policy disallows snapshot retrieval; no request or write.')
+          req=urllib.request.Request(MIRROR,headers={'User-Agent':'HILO-Conference-Directory/0.1','Accept-Encoding':'identity'})
+          with urllib.request.urlopen(req,timeout=30) as r:
+              if r.geturl()!=MIRROR:raise ValueError('Unexpected source redirect')
+              raw=r.read(16000001)
+          if len(raw)>16000000 or hashlib.sha256(raw).hexdigest()!=SOURCE_SHA256:
+              raise SystemExit('Snapshot changed; explicit source review required.')
+          Path('/tmp/hilo-iros-program.html').write_bytes(raw)
+          PY
+      - name: Generate bounded factual metadata and the offline viewer
+        run: |
+          mkdir -p artifacts/iros-directory
+          python3 tools/hilo_iros_directory.py /tmp/hilo-iros-program.html --verify-raw-hash > artifacts/iros-directory/coverage.json
+          python3 -m unittest discover -s tools -p 'test_hilo_iros_directory.py' -v
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path('data/conferences/iros-2026')
+          counts=json.loads((root/'coverage.json').read_text())
+          assert counts['papers']==1933 and counts['public_person_records']==8324
+          assert counts['organization_records']==44 and counts['messages_sent']==0
+          for filename in ['people.jsonl','organizations.jsonl']:
+              for line in (root/filename).read_text().splitlines():
+                  row=json.loads(line)
+                  assert row['hilo_member'] is False and row['outreach_authorized'] is False
+                  assert row['attendance_verified'] is False
+                  assert not {'email','phone','address','private_note'} & row.keys()
+                  assert not re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}',line)
+          print(json.dumps(counts,indent=2))
+          PY
+      - name: Preview browser rendering without a hosted deployment
+        run: |
+          chrome="$(command -v google-chrome || command -v chromium || true)"
+          if [ -n "$chrome" ]; then
+            timeout 30 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --virtual-time-budget=3000 --window-size=1440,1100 --screenshot="$PWD/artifacts/iros-directory/preview.png" "file://$PWD/public/hilo/iros-2026/index.html"
+          fi
+      - name: Commit only generated conference paths to the requested intake branch
+        env:
+          EXPECTED_BRANCH: hilo/iros-2026-directory
+        run: |
+          test "$(git branch --show-current)" = "$EXPECTED_BRANCH"
+          git add -- data/conferences/iros-2026/*.json data/conferences/iros-2026/*.jsonl data/conferences/iros-2026/*.csv public/hilo/iros-2026/index.html
+          if ! git diff --cached --quiet; then
+            git diff --cached --name-only | python3 -c 'import sys; p=sys.stdin.read().splitlines(); assert all(x.startswith("data/conferences/iros-2026/") or x=="public/hilo/iros-2026/index.html" for x in p)'
+            git -c user.name='HILO intake automation' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'HILO: materialize IROS public directory, explicit coverage and source-linked exports'
+            git push origin HEAD:refs/heads/hilo/iros-2026-directory
+          fi
+          git rev-parse HEAD > artifacts/iros-directory/committed-head.txt
+          cp data/conferences/iros-2026/coverage.json artifacts/iros-directory/coverage.json
+          cp data/conferences/iros-2026/checksums.json artifacts/iros-directory/checksums.json
+          cp data/conferences/iros-2026/people.csv artifacts/iros-directory/
+          cp data/conferences/iros-2026/organizations.csv artifacts/iros-directory/
+          cp public/hilo/iros-2026/index.html artifacts/iros-directory/index.html
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: hilo-iros-directory-${{ github.run_id }}
+          path: artifacts/iros-directory/
+          retention-days: 14
