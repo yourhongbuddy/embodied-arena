@@ -24,13 +24,15 @@ jobs:
           python3 scripts/engineering-nav-codemod.py
           node --experimental-strip-types --test tests/coding-for-engineers.test.mjs
           node --check scripts/verify-engineering-page.mjs
-      - name: Commit only the reviewed feature paths; never merge or deploy
+          # This token cannot edit workflows; keep that file unchanged.
+          git restore -- .github/workflows/hilo-engineering.yml
+      - name: Commit only the reviewed source paths; never merge or deploy
         run: |
-          git add -- app/components/SiteNav.tsx app/components/EngineeringSiteNav.tsx app/coding-for-engineers/page.tsx app/wanted-10k/protocol/page.tsx app/wanted-10k/sdk/page.tsx app/scan/page.tsx tests/coding-for-engineers.test.mjs scripts/verify-engineering-page.mjs .github/workflows/hilo-engineering.yml docs/HILO-CODING-FOR-ENGINEERS.md
+          git add -- app/components/SiteNav.tsx app/components/EngineeringSiteNav.tsx app/coding-for-engineers/page.tsx app/wanted-10k/protocol/page.tsx app/wanted-10k/sdk/page.tsx app/scan/page.tsx tests/coding-for-engineers.test.mjs scripts/verify-engineering-page.mjs docs/HILO-CODING-FOR-ENGINEERS.md
           git diff --cached --name-only > /tmp/engineering-modified-paths.txt
           python3 - <<'PY'
           from pathlib import Path
-          allowed={'app/components/SiteNav.tsx','app/components/EngineeringSiteNav.tsx','app/coding-for-engineers/page.tsx','app/wanted-10k/protocol/page.tsx','app/wanted-10k/sdk/page.tsx','app/scan/page.tsx','tests/coding-for-engineers.test.mjs','scripts/verify-engineering-page.mjs','.github/workflows/hilo-engineering.yml','docs/HILO-CODING-FOR-ENGINEERS.md'}
+          allowed={'app/components/SiteNav.tsx','app/components/EngineeringSiteNav.tsx','app/coding-for-engineers/page.tsx','app/wanted-10k/protocol/page.tsx','app/wanted-10k/sdk/page.tsx','app/scan/page.tsx','tests/coding-for-engineers.test.mjs','scripts/verify-engineering-page.mjs','docs/HILO-CODING-FOR-ENGINEERS.md'}
           assert set(Path('/tmp/engineering-modified-paths.txt').read_text().splitlines())==allowed
           PY
           git -c user.name='HILO feature automation' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'HILO: isolate engineer navigation and preserve frozen C8 presentation byte-for-byte'
