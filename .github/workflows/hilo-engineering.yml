@@ -4,7 +4,11 @@ on:
     paths:
       - 'app/coding-for-engineers/**'
       - 'app/components/SiteNav.tsx'
+      - 'app/components/EngineeringSiteNav.tsx'
       - 'app/components/site-nav.css'
+      - 'app/wanted-10k/protocol/page.tsx'
+      - 'app/wanted-10k/sdk/page.tsx'
+      - 'app/scan/page.tsx'
       - 'public/coding-for-engineers/**'
       - 'public/sitemap.xml'
       - 'tests/coding-for-engineers.test.mjs'
@@ -31,7 +35,7 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Check exact snapshots and evidence boundaries
-        run: node --test tests/coding-for-engineers.test.mjs
+        run: node --experimental-strip-types --test tests/coding-for-engineers.test.mjs
       - name: Build native site
         run: npm run build
       - name: Check real local HTTP, assets, no-JavaScript rendering and responsive layout
