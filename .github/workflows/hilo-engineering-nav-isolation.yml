@@ -1,0 +1,46 @@
+name: HILO one-time engineering navigation isolation
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/hilo-engineering-nav-isolation.yml'
+permissions:
+  contents: read
+jobs:
+  isolate:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'hilo/coding-for-engineers-20260927'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 22
+      - name: Apply exact-source codemod without network or experiment changes
+        run: |
+          python3 scripts/engineering-nav-codemod.py
+          node --experimental-strip-types --test tests/coding-for-engineers.test.mjs
+          node --check scripts/verify-engineering-page.mjs
+      - name: Commit only the reviewed feature paths; never merge or deploy
+        run: |
+          git add -- app/components/SiteNav.tsx app/components/EngineeringSiteNav.tsx app/coding-for-engineers/page.tsx app/wanted-10k/protocol/page.tsx app/wanted-10k/sdk/page.tsx app/scan/page.tsx tests/coding-for-engineers.test.mjs scripts/verify-engineering-page.mjs .github/workflows/hilo-engineering.yml docs/HILO-CODING-FOR-ENGINEERS.md
+          git diff --cached --name-only > /tmp/engineering-modified-paths.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          allowed={'app/components/SiteNav.tsx','app/components/EngineeringSiteNav.tsx','app/coding-for-engineers/page.tsx','app/wanted-10k/protocol/page.tsx','app/wanted-10k/sdk/page.tsx','app/scan/page.tsx','tests/coding-for-engineers.test.mjs','scripts/verify-engineering-page.mjs','.github/workflows/hilo-engineering.yml','docs/HILO-CODING-FOR-ENGINEERS.md'}
+          assert set(Path('/tmp/engineering-modified-paths.txt').read_text().splitlines())==allowed
+          PY
+          git -c user.name='HILO feature automation' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'HILO: isolate engineer navigation and preserve frozen C8 presentation byte-for-byte'
+          git push origin HEAD:refs/heads/hilo/coding-for-engineers-20260927
+          mkdir -p artifacts/engineering-isolation
+          git rev-parse HEAD > artifacts/engineering-isolation/commit.txt
+          cp /tmp/engineering-modified-paths.txt artifacts/engineering-isolation/
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: hilo-engineering-isolation-${{ github.run_id }}
+          path: artifacts/engineering-isolation/
+          retention-days: 7
