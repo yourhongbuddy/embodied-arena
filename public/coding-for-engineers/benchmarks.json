@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0",
+  "page": "Coding for Engineers",
+  "checked_on": "2026-09-27",
+  "scope": "External software benchmarks; not HILO runs or WANTED scores.",
+  "aggregate_score": null,
+  "hilo_runs": 0,
+  "benchmarks": [
+    {
+      "id": "programbench",
+      "name": "ProgramBench",
+      "number": "01",
+      "verb": "Rebuild",
+      "headline": "Build the program. Not just a patch.",
+      "description": "Reconstruct a working codebase from an executable and documentation, then compare its behavior with the reference.",
+      "source_url": "https://programbench.com/",
+      "source_updated_on": "2026-09-09",
+      "source_published_on": null,
+      "metric_id": "fully_resolved_instances_percent",
+      "metric_label": "Fully resolved programs",
+      "metric_explanation": "A program is resolved only when every hidden behavior test for that task passes. Average test pass rate is a separate diagnostic.",
+      "tool_policy": "No original source, internet, decompiler or disassembler; the reference binary is execute-only.",
+      "input": "Executable + documentation",
+      "output": "Complete implementation + build script",
+      "scale": "200 tasks",
+      "robotics_application": "HILO engineering example: reproduce a legacy command-line utility before replacing a robot integration dependency.",
+      "publisher_observation": {
+        "status": "partial_publisher_snapshot",
+        "checked_on": "2026-09-27",
+        "note": "The retrieved publisher table is dated September 9 and differs from the submitted snapshot. The selected rows below are not a current-model ranking; missing models are not assigned zero.",
+        "metric": "Fully resolved programs (%)",
+        "rows": [{"model":"Claude Opus 5 (xhigh)","value":4.5},{"model":"GPT-5.6 Sol (xhigh)","value":1.0},{"model":"GPT 5.5 (xhigh)","value":0.5}]
+      },
+      "submitted_snapshot": {
+        "origin": "user_supplied",
+        "received_on": "2026-09-27",
+        "run_date": null,
+        "harness": null,
+        "metric": "Submitted percentage; run configuration not supplied",
+        "verification": "not_independently_verified",
+        "rows": [{"model":"GPT-6 Astra","value":5.5},{"model":"Fable 5.1","value":7},{"model":"Kimi K3","value":2},{"model":"Qwen3.8 27b","value":0},{"model":"GPT 5.6 Sol","value":1.5},{"model":"GLM 5.3","value":1.5},{"model":"GPT 5.6 Luna","value":0}]
+      }
+    },
+    {
+      "id": "srebench",
+      "name": "SRE-Bench",
+      "number": "02",
+      "verb": "Understand",
+      "headline": "Recover what a binary does.",
+      "description": "Analyze software without its source and answer verifiable questions about its behavior. Here SRE refers to reverse engineering, not site reliability operations.",
+      "source_url": "https://www.vals.ai/benchmarks/srebench",
+      "source_updated_on": "2026-09-21",
+      "source_published_on": null,
+      "metric_id": "capability_and_fully_solved_separate",
+      "metric_label": "Capability / fully solved",
+      "metric_explanation": "Capability counts completed individual tasks; fully solved requires all six tasks for an instance. These percentages are not interchangeable.",
+      "tool_policy": "A sandboxed reverse-engineering toolkit includes decompilers, disassemblers and debuggers. Do not apply ProgramBench's tool ban here.",
+      "input": "Binary + scenario material",
+      "output": "Deterministically checked answers",
+      "scale": "262 instances · 1,572 tasks",
+      "robotics_application": "HILO engineering example: inspect authorized firmware or a binary-only component to document its interface and failure behavior.",
+      "publisher_observation": {
+        "status": "method_verified_scores_unconfirmed",
+        "checked_on": "2026-09-27",
+        "note": "The publisher methodology was checked. The three submitted percentages were not confirmed in the retrieved page text, and their metric selection was not provided. No replacement scores are invented.",
+        "metric": "Metric must be specified before comparison",
+        "rows": []
+      },
+      "submitted_snapshot": {
+        "origin": "user_supplied",
+        "received_on": "2026-09-27",
+        "run_date": null,
+        "harness": null,
+        "metric": "Submitted percentage; capability vs fully solved unspecified",
+        "verification": "not_independently_verified",
+        "rows": [{"model":"GPT-6 Astra","value":88},{"model":"GPT-5.6 Sol","value":55.9},{"model":"Claude Opus 5 (max)","value":12.5}]
+      }
+    },
+    {
+      "id": "code-migration",
+      "name": "Code Migration",
+      "number": "03",
+      "verb": "Migrate",
+      "headline": "Change the language. Keep the behavior.",
+      "description": "Port a working source program into a target language and evaluate the rebuilt program against hidden behavior tests.",
+      "source_url": "https://www.vals.ai/benchmarks/code-migration",
+      "source_updated_on": "2026-09-22",
+      "source_published_on": null,
+      "metric_id": "repository_weighted_hidden_test_pass_percent",
+      "metric_label": "Hidden-test pass rate",
+      "metric_explanation": "The overall score weights source repositories equally. Code quality is separate; passing some tests does not mean the whole migration is complete.",
+      "tool_policy": "Offline sandbox with source and instructions; submit a target-language implementation and Dockerfile. Wrappers and copied reference artifacts are disallowed.",
+      "input": "Source program + target language",
+      "output": "Ported implementation + Dockerfile",
+      "scale": "120 CLI migrations + 10 COBOL-to-Java tasks",
+      "robotics_application": "HILO engineering example: port a simulator adapter or telemetry utility while checking edge cases against a frozen regression suite.",
+      "publisher_observation": {
+        "status": "partial_publisher_snapshot",
+        "checked_on": "2026-09-27",
+        "note": "Selected overall figures explicitly stated in the publisher's September 22 page. The Astra 67.7% figure matches the submission; the remaining submitted rows have not been confirmed as the same configuration.",
+        "metric": "Overall hidden-test pass rate (%)",
+        "rows": [{"model":"GPT-6 Astra","value":67.7},{"model":"Claude Opus 5.5","value":66.6},{"model":"Claude Opus 5","value":57.5}]
+      },
+      "submitted_snapshot": {
+        "origin": "user_supplied",
+        "received_on": "2026-09-27",
+        "run_date": null,
+        "harness": null,
+        "metric": "Submitted percentage; run configuration not supplied",
+        "verification": "not_independently_verified_as_a_set",
+        "rows": [{"model":"GPT-6 Astra","value":67.7},{"model":"Fable 5.1","value":54.6},{"model":"GLM 5.3","value":44.2},{"model":"GLM 5.3 Flash","value":20.5},{"model":"Qwen3.8 27b","value":14.2}]
+      }
+    }
+  ]
+}

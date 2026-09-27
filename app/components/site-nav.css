@@ -1,0 +1,7 @@
+/* Preserve access to every destination as the primary navigation grows. */
+.nav.engineeringNavEnabled{height:auto;min-height:76px;display:flex;flex-wrap:wrap;column-gap:24px;row-gap:16px;padding-block:18px}
+.nav.engineeringNavEnabled .brand{flex:0 0 auto}
+.nav.engineeringNavEnabled .navLinks.routeLinks{display:flex;flex:1 1 650px;min-width:0;flex-wrap:wrap;gap:16px 18px}
+.nav.engineeringNavEnabled .navLinks.routeLinks a{white-space:nowrap}
+.nav.engineeringNavEnabled a:focus-visible{outline:2px solid var(--ink);outline-offset:6px}
+@media(max-width:800px){.nav.engineeringNavEnabled .navLinks.routeLinks{order:3;flex-basis:100%;gap:16px}.nav.engineeringNavEnabled .localPill{margin-left:auto}}
