@@ -46,6 +46,7 @@ jobs:
           git rev-parse HEAD > artifacts/coding-for-engineers/source-commit.txt
           cp -r app/coding-for-engineers artifacts/coding-for-engineers/source/
           cp tests/coding-for-engineers.test.mjs scripts/verify-engineering-page.mjs docs/HILO-CODING-FOR-ENGINEERS.md artifacts/coding-for-engineers/source/
+          git archive --format=tar.gz HEAD > artifacts/coding-for-engineers/tracked-source.tar.gz
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
