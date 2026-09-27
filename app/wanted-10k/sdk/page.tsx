@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SiteNav } from "../../components/SiteNav";
+import { EngineeringSiteNav as SiteNav } from "../../components/EngineeringSiteNav";
 
 export const metadata: Metadata = {
   title: "Adapter Quickstart — WANTED-10K",

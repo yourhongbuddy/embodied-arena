@@ -1,0 +1,59 @@
+name: HILO Coding for Engineers checks
+on:
+  pull_request:
+    paths:
+      - 'app/coding-for-engineers/**'
+      - 'app/components/SiteNav.tsx'
+      - 'app/components/EngineeringSiteNav.tsx'
+      - 'app/components/site-nav.css'
+      - 'app/wanted-10k/protocol/page.tsx'
+      - 'app/wanted-10k/sdk/page.tsx'
+      - 'app/scan/page.tsx'
+      - 'public/coding-for-engineers/**'
+      - 'public/sitemap.xml'
+      - 'tests/coding-for-engineers.test.mjs'
+      - 'scripts/verify-engineering-page.mjs'
+      - '.github/workflows/hilo-engineering.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hilo-engineering-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify-engineering:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check exact snapshots and evidence boundaries
+        run: node --experimental-strip-types --test tests/coding-for-engineers.test.mjs
+      - name: Build native site
+        run: npm run build
+      - name: Check real local HTTP, assets, no-JavaScript rendering and responsive layout
+        shell: bash
+        run: |
+          export CHROME_BIN="$(command -v google-chrome || command -v chromium || true)"
+          node scripts/verify-engineering-page.mjs
+      - name: Preserve source identity and feature files
+        if: always()
+        run: |
+          mkdir -p artifacts/coding-for-engineers/source
+          git rev-parse HEAD > artifacts/coding-for-engineers/source-commit.txt
+          cp -r app/coding-for-engineers artifacts/coding-for-engineers/source/
+          cp tests/coding-for-engineers.test.mjs scripts/verify-engineering-page.mjs docs/HILO-CODING-FOR-ENGINEERS.md artifacts/coding-for-engineers/source/
+          git archive --format=tar.gz HEAD > artifacts/coding-for-engineers/tracked-source.tar.gz
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: hilo-coding-for-engineers-${{ github.run_id }}
+          path: artifacts/coding-for-engineers/
+          retention-days: 14
