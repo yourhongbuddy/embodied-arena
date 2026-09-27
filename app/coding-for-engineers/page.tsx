@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SiteNav } from "../components/SiteNav";
+import { EngineeringSiteNav as SiteNav } from "../components/EngineeringSiteNav";
 import catalog from "../../public/coding-for-engineers/benchmarks.json";
 import "./engineering.css";
 

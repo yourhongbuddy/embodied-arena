@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const read=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const data=JSON.parse(read('public/coding-for-engineers/benchmarks.json'));
 const page=read('app/coding-for-engineers/page.tsx');
-const nav=read('app/components/SiteNav.tsx');
+const nav=read('app/components/EngineeringSiteNav.tsx');
 
 test('exactly the three requested benchmarks have unique IDs and primary URLs',()=>{
   assert.deepEqual(data.benchmarks.map(b=>b.id),['programbench','srebench','code-migration']);
@@ -60,4 +60,14 @@ test('both publishers and submitted rows stay visible to non-JavaScript clients'
 });
 test('hosting release gate is unchanged',()=>{
   assert.match(read('.do/app.yaml'),/deploy_on_push: false/);
+});
+
+// Frozen landing measurements must not silently inherit an engineering navigation change.
+test('C8 presentation and experiment logic stay frozen while engineering entry points opt in',async()=>{
+  const {createHash}=await import('node:crypto');
+  assert.equal(createHash('sha256').update(read('app/components/SiteNav.tsx')).digest('hex'),'704284f78d19efb894586e735c9299a1a505aa3ea8f0c6c4f86e6bff8dbeb067');
+  const {EXPERIMENT_PRESENTATION_SOURCES}=await import('../app/experiments/presentation-integrity.ts');
+  for(const source of EXPERIMENT_PRESENTATION_SOURCES){assert.equal(createHash('sha256').update(read(source.path).replace(/\r\n?/g,'\n')).digest('hex'),source.sha256,source.path);}
+  for(const path of ['app/wanted-10k/protocol/page.tsx','app/wanted-10k/sdk/page.tsx','app/scan/page.tsx'])assert.match(read(path),/EngineeringSiteNav as SiteNav/);
+  assert.doesNotMatch(read('app/wanted-10k/page.tsx'),/EngineeringSiteNav/);
 });

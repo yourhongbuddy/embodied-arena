@@ -38,7 +38,11 @@ try{
   const download=await fetch(origin+'/coding-for-engineers/benchmarks.json');
   const catalog=await download.json();assertCheck('download serves the comparison dataset',download.status===200&&catalog.benchmarks.length===3&&catalog.hilo_runs===0);
   const wanted=await (await fetch(origin+'/wanted-10k')).text();
-  assertCheck('the new tab is linked from the existing WANTED page',wanted.includes('href="/coding-for-engineers"'));
+  assertCheck('the counted WANTED landing page retains its frozen navigation',!wanted.includes('href="/coding-for-engineers"'));
+  for(const route of ['/wanted-10k/protocol','/wanted-10k/sdk','/scan']){
+    const r=await fetch(origin+route);const body=await r.text();
+    assertCheck('engineering tab is reachable from '+route,r.ok&&body.includes('href="/coding-for-engineers"'));
+  }
   const sitemap=await (await fetch(origin+'/sitemap.xml')).text();assertCheck('sitemap exposes the canonical route',sitemap.includes('https://getrobotrouter.com/coding-for-engineers'));
   const assetPaths=[...new Set([...html.matchAll(/(?:src|href)="(\/_next\/static\/[^"<>]+)"/g)].map(m=>m[1]))];
   const assets=[];const css=new Map();

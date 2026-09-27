@@ -4,7 +4,7 @@ Added September 27, 2026. Proposed route: `/coding-for-engineers`.
 
 ## Scope
 
-Adds a real top-level HILO navigation entry and a server-rendered comparison of the three user-requested external benchmarks: ProgramBench, SRE-Bench and Code Migration. Native anchor links and expandable submitted-score tables work without JavaScript. Primary navigation wraps on narrow screens. The page links the existing robot protocol and SDK and provides downloadable structured comparison data at `/coding-for-engineers/benchmarks.json`.
+Adds a Coding for Engineers tab to the protocol, SDK, URDF scanner and engineering navigation, plus a server-rendered comparison of the three user-requested external benchmarks: ProgramBench, SRE-Bench and Code Migration. Native anchor links and expandable submitted-score tables work without JavaScript. Primary navigation wraps on narrow screens. The page links the existing robot protocol and SDK and provides downloadable structured comparison data at `/coding-for-engineers/benchmarks.json`.
 
 No inference service, executable-upload backend, benchmark runner, robot controller, new tracking, credentials, outreach, store submission or deployment is added. Zero HILO benchmark executions are implied. The original WANTED score, data engine, holdouts and certification rules are unchanged. Existing PRs #7, #8, #10 and #11 are not edited.
 
@@ -24,3 +24,10 @@ Publication dates were not established and remain null. Source update dates and 
 `node --test tests/coding-for-engineers.test.mjs` checks data separation, exact supplied scores, metrics, navigation, SSR, metadata, safe scope and release configuration. The feature workflow builds with locked dependencies, probes the actual local production server, checks linked CSS/JS, and records desktop/mobile Chrome rendering. Full repository verification is separately required.
 
 A passing CI run or repository link is not a public deployment. Follow `docs/RELEASE-CHECKLIST.md`, preserve `deploy_on_push: false`, and verify the exact public route and its source revision after an authorized release. Do not work around the existing custom-domain/hosting binding discrepancy by changing DNS as part of this tab.
+
+
+## Frozen landing experiment
+
+The existing C8 landing-page presentation binds the exact shared SiteNav source. Its protection correctly rejected the initial global-navigation edit. Instead of replacing its hash, weakening the test, mutating its cohort, or mixing measurements, the final feature restores the original SiteNav byte-for-byte and leaves all six presentation sources and all experiment contracts unchanged. A separate EngineeringSiteNav is used by the protocol, SDK, scanner and new engineering page. The main `/wanted-10k` navigation remains unchanged in this release; those existing developer destinations lead to the new tab.
+
+A later global-navigation rollout must separately preregister/version its presentation cohort. This PR does not claim that deployment or experiment approval. Tests assert the original source hashes in addition to confirming the actual engineering links on all three entry pages.
