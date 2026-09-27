@@ -1,7 +1,7 @@
 // Local production build verification only. No deployment or model calls.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';
+import {mkdir,writeFile,copyFile} from 'node:fs/promises';
 import {setTimeout as delay} from 'node:timers/promises';
 
 const out='artifacts/coding-for-engineers';
@@ -13,7 +13,7 @@ let serverLog='';
 for(const stream of [server.stdout,server.stderr])stream.on('data',b=>{serverLog=(serverLog+b.toString()).slice(-20000);});
 let chrome;
 const assertCheck=(name,condition)=>{assert.ok(condition,name);report.checks.push(name);};
-async function waitFor(url){for(let i=0;i<80;i++){try{const r=await fetch(url,{signal:AbortSignal.timeout(2000)});if(r.ok)return r;}catch{}await delay(250);}throw Error('Local service did not become ready: '+url);}
+async function waitFor(url){for(let i=0;i<80;i++){try{const r=await fetch(url,{signal:AbortSignal.timeout(2000)});if(r.ok)return r;}catch{/* The local process may still be starting. */}await delay(250);}throw Error('Local service did not become ready: '+url);}
 function cdp(url){return new Promise((resolve,reject)=>{
   const ws=new WebSocket(url);let serial=0;const pending=new Map();
   ws.addEventListener('error',()=>reject(Error('Browser debugging socket failed')),{once:true});
@@ -66,10 +66,10 @@ try{
       await browser.call('Page.navigate',{url:origin+'/coding-for-engineers'});
       let facts;
       for(let i=0;i<50;i++){
-        const r=await browser.call('Runtime.evaluate',{expression:"JSON.stringify({ready:document.readyState,title:document.title,h1:document.querySelector('h1')?.textContent,width:document.documentElement.scrollWidth,viewport:innerWidth,articles:document.querySelectorAll('.engBenchmark').length,details:document.querySelectorAll('details').length,nav:!!document.querySelector('a[href=\"/coding-for-engineers\"]')})",returnByValue:true});
+        const r=await browser.call('Runtime.evaluate',{expression:"JSON.stringify({ready:document.readyState,title:document.title,h1:document.querySelector('h1')?.textContent,width:document.documentElement.scrollWidth,viewport:innerWidth,articles:document.querySelectorAll('.engBenchmark').length,details:document.querySelectorAll('details').length,nav:!!document.querySelector('a[href=\"/coding-for-engineers\"]'),visibleNavLinks:[...document.querySelectorAll('.navLinks a')].filter(a=>a.getClientRects().length&&getComputedStyle(a).display!=='none').length})",returnByValue:true});
         facts=JSON.parse(r.result.value||'{}');if(facts.ready==='complete'&&facts.articles===3)break;await delay(150);
       }
-      assert.ok(facts.h1?.includes('Engineers.')&&facts.articles===3,'SSR view fails without JavaScript');assert.ok(facts.width<=viewport.width,'Document overflow at '+viewport.name);
+      assert.ok(facts.h1?.includes('Engineers.')&&facts.articles===3,'SSR view fails without JavaScript');assert.ok(facts.width<=viewport.width,'Document overflow at '+viewport.name);assert.equal(facts.visibleNavLinks,11,'All primary navigation links must remain available');
       await browser.call('Runtime.evaluate',{expression:"document.querySelectorAll('details').forEach(d=>d.open=true)"});
       const r=await browser.call('Runtime.evaluate',{expression:"JSON.stringify({open:document.querySelectorAll('details[open]').length,width:document.documentElement.scrollWidth,submittedRows:[...document.querySelectorAll('.engSubmitted tbody tr')].length})",returnByValue:true});
       const expanded=JSON.parse(r.result.value);assert.equal(expanded.open,3);assert.equal(expanded.submittedRows,15);assert.ok(expanded.width<=viewport.width,'Expanded table overflow');
