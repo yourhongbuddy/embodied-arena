@@ -1,0 +1,32 @@
+{
+  "event_id": "iros-2026",
+  "retrieval_date": "2026-09-26",
+  "coverage": "partial",
+  "papers": 1933,
+  "author_paper_appearances": 10101,
+  "exact_program_author_name_strings": 7998,
+  "public_person_records": 8324,
+  "supplemental_role_assertions": 150,
+  "distinct_normalized_names": 8074,
+  "ambiguous_name_groups": 219,
+  "organization_records": 44,
+  "organizations_with_booth": 20,
+  "primary_supported_organizations": 35,
+  "affiliation_labels": 2164,
+  "source_count": 35,
+  "coverage_gaps": [
+    "Full official exhibitor floorplan robots-disallowed; no comprehensive exhibitor roster obtained.",
+    "Main conference domain crawl policy unavailable to the authorized runner; no primary index retrieved.",
+    "Paper metadata is an attributed community mirror; not independently verified attendance.",
+    "Workshop coverage is eight accessible public pages, not all IROS workshops.",
+    "Private attendee lists, contact details, biographies and author rankings are excluded from output."
+  ],
+  "unique_human_count": null,
+  "messages_sent": 0,
+  "members_enrolled": 0,
+  "real_robot_hours": 0,
+  "private_contact_info_collected": false,
+  "official_exhibitor_coverage_complete": false,
+  "deduplication": "NFKC/case/whitespace normalization; explicitly comma-formatted names reordered for matching. Same name across different affiliation labels not merged. No fuzzy personal identity resolution.",
+  "cross_system_deduplication": "New event registry only. Existing private Gmail/CRM identities were not read or modified. Existing GrowthOps site/venue records were not converted into people."
+}
