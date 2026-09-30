@@ -1,0 +1,22 @@
+name: HILO Review Watch validation
+on:
+  pull_request:
+    paths: ['public/hilo/review-watch.*', 'tools/*hilo_review_watch.py', 'docs/HILO-REVIEW-WATCH.md', '.github/workflows/hilo-review-watch.yml']
+  push:
+    paths: ['public/hilo/review-watch.*', 'tools/*hilo_review_watch.py', 'docs/HILO-REVIEW-WATCH.md', '.github/workflows/hilo-review-watch.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: python -m unittest discover -s tools -p 'test_hilo_review_watch.py' -v
+      - run: python tools/hilo_review_watch.py check-render public/hilo/review-watch.json --output public/hilo/review-watch.html
