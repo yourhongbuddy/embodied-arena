@@ -369,6 +369,48 @@
         "HILO repository license is not yet selected; complete license review before general redistribution or submission.",
         "No submission has been made."
       ]
+    },
+    {
+      "slot": 18,
+      "id": "coding-for-engineers",
+      "name": "Coding for Engineers benchmark comparisons",
+      "url": "https://getrobotrouter.com/coding-for-engineers",
+      "rules_url": "https://github.com/yourhongbuddy/embodied-arena/blob/digitalocean/docs/RELEASE-CHECKLIST.md",
+      "lanes": [
+        "site_health",
+        "repair",
+        "seo",
+        "social",
+        "audit"
+      ],
+      "kind": "site",
+      "status": "candidate_not_submitted",
+      "published_on": null,
+      "retrieved_on": "2026-09-30",
+      "blockers": [
+        "The GitHub route is merged, but the custom-domain route has not been independently confirmed live; the public and DigitalOcean origins must be compared.",
+        "Externally supplied benchmark score snapshots are not HILO field trials or verified as a set."
+      ]
+    },
+    {
+      "slot": 19,
+      "id": "claude-public-directory",
+      "name": "Anthropic public plugin directory",
+      "url": "https://code.claude.com/docs/en/plugins/publish",
+      "rules_url": "https://code.claude.com/docs/en/plugins/publish",
+      "lanes": [
+        "stores",
+        "skills",
+        "audit"
+      ],
+      "kind": "venue",
+      "status": "candidate_not_submitted",
+      "published_on": null,
+      "retrieved_on": "2026-09-30",
+      "blockers": [
+        "Requires a paid claude.ai submitter account; no new subscription is authorized.",
+        "Before submission, obtain owner license and publisher review, strict local validation, actual marketplace install, and cross-surface compatibility."
+      ]
     }
   ],
   "route_baselines": [
@@ -401,6 +443,12 @@
       "public_url": "https://getrobotrouter.com/sitemap.xml",
       "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/sitemap.xml",
       "retrieved_on": "2026-09-24"
+    },
+    {
+      "id": "coding-origin",
+      "public_url": "https://getrobotrouter.com/coding-for-engineers",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/coding-for-engineers",
+      "retrieved_on": "2026-09-30"
     }
   ]
 }
