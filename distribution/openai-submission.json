@@ -12,7 +12,7 @@
   "license_decision": "owner_review_required",
   "official_listing_url": null,
   "source": "https://developers.openai.com/plugins/deploy/submission",
-  "reviewed_on": "2026-09-24",
+  "reviewed_on": "2026-10-08",
   "positive_tests": [
     {
       "prompt": "Review a synthetic HILO telemetry example.",
@@ -52,8 +52,18 @@
   "portable_manifest_interface_prepared": true,
   "submission_blockers": [
     "No public submission has been made.",
-    "Publisher identity and eligible organization role / Apps Management must be confirmed.",
-    "Privacy policy, terms of service, support contact, and repository license remain owner-review gates.",
-    "Run an actual ChatGPT/Codex install and activation smoke test before submission."
-  ]
+    "Confirm owning organization/project, organization owner or Apps Management Write, and verified Developer identity.",
+    "Required skill safety/security scans and applicable policy attestations must pass.",
+    "HILO owner review still required for publisher identity, repository license, and any support/privacy/terms claims or URLs offered; all four MCP app URLs are not required for skills-only metadata validation.",
+    "Run actual ChatGPT/Codex install and activation smoke tests before submission."
+  ],
+  "provider_requirements": {
+    "review_scope": "skills_only",
+    "mcp_five_positive_three_negative_test_cases_required": false,
+    "mcp_demo_recording_required": false,
+    "mcp_four_public_url_fields_required_for_metadata_validation": false,
+    "basis": "https://developers.openai.com/plugins/deploy/submission",
+    "last_verified_on": "2026-10-08",
+    "note": "The five positive and three negative examples below are voluntary HILO local activation and evidence-boundary regression cases, not mandatory OpenAI MCP review cases for this skills-only plugin. Required skill scans, identity verification, applicable policy attestations and publish review still apply."
+  }
 }
