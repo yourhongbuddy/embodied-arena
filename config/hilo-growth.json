@@ -411,6 +411,48 @@
         "Requires a paid claude.ai submitter account; no new subscription is authorized.",
         "Before submission, obtain owner license and publisher review, strict local validation, actual marketplace install, and cross-surface compatibility."
       ]
+    },
+    {
+      "slot": 20,
+      "id": "conformance",
+      "name": "Telemetry conformance",
+      "url": "https://getrobotrouter.com/wanted-10k/conformance",
+      "rules_url": "https://github.com/yourhongbuddy/embodied-arena/blob/digitalocean/docs/RELEASE-CHECKLIST.md",
+      "lanes": [
+        "site_health",
+        "repair",
+        "seo",
+        "social",
+        "audit"
+      ],
+      "kind": "site",
+      "status": "candidate_not_submitted",
+      "published_on": null,
+      "retrieved_on": "2026-10-14",
+      "blockers": [
+        "Route exists in repository source; public deployment status and exact release commit are not yet verified."
+      ]
+    },
+    {
+      "slot": 21,
+      "id": "sampling-stopping",
+      "name": "Sampling and stopping integrity",
+      "url": "https://getrobotrouter.com/wanted-10k/sampling-stopping",
+      "rules_url": "https://github.com/yourhongbuddy/embodied-arena/blob/digitalocean/docs/RELEASE-CHECKLIST.md",
+      "lanes": [
+        "site_health",
+        "repair",
+        "seo",
+        "social",
+        "audit"
+      ],
+      "kind": "site",
+      "status": "candidate_not_submitted",
+      "published_on": null,
+      "retrieved_on": "2026-10-14",
+      "blockers": [
+        "Route exists in repository source; public deployment status and exact release commit are not yet verified."
+      ]
     }
   ],
   "route_baselines": [
@@ -449,6 +491,18 @@
       "public_url": "https://getrobotrouter.com/coding-for-engineers",
       "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/coding-for-engineers",
       "retrieved_on": "2026-09-30"
+    },
+    {
+      "id": "conformance-origin",
+      "public_url": "https://getrobotrouter.com/wanted-10k/conformance",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/wanted-10k/conformance",
+      "retrieved_on": "2026-10-14"
+    },
+    {
+      "id": "sampling-stopping-origin",
+      "public_url": "https://getrobotrouter.com/wanted-10k/sampling-stopping",
+      "baseline_url": "https://shark-app-pqh5h.ondigitalocean.app/wanted-10k/sampling-stopping",
+      "retrieved_on": "2026-10-14"
     }
   ]
 }
