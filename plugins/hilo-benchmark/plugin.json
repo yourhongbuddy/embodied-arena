@@ -19,7 +19,7 @@
     "com.openai": {
       "interface": {
         "displayName": "HILO Benchmark Review",
-        "shortDescription": "Audit longitudinal robot evidence without inventing field hours.",
+        "shortDescription": "Audit long-term robot evidence",
         "longDescription": "Review HILO/WANTED-10K study designs, telemetry provenance, intervention burden, and supported retention horizons while preserving consent, safety, and evidence-class boundaries.",
         "developerName": "HILO / RobotRouter",
         "category": "Developer Tools",
