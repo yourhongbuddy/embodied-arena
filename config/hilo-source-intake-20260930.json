@@ -1,0 +1,32 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-09-30",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-frontier-rl-safety-case-gates",
+      "publisher": "OpenAI",
+      "title": "Towards safety cases for frontier AI training",
+      "published_on": "2026-09-28",
+      "retrieved_on": "2026-09-30",
+      "url": "https://openai.com/index/towards-safety-cases-for-frontier-ai-training/",
+      "finding": "OpenAI proposes structured safety cases before frontier reinforcement-learning runs, including automated and manual reviews for broken tasks, reward-hack-aware grader tuning, backtests of misalignment evaluations, worst-case stress tests, immutable transcripts, monitor freshness, cross-team dissents, approval/veto authority, fail-closed controls and traceable rollback; the document describes evolving recommendations, not a complete deployment.",
+      "hilo_adaptation": "Propose a development-only, separately reviewed safety-case checklist for material HILO data-engine or evaluation-harness changes: record dataset/grader failure modes, source and execution provenance, independent dissent, explicit pause/rollback criteria, residual risks and held-out incident-derived regression tests. Do not change the frozen WANTED score, convert simulation to resident hours, substitute bots for human keep votes, claim OpenAI affiliation, grant certification or weaken consent, privacy and holdouts.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Introducing MentalHealthBench",
+      "url": "https://openai.com/index/introducing-mentalhealthbench/",
+      "retrieved_on": "2026-09-30",
+      "reason": "Already staged from the September 24 and September 28 review; no materially distinct new method card today. No additional Stanford/Harvard/Oxford candidate met the method-detail and non-duplication gates in this targeted pass."
+    }
+  ]
+}

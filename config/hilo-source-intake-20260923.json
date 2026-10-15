@@ -1,0 +1,44 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-09-23",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "rle-bench-robot-learning-engineers",
+      "publisher": "RLE-Bench (Harvard University / Georgia Tech)",
+      "title": "RLE-Bench: A Qualifying Exam for Coding Agents as Robot Learning Engineers",
+      "published_on": "2026-09-14",
+      "retrieved_on": "2026-09-23",
+      "url": "https://rle-bench.github.io/",
+      "finding": "The RLE-Bench team describes 48 robotics-engineering tasks across interactive control, policy development, perception and estimation, and mechanical design. Agents work under task-specific time, interaction, and compute budgets, and solutions are independently evaluated under hidden physical conditions. The accompanying Harvard announcement emphasizes failures caused by mass, torque, geometry, payload and stability constraints rather than code quality alone.",
+      "hilo_adaptation": "Add a separate pre-deployment engineering-evaluation profile for HILO integrations: freeze task/resource budgets, keep development observations separate from hidden evaluation conditions, and include physical-constraint failure cases before any field study. These simulator/engineering results remain synthetic or preflight evidence and cannot contribute WANTED resident hours, retention, certification, or human keep decisions.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI extends cyber access to Ukraine for civilian defense",
+      "url": "https://openai.com/index/openai-extends-cyber-access-to-ukraine-for-civilian-defense/",
+      "retrieved_on": "2026-09-23",
+      "reason": "This September 23 announcement concerns program access and cyber-defense collaboration rather than a new public data-collection, preference-labeling, simulation, privacy, or continuous-evaluation construction method relevant enough for a separate HILO card."
+    },
+    {
+      "title": "Grab and OpenAI bring practical AI skills to Southeast Asia",
+      "url": "https://openai.com/index/grab-openai-ai-skills-southeast-asia/",
+      "retrieved_on": "2026-09-23",
+      "reason": "This is a regional skilling-program announcement, not a new public model-data or evaluation methodology for HILO."
+    },
+    {
+      "title": "NVIDIA at ROSCon 2026",
+      "url": "https://www.nvidia.com/en-us/events/roscon/",
+      "retrieved_on": "2026-09-23",
+      "reason": "The URDF-to-USD, Isaac Lab and sim-to-real workshop material is relevant, but it does not yet justify a separate reference card beyond the already staged NVIDIA SimReady/Isaac workflow sources. Record as corroborating implementation guidance rather than manufacturing a duplicate source."
+    }
+  ]
+}

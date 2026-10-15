@@ -1,0 +1,77 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-09-22",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-misalignment-reporting",
+      "publisher": "OpenAI",
+      "title": "Our framework for reporting model misalignment",
+      "published_on": "2026-09-16",
+      "retrieved_on": "2026-09-22",
+      "url": "https://openai.com/index/model-misalignment-reporting-framework/",
+      "finding": "OpenAI describes a systematic process for flagging, investigating, triaging, and disclosing model-misalignment examples across training, evaluation, testing, and deployment. Reports record the observed behavior, severity and external impact, setting, dates, discovery, affected model(s), investigation scope, implications, unresolved questions, and mitigations.",
+      "hilo_adaptation": "Use a non-ranking robot incident dossier and triage queue that records discovery, scope, third-party impact, uncertainty, corrective action, and recurrence. Verified incidents can seed regression cases, but incident disclosure cannot change the frozen WANTED estimand or substitute for the safety gate.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    },
+    {
+      "id": "openai-privacy-filter",
+      "publisher": "OpenAI",
+      "title": "Introducing OpenAI Privacy Filter",
+      "published_on": "2026-04-22",
+      "retrieved_on": "2026-09-22",
+      "url": "https://openai.com/index/introducing-openai-privacy-filter/",
+      "finding": "OpenAI describes a locally runnable PII-masking model built from a privacy taxonomy, supervised token classification, public and synthetic data, model-assisted annotation plus review, and evaluations that included correcting discovered annotation issues. OpenAI also states the model is one component of privacy-by-design rather than an anonymization or compliance certificate.",
+      "hilo_adaptation": "Add a pre-ingest text-privacy gate for transcripts, annotations, logs, and support notes using a versioned PII/secret taxonomy. Keep raw audio/video under separate access controls, measure false negatives on held-out consented samples, and require human review for sensitive cases instead of treating automated masking as anonymization.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    },
+    {
+      "id": "figure-helix-2-5",
+      "publisher": "Figure",
+      "title": "Helix 2.5: Zero-Shot 30-Home Generalization",
+      "published_on": "2026-09-17",
+      "retrieved_on": "2026-09-22",
+      "url": "https://www.figure.ai/news/helix-2-5-zero-shot-30-home-generalization",
+      "finding": "Figure reports evaluation of three long-horizon behaviors in 30 unseen Bay Area homes with no data collection, fine-tuning, or adaptation in those evaluation homes, and reports an ablation in which Index pretraining increased zero-shot success from 9% to 56% while task-specific data, architecture, training, and evaluation were held fixed.",
+      "hilo_adaptation": "Add a preregistered held-out-site generalization profile that freezes unseen environments before evaluation and reports familiar-versus-unseen performance separately. Treat Figure's result as a company-reported reference to replicate independently, never as WANTED resident-hour evidence or certification.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    },
+    {
+      "id": "nvidia-simready-agentic-scenes",
+      "publisher": "NVIDIA",
+      "title": "How to Use AI Agents to Prepare 3D Scenes for Simulation",
+      "published_on": "2026-09-16",
+      "retrieved_on": "2026-09-22",
+      "url": "https://developer.nvidia.com/blog/how-to-use-ai-agents-to-prepare-3d-scenes-for-simulation/",
+      "finding": "NVIDIA describes an agentic workflow that converts source 3D scenes into simulation-ready OpenUSD by adding semantics, physics, sensors, collision properties, rendered preflight views, and SimReady validation before handoff to Isaac Sim or Isaac Lab.",
+      "hilo_adaptation": "Require a machine-readable digital-twin readiness gate before synthetic stress testing: bind source-scene hashes, generated USD diffs, physics/sensor metadata, validation results, and human-reviewed exceptions. Agent-prepared scenes remain synthetic infrastructure and cannot contribute resident hours.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "GPT-6 Astra: A new generation of intelligence",
+      "url": "https://openai.com/index/gpt-6-astra/",
+      "retrieved_on": "2026-09-22",
+      "reason": "The page reports useful scope-safety and computer-use evaluation results, but the public description does not add enough method-construction detail to justify a distinct data-collection source card beyond the existing continuous-evaluation and misalignment-reporting methods."
+    }
+  ]
+}

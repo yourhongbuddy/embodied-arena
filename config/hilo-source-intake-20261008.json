@@ -1,0 +1,32 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-08",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-ironclad-task-rubric-synthetic-practice",
+      "publisher": "OpenAI",
+      "title": "Advancing computer use with Ironclad",
+      "published_on": "2026-10-06",
+      "retrieved_on": "2026-10-08",
+      "url": "https://openai.com/index/advancing-computer-use-with-ironclad/",
+      "finding": "OpenAI and Ironclad experts identified 11 legal, commercial and procurement tasks; each was evaluated against 8–50 task-specific criteria. Ironclad provided hosted practice environments, and researchers created synthetic training tasks around representative workflows for reinforcement-learning practice and feedback. The synthetic tasks used public SEC EDGAR contracts with personal-information filtering, not customer/private Ironclad or OpenAI contract data. Reported task times are simulated estimates, not observed customer time savings.",
+      "hilo_adaptation": "Propose development-only expert-designed robotics task rubrics, environment-specific pass/fail criteria, and clearly labeled synthetic practice tasks that are evaluated separately from preregistered holdouts and real-world field trials. Preserve source provenance, permission and privacy review; do not infer field hours, human keep votes, safety certification, real task-time savings, or any OpenAI/Ironclad affiliation from synthetic results.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI research index — October 7 GPT-6 UI/product and October 6 mathematics research",
+      "url": "https://openai.com/research/index/",
+      "retrieved_on": "2026-10-08",
+      "reason": "The Oct 7 product and safety releases and Oct 6 mathematics work do not add a distinct demonstrations, robot-data, video-labeling, domain-randomization, human-preference or longitudinal field-evaluation method applicable to HILO beyond current sources. Targeted Stanford/Harvard/Oxford review did not establish a separate new primary-method candidate today."
+    }
+  ]
+}
