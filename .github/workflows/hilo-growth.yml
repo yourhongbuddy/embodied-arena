@@ -10,8 +10,9 @@ on:
       - 'config/hilo-growth.json'
       - 'docs/HILO-GROWTH*.md'
       - 'plugins/hilo-benchmark/**'
+      - '.agents/plugins/marketplace.json'
       - '.claude-plugin/marketplace.json'
-      - 'distribution/openai-submission.json'
+      - 'distribution/**'
       - 'public/hilo/**'
       - 'public/sitemap.xml'
       - 'public/robots.txt'
@@ -31,6 +32,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
+          fetch-depth: 2
       - name: Test queue, evidence boundaries and metadata
         run: python3 -m unittest discover -s tools -p 'test_hilo_growth.py' -v
       - name: Execute bounded read-only audits, not paid model agents
