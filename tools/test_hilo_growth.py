@@ -119,6 +119,8 @@ class GrowthTests(unittest.TestCase):
         urls=[n.text for n in ET.fromstring((ROOT/'public/sitemap.xml').read_text()).iter() if n.tag.endswith('}loc')]
         self.assertEqual(len(urls),len(set(urls)))
         self.assertIn('https://getrobotrouter.com/hilo/developers.html',urls)
+        self.assertIn('https://getrobotrouter.com/wanted-10k/conformance',urls)
+        self.assertIn('https://getrobotrouter.com/wanted-10k/sampling-stopping',urls)
         self.assertFalse(any('/account' in u or '/login' in u for u in urls))
         self.assertIn('Sitemap: https://getrobotrouter.com/sitemap.xml',(ROOT/'public/robots.txt').read_text())
     def test_seo_origin_is_fixed_not_request_controlled(self):
