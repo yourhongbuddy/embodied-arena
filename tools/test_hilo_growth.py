@@ -161,6 +161,37 @@ class GrowthTests(unittest.TestCase):
         self.assertEqual(rows['data-engine-origin']['baseline_status'],200)
         self.assertFalse(rows['wanted-origin']['status_mismatch'])
 
+    def test_route_body_drift_is_measured_only_when_both_http_200(self):
+        row = self.config['route_baselines'][0]
+        cfg = {'route_baselines': [row]}
+        public, baseline = row['public_url'], row['baseline_url']
+        def check(public_status, baseline_status, public_hash='one', baseline_hash='two'):
+            cached = {
+                public: {'status_code': public_status, 'body_sha256': public_hash},
+                baseline: {'status_code': baseline_status, 'body_sha256': baseline_hash},
+            }
+            return h.compare_route_baselines(cfg, cached)[0]
+        drift = check(200, 200)
+        self.assertTrue(drift['body_comparable'])
+        self.assertFalse(drift['body_sha256_equal'])
+        self.assertTrue(drift['body_mismatch'])
+        same = check(200, 200, 'same', 'same')
+        self.assertTrue(same['body_sha256_equal'])
+        self.assertFalse(same['body_mismatch'])
+        for unmeasured in (check(404, 200), check(None, 200), check(200, None),
+                           check(200, 200, None, 'two')):
+            self.assertFalse(unmeasured['body_comparable'])
+            self.assertIsNone(unmeasured['body_sha256_equal'])
+            self.assertFalse(unmeasured['body_mismatch'])
+        self.assertTrue(check(404, 200)['status_mismatch'])
+        self.assertFalse(check(None, 200)['comparable'])
+
+    def test_offline_report_never_invents_body_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = h.run(self.config, Path(tmp), 'body-drift-offline', False)
+            self.assertEqual(report['route_body_mismatches'], [])
+            self.assertEqual(report['route_baseline_checks'], [])
+
     def test_seo_response_requires_http_200_html_before_metadata(self):
         good=h.inspect_seo_response(200,'text/html; charset=utf-8','<title>HILO</title><h1>HILO</h1>')
         missing=h.inspect_seo_response(404,'text/html','<title>Not Found</title><meta name="description" content="error"><h1>Missing</h1>')
