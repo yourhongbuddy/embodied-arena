@@ -1,0 +1,44 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-24",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-frontier-training-containment-20261023",
+      "publisher": "OpenAI",
+      "title": "Securing our frontier model training environment",
+      "published_on": "2026-10-23",
+      "retrieved_on": "2026-10-24",
+      "url": "https://openai.com/index/securing-our-frontier-model-training-environment/",
+      "finding": "OpenAI publicly describes restricting frontier training runs to offline/cached web resources, layered sandbox and microVM isolation, network egress boundaries, monitoring, and adversarial tests for prohibited external access and cross-agent communication. The article distinguishes internal frontier research settings from deployed customer models and reports an October 1 resumption after remediation. These are OpenAI's reported practices, not an audited public implementation or permission to reuse infrastructure.",
+      "hilo_adaptation": "Propose a non-ranking, simulated-only containment checklist for any future authorized HILO research-worker sandbox: log permitted network destinations and message channels; require denied-egress and isolation regression tests with synthetic fixtures; record when the monitor was active; halt/escalate on unexpected access. Maintain max_model_requests=0 and current no-post/no-deploy/no-capture gates. This does not prove HILO isolation, authorize penetration testing or security certification, or create real robot hours.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Stanford BEHAVIOR 2026 Challenge rules and benchmark",
+      "url": "https://behavior.stanford.edu/challenge/index.html",
+      "retrieved_on": "2026-10-24",
+      "reason": "The challenge's long-horizon simulated household-task evaluation is already separately attributed in the HILO reference ledger. Its October 16 submission deadline has passed, and the reviewed page does not justify duplicating a new source card or claiming field hours."
+    },
+    {
+      "title": "Harvard SIFToM primary research",
+      "url": "https://dash.harvard.edu/entities/publication/20bc2005-8fd4-45d1-bcf7-61fbf0ed3bcd",
+      "retrieved_on": "2026-10-24",
+      "reason": "Speech-ambiguity and theory-of-mind results are already attributed in the current Harvard SIFToM reference; no distinct newly released method was established by this selective review."
+    },
+    {
+      "title": "Oxford GOALS public robotics programme",
+      "url": "https://ori.ox.ac.uk/research/goals/",
+      "retrieved_on": "2026-10-24",
+      "reason": "The previously attributed long-horizon autonomy programme remains relevant, but this selective scan did not establish a new distinct admission-ready method; no changes to existing references or worker evidence are justified."
+    }
+  ]
+}
