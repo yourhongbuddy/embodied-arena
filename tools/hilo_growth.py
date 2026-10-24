@@ -239,13 +239,18 @@ def compare_route_baselines(config: dict[str, Any], cached: dict[str, dict[str, 
     for row in config.get('route_baselines', []):
         public = cached.get(row['public_url'], {}); baseline = cached.get(row['baseline_url'], {})
         pstatus, bstatus = public.get('status_code'), baseline.get('status_code')
+        # Only successful responses with measured bodies can be compared for content drift.
+        # Error pages and failed DNS/probes are not evidence of a body mismatch.
+        body_comparable = (pstatus == 200 and bstatus == 200
+            and bool(public.get('body_sha256')) and bool(baseline.get('body_sha256')))
+        body_equal = (public['body_sha256'] == baseline['body_sha256']) if body_comparable else None
         checks.append({'id': row['id'], 'public_url': row['public_url'], 'baseline_url': row['baseline_url'],
             'public_status': pstatus, 'baseline_status': bstatus,
             'comparable': pstatus is not None and bstatus is not None,
             'status_mismatch': pstatus is not None and bstatus is not None and pstatus != bstatus,
-            'body_sha256_equal': bool(public.get('body_sha256') and public.get('body_sha256') == baseline.get('body_sha256'))})
+            'body_comparable': body_comparable, 'body_sha256_equal': body_equal,
+            'body_mismatch': body_equal is False})
     return checks
-
 
 def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[str, Any]:
     plan = make_plan(config); queue = Queue(output / 'queue.sqlite', config, cycle)
@@ -287,6 +292,7 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
         'network_control_status': control.get('status_code'),
         'route_baseline_checks': route_checks,
         'route_status_mismatches': [row['id'] for row in route_checks if row['status_mismatch']],
+        'route_body_mismatches': [row['id'] for row in route_checks if row['body_mismatch']],
         'live_llm_agents_started': 0, 'live_llm_agents_completed': 0, 'live_llm_agents_failed': 0,
         'outbound_messages_sent_by_runner': 0, 'store_submissions_by_runner': 0, 'deployments_by_runner': 0,
         'real_robot_hours_collected': 0, 'note': 'Slots are capacity, not people, contacts, live LLM agents, impressions, or certified robot evidence. Pending/running work requires reconciliation; no automatic replay.',
