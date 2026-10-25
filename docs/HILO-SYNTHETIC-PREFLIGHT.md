@@ -17,6 +17,8 @@ The bundled fixture is explicitly invented. A successful run must report `synthe
 
 The illustrative format uses six published event-class **names**: DEPLOYMENT_LIFECYCLE, ROBOT_STATE, HUMAN_REQUEST, ROBOT_ACTION, HUMAN_INTERVENTION and INCIDENT. The preflight rejects unknown classes, repeated IDs, out-of-order UTC timestamps, missing or implausible human-assistance seconds, extra object keys, certification requests and claimed robot hours. It is intentionally narrower than the canonical event schema and never attempts to convert these examples into observation evidence.
 
+The optional top-level `description` must be plain text at most 512 characters. Nested object/list descriptions and overlong descriptions are rejected. This structural check does **not** remove personal information from otherwise allowed text.
+
 **Do not feed it real household logs, private video, recordings or identifiers.** Restricting keys cannot detect all private information inside an allowed free-text description. The preflight does not verify an observation was collected, that consent was obtained, that incidents were adjudicated, that the privacy policy was satisfied, or that a score is statistically supported. For real integration consult the pinned canonical protocol, its required sidecar/provenance and independent human/source-admission reviews before collecting anything.
 
 ## Distribution status
