@@ -46,6 +46,23 @@ class PreflightTests(unittest.TestCase):
     def test_rejects_nonfinite_assistance(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][4]['human_assistance_seconds']=float('nan')
         self.assertTrue(check(sample))
+    def test_nested_description_object_rejected(self):
+        sample = copy.deepcopy(FIXTURE)
+        sample['description'] = {'home_video': 'not accepted in a synthetic exercise'}
+        self.assertTrue(any('description' in e for e in check(sample)))
+
+    def test_nonstring_and_excessive_description_rejected(self):
+        for description in (['nested'], 2, 'x' * 513):
+            with self.subTest(description_type=type(description).__name__):
+                sample = copy.deepcopy(FIXTURE)
+                sample['description'] = description
+                self.assertTrue(any('description' in e for e in check(sample)))
+
+    def test_bounded_plain_description_accepted(self):
+        sample = copy.deepcopy(FIXTURE)
+        sample['description'] = 'Synthetic observation only.'
+        self.assertEqual(check(sample), [])
+
     def test_never_claims_certification(self):
         sample=copy.deepcopy(FIXTURE);sample['wants_certification']=True
         self.assertTrue(check(sample))
