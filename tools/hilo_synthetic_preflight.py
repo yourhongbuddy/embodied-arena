@@ -27,6 +27,8 @@ def check(data):
     robot_hours = data.get('claimed_robot_hours', 0)
     if certification is not False or isinstance(robot_hours, bool) or not isinstance(robot_hours, (int, float)) or robot_hours != 0:
         errors.append('synthetic records require wants_certification=false and claimed_robot_hours=0')
+    if 'description' in data and (not isinstance(data['description'], str) or len(data['description']) > 512):
+        errors.append('description must be plain text no longer than 512 characters; nested objects are not accepted')
     top_allowed = {'description', 'evidence_class', 'claimed_robot_hours', 'wants_certification', 'events'}
     if extra := set(data) - top_allowed:
         errors.append('unrecognized top-level fields (may contain private data): ' + ', '.join(sorted(extra)))
