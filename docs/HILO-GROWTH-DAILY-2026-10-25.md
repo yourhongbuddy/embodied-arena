@@ -47,3 +47,11 @@ Connected Gmail searches, current sent mail, full relevant academic threads and 
 3. Review the offline preflight for alignment with canonical protocol, code-quality and privacy limitations; only after licensing/identity and real installation tests consider any publication venue. ClawHub's mandatory MIT-0 is a concrete owner-authorization blocker.
 
 Frozen WANTED scoring, safety, consent, privacy, stop authority, holdouts, experiment cohorts and evidence classes unchanged. No robot trial, certification or participant data claimed.
+
+## October 25 follow-up — tested privacy-minimization regression (10:09 PDT)
+
+PR #10 commits `6065025ed74cd9a705dade269d7078cd626c23e1` and `c4737a40d379e02698ca0da59c16c428baa2caf3` fix a concrete preflight input-validation gap: a nested JSON object/list or an excessively long top-level `description` could previously pass the synthetic-only exercise. `check()` now requires an optional plain-text description of at most 512 characters. This is **not** detection of sensitive text, permission to ingest actual home data, or a change to frozen WANTED scoring. The three new regression tests cover nested, non-string/overlong, and accepted bounded text.
+
+Local exercise on the predecessor's same validation path demonstrated the bypass and passed the patched focused suite. The actual GitHub-hosted workflow for the new PR head, run **40215029382**, passed **32/32 GrowthOps + 18/18 synthetic preflight tests**, including the new three tests and the CLI fixture. Its downloaded artifact `hilo-growth-40215029382-1` (artifact **12606708939**) contains 19 GET probes, network control 200, four public-status mismatches, four valid 200/200 response-body mismatches, 79 assigned / 37 completed / 42 awaiting / 9,921 unassigned, zero live LLM requests and zero runner writes. Test-merge checkout `76bd0055f979acff71bded43557db8a3709bb9a7` is a CI ref, **not** a production deployment.
+
+No public URL was deployed or verified as changed by this patch. Existing release, license, publisher, and dataset/admission gates remain intact.
