@@ -1,0 +1,24 @@
+# HILO synthetic-only telemetry preflight (non-normative)
+
+This is a **standalone offline developer exercise**, not the canonical WANTED protocol verifier, safety certification, real-field collector, participant consent checker or scoring implementation. It neither changes frozen scores and holdouts nor uploads data, uses paid models, publishes content or deploys software.
+
+## Use
+
+From the repository root (Python 3.10+):
+
+```sh
+python tools/hilo_synthetic_preflight.py tools/hilo_synthetic_fixture.json
+python -m unittest discover -s tools -p 'test_hilo_synthetic_preflight.py' -v
+```
+
+The bundled fixture is explicitly invented. A successful run must report `synthetic_preflight_pass`, `field_robot_hours: 0`, `certification: false` and `normative_conformance: false`. Nonzero process status means rejected input or invalid/unreadable JSON. No network access, API key, external dependency or model is required.
+
+## What this checks, and what it does not
+
+The illustrative format uses six published event-class **names**: DEPLOYMENT_LIFECYCLE, ROBOT_STATE, HUMAN_REQUEST, ROBOT_ACTION, HUMAN_INTERVENTION and INCIDENT. The preflight rejects unknown classes, repeated IDs, out-of-order UTC timestamps, missing or implausible human-assistance seconds, extra object keys, certification requests and claimed robot hours. It is intentionally narrower than the canonical event schema and never attempts to convert these examples into observation evidence.
+
+**Do not feed it real household logs, private video, recordings or identifiers.** Restricting keys cannot detect all private information inside an allowed free-text description. The preflight does not verify an observation was collected, that consent was obtained, that incidents were adjudicated, that the privacy policy was satisfied, or that a score is statistically supported. For real integration consult the pinned canonical protocol, its required sidecar/provenance and independent human/source-admission reviews before collecting anything.
+
+## Distribution status
+
+Repository-only reviewed source: **not released** on PyPI, GitHub Actions Marketplace, skills directories or other stores. Packaging, license/redistribution decision, artifact signatures, real install tests and owner/publisher authority remain outstanding. No automatic releases or paid service calls.
