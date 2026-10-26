@@ -77,12 +77,23 @@ def check(data):
     return errors
 
 
+def reject_duplicate_json_members(pairs):
+    """Fail closed instead of silently overwriting ambiguous evidence fields."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError('duplicate JSON object member')
+        result[key] = value
+    return result
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('file', help='local synthetic JSON fixture (do not use real records)')
     args = parser.parse_args(argv)
     try:
-        data = json.loads(Path(args.file).read_text(encoding='utf-8'))
+        data = json.loads(Path(args.file).read_text(encoding='utf-8'),
+                          object_pairs_hook=reject_duplicate_json_members)
     except (OSError, ValueError) as exc:
         print(f'REJECTED: unreadable/invalid local JSON ({type(exc).__name__})', file=sys.stderr)
         return 2
