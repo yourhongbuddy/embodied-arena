@@ -1,8 +1,11 @@
 import copy
+import io
 import json
+import tempfile
+from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
 import unittest
-from hilo_synthetic_preflight import check, EVENT_CLASSES
+from hilo_synthetic_preflight import check, EVENT_CLASSES, main
 
 FIXTURE = json.loads((Path(__file__).parent / 'hilo_synthetic_fixture.json').read_text())
 
@@ -66,6 +69,28 @@ class PreflightTests(unittest.TestCase):
     def test_never_claims_certification(self):
         sample=copy.deepcopy(FIXTURE);sample['wants_certification']=True
         self.assertTrue(check(sample))
+
+
+    def test_cli_rejects_duplicate_top_level_evidence_class(self):
+        raw = '{"evidence_class": "real_observation", ' + json.dumps(FIXTURE)[1:]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'ambiguous.json'
+            path.write_text(raw)
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()) as err:
+                code = main([str(path)])
+            self.assertEqual(code, 2)
+            self.assertIn('REJECTED', err.getvalue())
+
+    def test_cli_rejects_duplicate_nested_event_class(self):
+        raw = json.dumps(FIXTURE).replace('"event_class": "DEPLOYMENT_LIFECYCLE"',
+            '"event_class": "HUMAN_INTERVENTION", "event_class": "DEPLOYMENT_LIFECYCLE"', 1)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'ambiguous-nested.json'
+            path.write_text(raw)
+            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()) as err:
+                code = main([str(path)])
+            self.assertEqual(code, 2)
+            self.assertIn('REJECTED', err.getvalue())
 
 
 if __name__=='__main__': unittest.main()
