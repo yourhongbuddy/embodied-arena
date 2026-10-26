@@ -19,6 +19,8 @@ The illustrative format uses six published event-class **names**: DEPLOYMENT_LIF
 
 The optional top-level `description` must be plain text at most 512 characters. Nested object/list descriptions and overlong descriptions are rejected. This structural check does **not** remove personal information from otherwise allowed text.
 
+The command-line JSON reader also rejects **duplicate object keys at any nesting level** rather than silently retaining the last value. For example, a file with contradictory `evidence_class` or `event_class` members is malformed, even when the last value appears harmless. That rejection is a parser-integrity check, **not** proof of provenance or privacy compliance.
+
 **Do not feed it real household logs, private video, recordings or identifiers.** Restricting keys cannot detect all private information inside an allowed free-text description. The preflight does not verify an observation was collected, that consent was obtained, that incidents were adjudicated, that the privacy policy was satisfied, or that a score is statistically supported. For real integration consult the pinned canonical protocol, its required sidecar/provenance and independent human/source-admission reviews before collecting anything.
 
 ## Distribution status
