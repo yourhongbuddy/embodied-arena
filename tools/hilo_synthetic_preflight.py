@@ -8,6 +8,7 @@ model requests, uploads, score changes, or robot-hour claims.
 import argparse
 from datetime import datetime, timezone
 import json
+import re
 from pathlib import Path
 import sys
 
@@ -45,8 +46,8 @@ def check(data):
         if extra := set(event) - event_allowed:
             errors.append(p + ' has unrecognized fields (may contain private data): ' + ', '.join(sorted(extra)))
         ident = event.get('event_id')
-        if not isinstance(ident, str) or not ident:
-            errors.append(p + '.event_id must be a nonempty string')
+        if not isinstance(ident, str) or re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', ident) is None:
+            errors.append(p + '.event_id must be an opaque ASCII identifier (1-64 letters, digits, _ or -)')
         elif ident in seen:
             errors.append(p + '.event_id duplicates an earlier event')
         else:
