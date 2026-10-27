@@ -19,6 +19,18 @@ class PreflightTests(unittest.TestCase):
     def test_rejects_unknown_event_type(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][0]['event_class']='FAKE_KEEP_VOTE'
         self.assertTrue(check(sample))
+    def test_rejects_blank_contact_like_or_oversized_event_ids(self):
+        for ident in (' ', '\t', 'person@example.com', 'a' * 65, 'home/video', 'é'):
+            with self.subTest(event_id=repr(ident)):
+                sample = copy.deepcopy(FIXTURE)
+                sample['events'][0]['event_id'] = ident
+                self.assertTrue(any('event_id' in error for error in check(sample)))
+
+    def test_accepts_bounded_opaque_event_id(self):
+        sample = copy.deepcopy(FIXTURE)
+        sample['events'][0]['event_id'] = 'evt_2026-10-27'
+        self.assertEqual(check(sample), [])
+
     def test_rejects_duplicate_event(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][1]['event_id']='e1'
         self.assertTrue(check(sample))
