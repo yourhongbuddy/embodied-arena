@@ -17,6 +17,8 @@ The bundled fixture is explicitly invented. A successful run must report `synthe
 
 The illustrative format uses six published event-class **names**: DEPLOYMENT_LIFECYCLE, ROBOT_STATE, HUMAN_REQUEST, ROBOT_ACTION, HUMAN_INTERVENTION and INCIDENT. The preflight rejects unknown classes, repeated IDs, out-of-order UTC timestamps, missing or implausible human-assistance seconds, extra object keys, certification requests and claimed robot hours. It is intentionally narrower than the canonical event schema and never attempts to convert these examples into observation evidence.
 
+Synthetic `event_id` values must be 1–64 ASCII characters: a leading letter or digit followed by letters, digits, underscores or hyphens. Whitespace-only, path-like, email-like and oversized identifiers are rejected. This structural rule does **not** prove IDs are non-identifying; never include names or participant identifiers.
+
 The optional top-level `description` must be plain text at most 512 characters. Nested object/list descriptions and overlong descriptions are rejected. This structural check does **not** remove personal information from otherwise allowed text.
 
 The command-line JSON reader also rejects **duplicate object keys at any nesting level** rather than silently retaining the last value. For example, a file with contradictory `evidence_class` or `event_class` members is malformed, even when the last value appears harmless. That rejection is a parser-integrity check, **not** proof of provenance or privacy compliance.
