@@ -71,8 +71,8 @@ def check(data):
         if typ == 'HUMAN_INTERVENTION':
             if isinstance(duration, bool) or not isinstance(duration, (int, float)) or not (0 <= duration <= 86400):
                 errors.append(p + '.human_assistance_seconds must be a finite bounded numeric duration in seconds')
-        elif duration is not None:
-            errors.append(p + '.human_assistance_seconds is only valid for HUMAN_INTERVENTION')
+        elif 'human_assistance_seconds' in event:
+            errors.append(p + '.human_assistance_seconds is only valid for HUMAN_INTERVENTION (omit the field on other event classes)')
         if 'participant_id' in event or 'home_video' in event:
             errors.append(p + ' contains fields excluded from this privacy-minimal synthetic fixture')
     return errors
