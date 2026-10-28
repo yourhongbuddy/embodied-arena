@@ -34,6 +34,16 @@ class PreflightTests(unittest.TestCase):
     def test_rejects_duplicate_event(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][1]['event_id']='e1'
         self.assertTrue(check(sample))
+    def test_non_intervention_rejects_explicit_null_assistance(self):
+        sample = copy.deepcopy(FIXTURE)
+        sample['events'][0]['human_assistance_seconds'] = None
+        self.assertTrue(any('human_assistance_seconds' in error for error in check(sample)))
+
+    def test_non_intervention_rejects_zero_assistance_field(self):
+        sample = copy.deepcopy(FIXTURE)
+        sample['events'][0]['human_assistance_seconds'] = 0
+        self.assertTrue(any('human_assistance_seconds' in error for error in check(sample)))
+
     def test_rejects_negative_assistance(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][4]['human_assistance_seconds']=-20
         self.assertTrue(check(sample))
