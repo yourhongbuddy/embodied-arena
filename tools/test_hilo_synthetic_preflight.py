@@ -50,6 +50,30 @@ class PreflightTests(unittest.TestCase):
     def test_rejects_time_regression(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][3]['timestamp_utc']='2025-12-31T00:00:00Z'
         self.assertTrue(check(sample))
+    def test_untrusted_unknown_field_names_not_echoed_by_check(self):
+        marker = 'private_email_jane@example.com'
+        sample = copy.deepcopy(FIXTURE)
+        sample[marker] = 'synthetic_placeholder'
+        sample['events'][0][marker] = 'synthetic_placeholder'
+        errors = check(sample)
+        self.assertEqual(sum('unrecognized' in e for e in errors), 2)
+        self.assertNotIn(marker, '\\n'.join(errors))
+        self.assertIn('names omitted', '\\n'.join(errors))
+
+    def test_untrusted_unknown_field_names_not_echoed_by_cli(self):
+        marker = 'private_email_jane@example.com'
+        sample = copy.deepcopy(FIXTURE)
+        sample['events'][0][marker] = 'synthetic_placeholder'
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'unexpected-keys.json'
+            path.write_text(json.dumps(sample))
+            output = io.StringIO()
+            with redirect_stdout(output), redirect_stderr(io.StringIO()):
+                code = main([str(path)])
+            self.assertEqual(code, 1)
+            self.assertIn('names omitted', output.getvalue())
+            self.assertNotIn(marker, output.getvalue())
+
     def test_rejects_personal_fields(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][0]['participant_id']='private123'
         self.assertTrue(check(sample))
