@@ -32,7 +32,7 @@ def check(data):
         errors.append('description must be plain text no longer than 512 characters; nested objects are not accepted')
     top_allowed = {'description', 'evidence_class', 'claimed_robot_hours', 'wants_certification', 'events'}
     if extra := set(data) - top_allowed:
-        errors.append('unrecognized top-level fields (may contain private data): ' + ', '.join(sorted(extra)))
+        errors.append(f'{len(extra)} unrecognized top-level field(s) (may contain private data; names omitted)')
     events = data.get('events')
     if not isinstance(events, list) or not events:
         return errors + ['events must be a nonempty array']
@@ -44,7 +44,7 @@ def check(data):
             continue
         event_allowed = {'event_id', 'event_class', 'timestamp_utc', 'human_assistance_seconds'}
         if extra := set(event) - event_allowed:
-            errors.append(p + ' has unrecognized fields (may contain private data): ' + ', '.join(sorted(extra)))
+            errors.append(p + f' has {len(extra)} unrecognized field(s) (may contain private data; names omitted)')
         ident = event.get('event_id')
         if not isinstance(ident, str) or re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', ident) is None:
             errors.append(p + '.event_id must be an opaque ASCII identifier (1-64 letters, digits, _ or -)')
