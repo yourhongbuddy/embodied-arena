@@ -205,4 +205,27 @@ class GrowthTests(unittest.TestCase):
 
 
 
+    def test_seo_canonical_must_match_checked_route(self):
+        requested = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for canonical in ('https://getrobotrouter.com/wanted-10k',
+                          'https://getrobotrouter.com/wanted-10k/sdk?tracking=1',
+                          'https://getrobotrouter.com/wanted-10k/sdk#fragment'):
+            with self.subTest(canonical=canonical):
+                body = '<title>SDK</title><link rel="canonical" href="' + canonical + '"><h1>SDK</h1>'
+                report = h.inspect_seo_response(200, 'text/html', body, requested_url=requested)
+                self.assertTrue(report['eligible'])
+                self.assertTrue(report['checks']['canonical_primary_origin'])
+                self.assertFalse(report['checks']['canonical_matches_requested_route'])
+                self.assertIn('canonical_matches_requested_route', report['missing'])
+
+    def test_seo_canonical_accepts_exact_route_and_trailing_slash(self):
+        requested = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for canonical in (requested, requested + '/'):
+            with self.subTest(canonical=canonical):
+                body = '<title>SDK</title><link rel="canonical" href="' + canonical + '"><h1>SDK</h1>'
+                report = h.inspect_seo_response(200, 'text/html', body, requested_url=requested)
+                self.assertTrue(report['checks']['canonical_matches_requested_route'])
+                self.assertNotIn('canonical_matches_requested_route', report['missing'])
+
+
 if __name__=='__main__':unittest.main()
