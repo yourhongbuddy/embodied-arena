@@ -1,0 +1,50 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-30",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-frontier-misalignment-layered-monitoring-20261028",
+      "publisher": "OpenAI",
+      "title": "How we detect frontier model misalignment",
+      "published_on": "2026-10-28",
+      "retrieved_on": "2026-10-30",
+      "url": "https://openai.com/index/how-we-detect-frontier-model-misalignment/",
+      "finding": "OpenAI describes layered monitoring for tool-using models: high-recall initial screening, a randomly sampled portion of unflagged traffic, contextual model-based review, subsequent incident investigation, and corroboration against independent network/system telemetry where available. It evaluates monitors against recorded and synthetic incidents, unflagged samples and adversarial red-teaming, with human response to urgent findings. These are OpenAI-reported monitoring methods, not HILO robot results or permission to use internal traces.",
+      "hilo_adaptation": "Stage a synthetic-only, non-ranking developer diagnostic for evidence-monitoring coverage: record which allowed telemetry checks ran or were skipped; sample explicitly synthetic negative cases to estimate missed detections; compare flagged events to independent authorized logs when available; separate automated flags from human reviewed incidents. Do not copy OpenAI internal data or internal activations, adopt its sampling percentage as a validated HILO threshold, ingest private household logs, automate robot shutdown, alter canonical WANTED scoring, or treat synthetic tests as robot field hours.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI — An updated Model Spec for more capable and beneficial AI",
+      "url": "https://openai.com/index/updated-model-spec/",
+      "retrieved_on": "2026-10-30",
+      "reason": "Publicly updated normative behavior guidance dated October 29, not a distinct evaluated robot-data collection or monitoring construction method for this intake. Reviewed but not inserted into the worker manifest."
+    },
+    {
+      "title": "Stanford and Columbia — DITTO-X teleoperation/human intervention",
+      "url": "https://tml.stanford.edu/ditto-x/",
+      "retrieved_on": "2026-10-30",
+      "reason": "Relevant real-robot method already staged October 28 as an externally attributed reference; no duplicate or HILO resident-hour claim."
+    },
+    {
+      "title": "Harvard SEAS — Human-in-the-Loop robot learning seminar",
+      "url": "https://events.seas.harvard.edu/event/human-in-the-loop-robot-learning",
+      "retrieved_on": "2026-10-30",
+      "reason": "October 30 seminar announcement alone does not establish a released method, result, or permission to ingest data."
+    },
+    {
+      "title": "Oxford Robotics Institute — OASIS-Map",
+      "url": "https://dynamic.robots.ox.ac.uk/projects/oasis-map/",
+      "retrieved_on": "2026-10-30",
+      "reason": "Longitudinal scene-change method already staged October 25 as a separate external reference; no new method or admission."
+    }
+  ]
+}
