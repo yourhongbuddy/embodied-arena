@@ -172,18 +172,28 @@ class PageFacts(HTMLParser):
         if self.title_open: self.title += data
 
 
-def inspect_html(body: str) -> dict[str, Any]:
+def inspect_html(body: str, requested_url: str | None = None) -> dict[str, Any]:
     p = PageFacts(); p.feed(body)
     checks = {'title': bool(p.title.strip()), 'description': bool(p.meta.get('description')),
         'canonical_primary_origin': bool(p.canonical and urllib.parse.urlsplit(p.canonical).scheme == 'https'
                                          and urllib.parse.urlsplit(p.canonical).netloc == 'getrobotrouter.com'),
         'open_graph': all(p.meta.get(k) for k in ('og:title', 'og:description', 'og:image')),
         'social_card': p.meta.get('twitter:card') == 'summary_large_image', 'one_h1': p.h1 == 1}
+    if requested_url is not None:
+        # Checking the origin alone misses a canonical that wrongly points to a
+        # different WANTED page (or carries tracking parameters).
+        canonical = urllib.parse.urlsplit(p.canonical or '')
+        requested = urllib.parse.urlsplit(requested_url)
+        checks['canonical_matches_requested_route'] = bool(
+            checks['canonical_primary_origin']
+            and canonical.path.rstrip('/') == requested.path.rstrip('/')
+            and not canonical.query and not canonical.fragment)
     return {'title': p.title.strip(), 'canonical': p.canonical, 'checks': checks,
             'missing': [k for k, v in checks.items() if not v]}
 
 
-def inspect_seo_response(status_code: int | None, content_type: str, body: str) -> dict[str, Any]:
+def inspect_seo_response(status_code: int | None, content_type: str, body: str,
+                         requested_url: str | None = None) -> dict[str, Any]:
     """Only score metadata after a successful HTML response."""
     if status_code != 200:
         return {'eligible': False, 'reason': f'http_status_{status_code}', 'checks': {},
@@ -191,7 +201,7 @@ def inspect_seo_response(status_code: int | None, content_type: str, body: str) 
     if 'text/html' not in content_type.lower():
         return {'eligible': False, 'reason': 'non_html_response', 'checks': {},
                 'missing': ['html_response']}
-    result = inspect_html(body)
+    result = inspect_html(body, requested_url=requested_url)
     result['eligible'] = True
     result['reason'] = None
     return result
@@ -276,7 +286,8 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
                 result['measurement'] = measurement
                 if measurement.get('status_code') is None: result['status'] = 'measurement_failed'
                 if job['lane'] == 'seo':
-                    result['seo'] = inspect_seo_response(measurement.get('status_code'), measurement.get('content_type', ''), body)
+                    result['seo'] = inspect_seo_response(measurement.get('status_code'), measurement.get('content_type', ''), body,
+                                                         requested_url=target['url'])
             else:
                 result.update(status='measurement_failed', reason='network_not_requested')
             result['finished_at'] = stamp(); queue.finish(ident, token, result)
