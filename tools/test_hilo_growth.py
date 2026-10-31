@@ -137,7 +137,7 @@ class GrowthTests(unittest.TestCase):
     def test_github_copilot_repository_skill_is_safe_and_locally_scoped(self):
         path = ROOT / '.github/skills/hilo-repo-review/SKILL.md'
         skill = path.read_text(encoding='utf-8')
-        self.assertTrue(skill.startswith('---\\nname: hilo-repo-review\\n'))
+        self.assertEqual(skill.splitlines()[:2], ['---', 'name: hilo-repo-review'])
         self.assertIn('description:', skill.split('---', 2)[1])
         self.assertIn('plugins/hilo-benchmark/skills/hilo-audit/SKILL.md', skill)
         self.assertIn('tools/hilo_synthetic_fixture.json', skill)
