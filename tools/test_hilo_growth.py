@@ -134,6 +134,18 @@ class GrowthTests(unittest.TestCase):
             self.assertEqual(ids[ident]['status'],'candidate_not_submitted')
             self.assertTrue(ids[ident]['rules_url'].startswith('https://'))
 
+    def test_github_copilot_repository_skill_is_safe_and_locally_scoped(self):
+        path = ROOT / '.github/skills/hilo-repo-review/SKILL.md'
+        skill = path.read_text(encoding='utf-8')
+        self.assertTrue(skill.startswith('---\\nname: hilo-repo-review\\n'))
+        self.assertIn('description:', skill.split('---', 2)[1])
+        self.assertIn('plugins/hilo-benchmark/skills/hilo-audit/SKILL.md', skill)
+        self.assertIn('tools/hilo_synthetic_fixture.json', skill)
+        self.assertIn('not a published marketplace listing', skill)
+        self.assertIn('never', skill.lower())
+        self.assertNotIn('allowed-tools:', skill)
+        self.assertFalse((ROOT / '.github/skills/hilo-repo-review/mcp.json').exists())
+
     def test_openai_interface_metadata_is_present_without_policy_claims(self):
         manifest=json.loads((ROOT/'plugins/hilo-benchmark/plugin.json').read_text())
         interface=manifest['extensions']['com.openai']['interface']
