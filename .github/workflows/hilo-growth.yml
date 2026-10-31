@@ -7,11 +7,16 @@ on:
     paths:
       - 'tools/hilo_growth.py'
       - 'tools/test_hilo_growth.py'
+      - 'tools/hilo_synthetic_preflight.py'
+      - 'tools/test_hilo_synthetic_preflight.py'
+      - 'tools/hilo_synthetic_fixture.json'
       - 'config/hilo-growth.json'
       - 'docs/HILO-GROWTH*.md'
+      - 'docs/HILO-SYNTHETIC-PREFLIGHT.md'
       - 'plugins/hilo-benchmark/**'
+      - '.agents/plugins/marketplace.json'
       - '.claude-plugin/marketplace.json'
-      - 'distribution/openai-submission.json'
+      - 'distribution/**'
       - 'public/hilo/**'
       - 'public/sitemap.xml'
       - 'public/robots.txt'
@@ -31,8 +36,13 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
+          fetch-depth: 2
       - name: Test queue, evidence boundaries and metadata
         run: python3 -m unittest discover -s tools -p 'test_hilo_growth.py' -v
+      - name: Test synthetic-only developer telemetry preflight
+        run: |
+          python3 -m unittest discover -s tools -p 'test_hilo_synthetic_preflight.py' -v
+          python3 tools/hilo_synthetic_preflight.py tools/hilo_synthetic_fixture.json
       - name: Execute bounded read-only audits, not paid model agents
         run: python3 tools/hilo_growth.py run --online --cycle "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
       - name: Render static developer page without a web service

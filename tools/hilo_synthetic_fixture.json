@@ -1,0 +1,14 @@
+{
+  "description": "SYNTHETIC DEMONSTRATION ONLY; no actual robot or human observations",
+  "evidence_class": "synthetic_example",
+  "claimed_robot_hours": 0,
+  "wants_certification": false,
+  "events": [
+    {"event_id":"e1","event_class":"DEPLOYMENT_LIFECYCLE","timestamp_utc":"2026-01-01T00:00:00Z"},
+    {"event_id":"e2","event_class":"ROBOT_STATE","timestamp_utc":"2026-01-01T00:01:00Z"},
+    {"event_id":"e3","event_class":"HUMAN_REQUEST","timestamp_utc":"2026-01-01T00:02:00Z"},
+    {"event_id":"e4","event_class":"ROBOT_ACTION","timestamp_utc":"2026-01-01T00:02:02Z"},
+    {"event_id":"e5","event_class":"HUMAN_INTERVENTION","timestamp_utc":"2026-01-01T00:02:10Z","human_assistance_seconds":45},
+    {"event_id":"e6","event_class":"INCIDENT","timestamp_utc":"2026-01-01T00:03:00Z"}
+  ]
+}
