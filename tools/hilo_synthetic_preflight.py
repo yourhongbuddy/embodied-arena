@@ -57,7 +57,11 @@ def check(data):
             errors.append(p + '.event_class is not one of the six published classes')
         ts = event.get('timestamp_utc')
         try:
-            if not isinstance(ts, str) or not ts.endswith('Z'):
+            # Require a lossless, full-seconds UTC form. fromisoformat otherwise
+            # accepts week/basic dates and silently truncates >6 fractional digits,
+            # making distinct sub-microsecond event orderings appear identical.
+            if not isinstance(ts, str) or re.fullmatch(
+                    r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?Z', ts) is None:
                 raise ValueError()
             dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
             if dt.tzinfo != timezone.utc:
@@ -66,7 +70,7 @@ def check(data):
                 errors.append(p + '.timestamp_utc is before an earlier event')
             previous = dt
         except (ValueError, TypeError):
-            errors.append(p + '.timestamp_utc must be an ISO 8601 UTC Z timestamp')
+            errors.append(p + '.timestamp_utc must be full ISO 8601 UTC (YYYY-MM-DDTHH:MM:SS[.ffffff]Z; at most six fractional digits)')
         duration = event.get('human_assistance_seconds')
         if typ == 'HUMAN_INTERVENTION':
             if isinstance(duration, bool) or not isinstance(duration, (int, float)) or not (0 <= duration <= 86400):
