@@ -1,0 +1,38 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-09-25",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-third-party-assessment-principles",
+      "publisher": "OpenAI",
+      "title": "Priorities and principles for effective third party assessments",
+      "published_on": "2026-09-22",
+      "retrieved_on": "2026-09-25",
+      "url": "https://openai.com/index/priorities-principles-third-party-assessments/",
+      "finding": "OpenAI describes independent third-party assessment as a way to challenge a lab's assumptions, identify risks the lab may have missed, and reach independent conclusions about safeguard effectiveness. The source says meaningful assessment can require deep access across training, evaluation, and deployment, and places third-party assessment within broader safety-accountability practices.",
+      "hilo_adaptation": "For HILO release audit, define an independent assessor role that can review the evidence needed to challenge benchmark claims and safety assumptions, document access limitations, and publish conclusions separately from the benchmark sponsor. This is a governance and audit-design proposal, not a certification, field result, or change to WANTED scoring.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Stanford Interactive Perception and Robot Learning Lab — September 2026 news",
+      "url": "https://iprl.stanford.edu/",
+      "retrieved_on": "2026-09-25",
+      "reason": "The page confirms current CoRL 2026 robotics work but does not expose enough method detail on the checked page to justify a new HILO source card beyond already tracked Stanford robotics references."
+    },
+    {
+      "title": "Oxford — Designing for children's autonomy and agency in the age of artificial intelligence",
+      "url": "https://ora.ox.ac.uk/objects/uuid%3A1149b0d5-b03e-4964-8ba6-e38bf3759350",
+      "retrieved_on": "2026-09-25",
+      "reason": "The work is relevant to autonomy and agency but is not a robotics data-collection, simulation, preference-labeling, or longitudinal evaluation method specific enough for the HILO source ledger."
+    }
+  ]
+}
