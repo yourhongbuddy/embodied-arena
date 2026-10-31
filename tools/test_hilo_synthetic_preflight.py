@@ -50,6 +50,28 @@ class PreflightTests(unittest.TestCase):
     def test_rejects_time_regression(self):
         sample=copy.deepcopy(FIXTURE);sample['events'][3]['timestamp_utc']='2025-12-31T00:00:00Z'
         self.assertTrue(check(sample))
+    def test_rejects_lossy_submicrosecond_event_order(self):
+        # Python datetime.fromisoformat truncates the seventh fractional digit.
+        # An actually reversed pair must not be accepted as equal timestamps.
+        sample = copy.deepcopy(FIXTURE)
+        sample['events'][3]['timestamp_utc'] = '2026-01-01T00:02:02.1234569Z'
+        sample['events'][4]['timestamp_utc'] = '2026-01-01T00:02:02.1234568Z'
+        self.assertTrue(any('timestamp_utc' in e for e in check(sample)))
+
+    def test_rejects_abbreviated_or_noncanonical_utc_timestamps(self):
+        for timestamp in ('20261031T103600Z', '2026-W44-6T10:36:00Z',
+                          '2026-10-31T10:36Z', '2026-10-31 10:36:00Z',
+                          '2026-10-31T10:36:00,5Z'):
+            with self.subTest(timestamp=timestamp):
+                sample = copy.deepcopy(FIXTURE)
+                sample['events'][3]['timestamp_utc'] = timestamp
+                self.assertTrue(any('timestamp_utc' in e for e in check(sample)))
+
+    def test_accepts_full_utc_timestamp_with_microseconds(self):
+        sample = copy.deepcopy(FIXTURE)
+        sample['events'][3]['timestamp_utc'] = '2026-01-01T00:02:02.123456Z'
+        self.assertEqual(check(sample), [])
+
     def test_untrusted_unknown_field_names_not_echoed_by_check(self):
         marker = 'private_email_jane@example.com'
         sample = copy.deepcopy(FIXTURE)
