@@ -159,13 +159,15 @@ class Queue:
 
 class PageFacts(HTMLParser):
     def __init__(self):
-        super().__init__(); self.title_open = False; self.title = ''; self.meta = {}; self.canonical = None; self.h1 = 0
+        super().__init__(); self.title_open = False; self.title = ''; self.meta = {}; self.canonical = None; self.canonical_count = 0; self.h1 = 0
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == 'title': self.title_open = True
         if tag == 'h1': self.h1 += 1
         if tag == 'meta': self.meta[a.get('name', a.get('property', ''))] = a.get('content', '')
-        if tag == 'link' and 'canonical' in (a.get('rel') or '').split(): self.canonical = a.get('href')
+        if tag == 'link' and 'canonical' in (a.get('rel') or '').lower().split():
+            self.canonical_count += 1
+            self.canonical = a.get('href')
     def handle_endtag(self, tag):
         if tag == 'title': self.title_open = False
     def handle_data(self, data):
@@ -178,7 +180,8 @@ def inspect_html(body: str, requested_url: str | None = None) -> dict[str, Any]:
         'canonical_primary_origin': bool(p.canonical and urllib.parse.urlsplit(p.canonical).scheme == 'https'
                                          and urllib.parse.urlsplit(p.canonical).netloc == 'getrobotrouter.com'),
         'open_graph': all(p.meta.get(k) for k in ('og:title', 'og:description', 'og:image')),
-        'social_card': p.meta.get('twitter:card') == 'summary_large_image', 'one_h1': p.h1 == 1}
+        'social_card': p.meta.get('twitter:card') == 'summary_large_image', 'one_h1': p.h1 == 1,
+        'single_canonical': p.canonical_count == 1}
     if requested_url is not None:
         # Checking the origin alone misses a canonical that wrongly points to a
         # different WANTED page (or carries tracking parameters).
