@@ -240,4 +240,24 @@ class GrowthTests(unittest.TestCase):
                 self.assertNotIn('canonical_matches_requested_route', report['missing'])
 
 
+    def test_duplicate_canonical_links_are_not_a_healthy_seo_page(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        canonical = '<link rel="canonical" href="' + url + '">'
+        body = '<title>SDK</title><h1>SDK</h1>' + canonical + canonical
+        result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+        self.assertTrue(result['eligible'])
+        self.assertTrue(result['checks']['canonical_matches_requested_route'])
+        self.assertFalse(result['checks']['single_canonical'])
+        self.assertIn('single_canonical', result['missing'])
+
+    def test_conflicting_canonicals_cannot_pass_when_last_is_correct(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        body = ('<title>SDK</title><h1>SDK</h1>'
+                '<link rel="canonical" href="https://getrobotrouter.com/wanted-10k">'
+                '<link rel="canonical" href="' + url + '">')
+        result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+        self.assertFalse(result['checks']['single_canonical'])
+        self.assertIn('single_canonical', result['missing'])
+
+
 if __name__=='__main__':unittest.main()
