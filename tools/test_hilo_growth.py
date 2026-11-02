@@ -260,6 +260,42 @@ class GrowthTests(unittest.TestCase):
         self.assertIn('single_canonical', result['missing'])
 
 
+    def test_x_robots_header_exclusion_and_repeated_directives(self):
+        body = '<title>SDK</title><h1>SDK</h1>'
+        for headers in (['noindex'], ['Googlebot: NOINDEX, follow'],
+                        ['index', 'bingbot: none'], ['googlebot: index, NOINDEX']):
+            with self.subTest(headers=headers):
+                result = h.inspect_seo_response(200, 'text/html', body,
+                                                x_robots_tags=headers)
+                self.assertTrue(result['eligible'])
+                self.assertFalse(result['checks']['indexable_x_robots_tag'])
+                self.assertIn('indexable_x_robots_tag', result['missing'])
+        for headers in ([], ['index, follow'], ['googlebot: index', 'bingbot: follow']):
+            result = h.inspect_seo_response(200, 'text/html', body,
+                                            x_robots_tags=headers)
+            self.assertTrue(result['checks']['indexable_x_robots_tag'])
+
+    def test_read_only_public_get_preserves_multiple_x_robots_headers(self):
+        from email.message import Message
+        class Response:
+            code = 200
+            def __init__(self):
+                self.headers = Message()
+                self.headers.add_header('Content-Type', 'text/html')
+                self.headers.add_header('X-Robots-Tag', 'index')
+                self.headers.add_header('X-Robots-Tag', 'googlebot: noindex')
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self, limit): return b'<title>SDK</title><h1>SDK</h1>'
+        with patch.object(h.urllib.request, 'build_opener') as build_opener:
+            build_opener.return_value.open.return_value = Response()
+            observed = h.public_get('https://getrobotrouter.com/wanted-10k/sdk')
+        self.assertEqual(observed['x_robots_tags'], ['index', 'googlebot: noindex'])
+        result = h.inspect_seo_response(observed['status_code'],
+                                        observed['content_type'], observed['body'],
+                                        x_robots_tags=observed['x_robots_tags'])
+        self.assertFalse(result['checks']['indexable_x_robots_tag'])
+
     def test_robots_meta_noindex_is_not_treated_as_healthy_seo(self):
         url = 'https://getrobotrouter.com/wanted-10k/sdk'
         for meta in ('<meta name="robots" content="noindex, follow">',
