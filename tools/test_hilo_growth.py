@@ -260,4 +260,26 @@ class GrowthTests(unittest.TestCase):
         self.assertIn('single_canonical', result['missing'])
 
 
+    def test_robots_meta_noindex_is_not_treated_as_healthy_seo(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for meta in ('<meta name="robots" content="noindex, follow">',
+                     '<meta name="googlebot" content="NOINDEX">',
+                     '<meta name="robots" content="none">'):
+            with self.subTest(meta=meta):
+                body = '<title>HILO</title><h1>HILO</h1>' + meta
+                result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+                self.assertTrue(result['eligible'])
+                self.assertFalse(result['checks']['indexable_robots_meta'])
+                self.assertIn('indexable_robots_meta', result['missing'])
+
+    def test_robots_index_does_not_override_earlier_noindex(self):
+        body = ('<meta name="robots" content="noindex">'
+                '<meta name="robots" content="index, follow">'
+                '<title>HILO</title><h1>HILO</h1>')
+        self.assertFalse(h.inspect_html(body)['checks']['indexable_robots_meta'])
+        allowed = ('<meta name="robots" content="index, follow">'
+                   '<title>HILO</title><h1>HILO</h1>')
+        self.assertTrue(h.inspect_html(allowed)['checks']['indexable_robots_meta'])
+
+
 if __name__=='__main__':unittest.main()
