@@ -205,7 +205,8 @@ def inspect_html(body: str, requested_url: str | None = None) -> dict[str, Any]:
 
 
 def inspect_seo_response(status_code: int | None, content_type: str, body: str,
-                         requested_url: str | None = None) -> dict[str, Any]:
+                         requested_url: str | None = None,
+                         x_robots_tags: list[str] | None = None) -> dict[str, Any]:
     """Only score metadata after a successful HTML response."""
     if status_code != 200:
         return {'eligible': False, 'reason': f'http_status_{status_code}', 'checks': {},
@@ -214,6 +215,16 @@ def inspect_seo_response(status_code: int | None, content_type: str, body: str,
         return {'eligible': False, 'reason': 'non_html_response', 'checks': {},
                 'missing': ['html_response']}
     result = inspect_html(body, requested_url=requested_url)
+    # Inspect each public header, including duplicates and bot-scoped values.
+    # A later 'index' directive cannot cancel a previous 'noindex'.
+    header_noindex = any(
+        directive.strip().lower().split(':', 1)[-1].strip().split()[0] in ('noindex', 'none')
+        for value in (x_robots_tags or [])
+        for directive in value.split(',')
+        if directive.strip() and directive.strip().lower().split(':', 1)[-1].strip()
+    )
+    result['checks']['indexable_x_robots_tag'] = not header_noindex
+    result['missing'] = [key for key, passed in result['checks'].items() if not passed]
     result['eligible'] = True
     result['reason'] = None
     return result
@@ -243,6 +254,7 @@ def public_get(url: str) -> dict[str, Any]:
                 body = response.read(1048576).decode('utf-8', 'replace')
                 return {'url': original, 'final_url': url, 'started_at': started, 'finished_at': stamp(),
                     'status_code': response.code, 'content_type': response.headers.get('Content-Type', ''),
+                    'x_robots_tags': response.headers.get_all('X-Robots-Tag', []),
                     'seconds': round(time.monotonic()-timer, 3), 'body_sha256': hashlib.sha256(body.encode()).hexdigest(), 'body': body}
         except (OSError, urllib.error.URLError) as error:
             return {'url': original, 'started_at': started, 'finished_at': stamp(), 'error_type': type(error).__name__, 'status_code': None}
@@ -299,7 +311,8 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
                 if measurement.get('status_code') is None: result['status'] = 'measurement_failed'
                 if job['lane'] == 'seo':
                     result['seo'] = inspect_seo_response(measurement.get('status_code'), measurement.get('content_type', ''), body,
-                                                         requested_url=target['url'])
+                                                         requested_url=target['url'],
+                                                         x_robots_tags=measurement.get('x_robots_tags', []))
             else:
                 result.update(status='measurement_failed', reason='network_not_requested')
             result['finished_at'] = stamp(); queue.finish(ident, token, result)
