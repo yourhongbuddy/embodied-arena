@@ -80,6 +80,17 @@ class DailySourceIntakeTests(unittest.TestCase):
         self.assertIn("at least three experts", row["finding"])
         self.assertIn("non-ranking diagnostic", row["hilo_adaptation"])
 
+    def test_layered_monitoring_primary_publication_date_corrected(self):
+        intake = json.loads((h.ROOT / "config/hilo-source-intake-20261030.json").read_text(encoding="utf-8"))
+        row = next(item for item in intake["candidates"]
+                   if item["id"] == "openai-frontier-misalignment-layered-monitoring-20261028")
+        self.assertEqual(row["published_on"], "2026-10-29")
+        self.assertEqual(row["retrieved_on"], "2026-10-30")
+        self.assertIn("2026-11-02", row["provenance_correction"])
+        self.assertEqual(row["admission_status"], "proposed")
+        self.assertFalse(row["consumed_by_workers"])
+        self.assertFalse(intake["automatic_promotion"])
+
     def test_prior_rle_bench_intake_remains_staged(self):
         prior = json.loads((h.ROOT / "config/hilo-source-intake-20260923.json").read_text(encoding="utf-8"))
         row = next(item for item in prior["candidates"] if item["id"] == "rle-bench-robot-learning-engineers")
