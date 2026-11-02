@@ -159,12 +159,20 @@ class Queue:
 
 class PageFacts(HTMLParser):
     def __init__(self):
-        super().__init__(); self.title_open = False; self.title = ''; self.meta = {}; self.canonical = None; self.canonical_count = 0; self.h1 = 0
+        super().__init__(); self.title_open = False; self.title = ''; self.meta = {}; self.canonical = None; self.canonical_count = 0; self.h1 = 0; self.robots_noindex = False
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == 'title': self.title_open = True
         if tag == 'h1': self.h1 += 1
-        if tag == 'meta': self.meta[a.get('name', a.get('property', ''))] = a.get('content', '')
+        if tag == 'meta':
+            name = (a.get('name') or a.get('property') or '').lower()
+            content = a.get('content') or ''
+            self.meta[name] = content
+            # A successful HTML response can still explicitly request exclusion.
+            # Retain a prior noindex when a later duplicate meta tag says index.
+            if name in ('robots', 'googlebot', 'bingbot'):
+                directives = content.lower().replace(',', ' ').split()
+                self.robots_noindex |= any(item in ('noindex', 'none') for item in directives)
         if tag == 'link' and 'canonical' in (a.get('rel') or '').lower().split():
             self.canonical_count += 1
             self.canonical = a.get('href')
@@ -181,7 +189,8 @@ def inspect_html(body: str, requested_url: str | None = None) -> dict[str, Any]:
                                          and urllib.parse.urlsplit(p.canonical).netloc == 'getrobotrouter.com'),
         'open_graph': all(p.meta.get(k) for k in ('og:title', 'og:description', 'og:image')),
         'social_card': p.meta.get('twitter:card') == 'summary_large_image', 'one_h1': p.h1 == 1,
-        'single_canonical': p.canonical_count == 1}
+        'single_canonical': p.canonical_count == 1,
+        'indexable_robots_meta': not p.robots_noindex}
     if requested_url is not None:
         # Checking the origin alone misses a canonical that wrongly points to a
         # different WANTED page (or carries tracking parameters).
