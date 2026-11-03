@@ -9,6 +9,8 @@ on:
       - 'tools/test_hilo_growth.py'
       - 'tools/hilo_synthetic_preflight.py'
       - 'tools/test_hilo_synthetic_preflight.py'
+      - 'tools/hilo_browser_links.py'
+      - 'tools/test_hilo_browser_links.py'
       - 'tools/hilo_synthetic_fixture.json'
       - 'config/hilo-growth.json'
       - 'docs/HILO-GROWTH*.md'
@@ -43,6 +45,8 @@ jobs:
         run: |
           python3 -m unittest discover -s tools -p 'test_hilo_synthetic_preflight.py' -v
           python3 tools/hilo_synthetic_preflight.py tools/hilo_synthetic_fixture.json
+      - name: Test read-only browser link inventory
+        run: python3 -m unittest discover -s tools -p 'test_hilo_browser_links.py' -v
       - name: Execute bounded read-only audits, not paid model agents
         run: python3 tools/hilo_growth.py run --online --cycle "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
       - name: Render static developer page without a web service
@@ -53,6 +57,24 @@ jobs:
             timeout 30 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --window-size=1440,1100 --screenshot="$PWD/artifacts/hilo-growth/developer-preview.png" "file://$PWD/public/hilo/developers.html"
           else
             printf 'Browser unavailable; visual test not performed.\n' > artifacts/hilo-growth/browser-status.txt
+          fi
+      - name: Independently render public WANTED and inventory known link statuses
+        shell: bash
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts/hilo-growth
+          chrome="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$chrome" ]; then
+            printf 'public_browser_unavailable\n' > artifacts/hilo-growth/public-browser-status.txt
+          elif timeout 35 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --disable-extensions --window-size=1440,1100 --virtual-time-budget=5000 --dump-dom "https://getrobotrouter.com/wanted-10k" > artifacts/hilo-growth/public-wanted-dom.html 2> artifacts/hilo-growth/public-browser-stderr.txt; then
+            if grep -q 'WANTED' artifacts/hilo-growth/public-wanted-dom.html; then
+              printf 'public_browser_DOM_observed_no_asset_success_claim\n' > artifacts/hilo-growth/public-browser-status.txt
+              python3 tools/hilo_browser_links.py --html artifacts/hilo-growth/public-wanted-dom.html --report artifacts/hilo-growth/report.json --output artifacts/hilo-growth/public-browser-links.json
+            else
+              printf 'public_browser_DOM_does_not_establish_WANTED_render\n' > artifacts/hilo-growth/public-browser-status.txt
+            fi
+          else
+            printf 'public_browser_render_failed_not_global_outage_evidence\n' > artifacts/hilo-growth/public-browser-status.txt
           fi
       - name: Preserve actual evidence and source bundle
         if: always()
