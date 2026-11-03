@@ -255,6 +255,15 @@ def public_get(url: str) -> dict[str, Any]:
                 return {'url': original, 'final_url': url, 'started_at': started, 'finished_at': stamp(),
                     'status_code': response.code, 'content_type': response.headers.get('Content-Type', ''),
                     'x_robots_tags': response.headers.get_all('X-Robots-Tag', []),
+                    # Public, allowlisted diagnostic headers only. Never store cookies,
+                    # authorization, request IDs, or unsanitized response headers.
+                    'origin_headers': {key: response.headers.get(header)
+                        for key, header in (
+                            ('server', 'Server'), ('etag', 'ETag'),
+                            ('last_modified', 'Last-Modified'),
+                            ('cache_control', 'Cache-Control'),
+                            ('x_do_app_id', 'X-DO-App-ID'),
+                            ('x_powered_by', 'X-Powered-By')) if response.headers.get(header)},
                     'seconds': round(time.monotonic()-timer, 3), 'body_sha256': hashlib.sha256(body.encode()).hexdigest(), 'body': body}
         except (OSError, urllib.error.URLError) as error:
             return {'url': original, 'started_at': started, 'finished_at': stamp(), 'error_type': type(error).__name__, 'status_code': None}
@@ -280,6 +289,14 @@ def compare_route_baselines(config: dict[str, Any], cached: dict[str, dict[str, 
         body_equal = (public['body_sha256'] == baseline['body_sha256']) if body_comparable else None
         checks.append({'id': row['id'], 'public_url': row['public_url'], 'baseline_url': row['baseline_url'],
             'public_status': pstatus, 'baseline_status': bstatus,
+            'public_final_url': public.get('final_url'), 'baseline_final_url': baseline.get('final_url'),
+            'public_origin_headers': public.get('origin_headers', {}),
+            'baseline_origin_headers': baseline.get('origin_headers', {}),
+            # A header mismatch is evidence of different responses, not proof
+            # of a particular deployment, CDN, or DNS root cause.
+            'origin_header_differences': sorted(key for key in
+                set(public.get('origin_headers', {})) | set(baseline.get('origin_headers', {}))
+                if public.get('origin_headers', {}).get(key) != baseline.get('origin_headers', {}).get(key)),
             'comparable': pstatus is not None and bstatus is not None,
             'status_mismatch': pstatus is not None and bstatus is not None and pstatus != bstatus,
             'body_comparable': body_comparable, 'body_sha256_equal': body_equal,
