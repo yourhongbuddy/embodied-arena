@@ -284,6 +284,8 @@ class GrowthTests(unittest.TestCase):
                 self.headers.add_header('Content-Type', 'text/html')
                 self.headers.add_header('X-Robots-Tag', 'index')
                 self.headers.add_header('X-Robots-Tag', 'googlebot: noindex')
+                self.headers.add_header('Server', 'unit-test-site')
+                self.headers.add_header('X-DO-App-ID', 'test-public-app')
             def __enter__(self): return self
             def __exit__(self, *args): return False
             def read(self, limit): return b'<title>SDK</title><h1>SDK</h1>'
@@ -291,6 +293,9 @@ class GrowthTests(unittest.TestCase):
             build_opener.return_value.open.return_value = Response()
             observed = h.public_get('https://getrobotrouter.com/wanted-10k/sdk')
         self.assertEqual(observed['x_robots_tags'], ['index', 'googlebot: noindex'])
+        self.assertEqual(observed['origin_headers']['server'], 'unit-test-site')
+        self.assertEqual(observed['origin_headers']['x_do_app_id'], 'test-public-app')
+        self.assertNotIn('authorization', observed['origin_headers'])
         result = h.inspect_seo_response(observed['status_code'],
                                         observed['content_type'], observed['body'],
                                         x_robots_tags=observed['x_robots_tags'])
@@ -316,6 +321,38 @@ class GrowthTests(unittest.TestCase):
         allowed = ('<meta name="robots" content="index, follow">'
                    '<title>HILO</title><h1>HILO</h1>')
         self.assertTrue(h.inspect_html(allowed)['checks']['indexable_robots_meta'])
+
+
+    def test_route_baseline_evidence_preserves_public_origin_fingerprints(self):
+        row = self.config['route_baselines'][0]
+        public, baseline = row['public_url'], row['baseline_url']
+        cached = {
+            public: {'status_code': 200, 'body_sha256': 'a',
+                     'final_url': public, 'origin_headers': {'server': 'public-edge', 'etag': 'aaa'}},
+            baseline: {'status_code': 200, 'body_sha256': 'b',
+                       'final_url': baseline, 'origin_headers': {'server': 'origin-web', 'etag': 'bbb'}},
+        }
+        check = h.compare_route_baselines({'route_baselines': [row]}, cached)[0]
+        self.assertEqual(check['public_final_url'], public)
+        self.assertEqual(check['baseline_final_url'], baseline)
+        self.assertEqual(check['public_origin_headers']['server'], 'public-edge')
+        self.assertEqual(check['baseline_origin_headers']['server'], 'origin-web')
+        self.assertEqual(check['origin_header_differences'], ['etag', 'server'])
+        self.assertTrue(check['body_mismatch'])
+        # Metadata differences do not assert a deployment root cause or an outage.
+        self.assertFalse(check['status_mismatch'])
+
+    def test_route_baseline_missing_headers_are_not_invented(self):
+        row = self.config['route_baselines'][0]
+        cached = {row['public_url']: {'status_code': 404},
+                  row['baseline_url']: {'status_code': 200}}
+        check = h.compare_route_baselines({'route_baselines': [row]}, cached)[0]
+        self.assertEqual(check['public_origin_headers'], {})
+        self.assertEqual(check['baseline_origin_headers'], {})
+        self.assertEqual(check['origin_header_differences'], [])
+        self.assertTrue(check['status_mismatch'])
+        self.assertFalse(check['body_mismatch'])
+
 
 
 if __name__=='__main__':unittest.main()
