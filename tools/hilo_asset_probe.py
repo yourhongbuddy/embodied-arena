@@ -73,7 +73,10 @@ def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_ASSETS
                  else "measurement_failed" if status is None
                  else "http_other")
         rows.append({"path": path, "status": status, "result": state})
+    counts = {kind: sum(row["result"] == kind for row in rows)
+              for kind in ("http_success", "http_missing", "http_other", "measurement_failed")}
     return {"vantage": "bounded_public_static_asset_GET",
+            "result_counts": counts,
             "not_a_full_crawl": True, "no_scripts_executed": True,
             "fixed_origin": HOST, "limit": limit,
             "eligible_static_assets": len(paths),
@@ -92,7 +95,8 @@ def main() -> None:
                               limit=args.limit)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-    print(f"static_assets_probed={summary['probed']} confirmed_missing={len(summary['confirmed_missing'])}")
+    print("static_assets_probed={} {}".format(summary["probed"],
+          " ".join(f"{kind}={count}" for kind, count in summary["result_counts"].items())))
 
 
 if __name__ == "__main__":
