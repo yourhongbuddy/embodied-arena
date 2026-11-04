@@ -52,7 +52,9 @@ class DailySourceIntakeTests(unittest.TestCase):
                 self.assertTrue(row.get("finding"))
                 self.assertTrue(row.get("hilo_adaptation"))
                 if row["publisher"] == "OpenAI":
-                    self.assertIn(parsed.hostname, h.ALLOWED_HOSTS)
+                    self.assertIn(parsed.hostname, h.ALLOWED_HOSTS | {"alignment.openai.com"})
+                    # The extra official blog host is approved for *staging* only;
+                    # worker manifest admission still uses h.ALLOWED_HOSTS.
                     self.assertEqual(row["admission_target"], "worker_sources")
                     self.assertEqual(row["evidence_class"], "public_primary_source")
                 else:
@@ -108,6 +110,22 @@ class DailySourceIntakeTests(unittest.TestCase):
         self.assertIn("independent", row["finding"].lower())
         self.assertIn("not a certification", row["hilo_adaptation"])
 
+
+
+    def test_november_eval_transfer_and_lifeval_remain_unconsumed(self):
+        intake = json.loads((h.ROOT / "config/hilo-source-intake-20261104.json").read_text(encoding="utf-8"))
+        self.assertFalse(intake["automatic_promotion"])
+        self.assertEqual(intake["review_date"], "2026-11-04")
+        self.assertEqual({row["id"] for row in intake["candidates"]}, {
+            "openai-alignment-eval-production-gap-20261103",
+            "openai-lifeval-everyday-task-priorities-20261102"})
+        for row in intake["candidates"]:
+            self.assertEqual(row["admission_status"], "proposed")
+            self.assertFalse(row["consumed_by_workers"])
+            self.assertEqual(row["rights_scope"], "method_reference_only")
+            self.assertEqual(row["admission_target"], "worker_sources")
+        self.assertIn("predecision", intake["candidates"][0]["hilo_adaptation"])
+        self.assertIn("WANTED scoring", intake["candidates"][1]["hilo_adaptation"])
 
 
 if __name__ == "__main__":
