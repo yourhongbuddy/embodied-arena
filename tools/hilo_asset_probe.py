@@ -16,7 +16,7 @@ import urllib.request
 HOST = "https://getrobotrouter.com"
 MAX_ASSETS = 20
 # Exclude dynamic image optimizers, query-dependent and arbitrary app routes.
-STATIC = re.compile(r"^/(?:_next/static/|static/|assets/|images/|favicon(?:\\.[a-z0-9]+)?$)")
+STATIC = re.compile(r"^/(?:_next/static/|static/|assets/|images/|favicon(?:\.[a-z0-9]+)?$)")
 SAFE_PATH = re.compile(r"^/[A-Za-z0-9_./-]+$")
 
 
@@ -91,7 +91,7 @@ def main() -> None:
     summary = probe_inventory(json.loads(args.inventory.read_text(encoding="utf-8")),
                               limit=args.limit)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(summary, indent=2) + "\\n", encoding="utf-8")
+    args.output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(f"static_assets_probed={summary['probed']} confirmed_missing={len(summary['confirmed_missing'])}")
 
 
