@@ -24,6 +24,8 @@ class AssetProbeTests(unittest.TestCase):
         self.assertEqual(result["confirmed_missing"], ["/_next/static/no.js"])
         self.assertEqual(sum(x["result"] == "http_other" for x in result["results"]), 2)
         self.assertEqual(sum(x["result"] == "measurement_failed" for x in result["results"]), 1)
+        self.assertEqual(result["result_counts"], {"http_success": 1, "http_missing": 1,
+                                                  "http_other": 2, "measurement_failed": 1})
 
     def test_reject_arbitrary_dynamic_and_sensitive_urls(self):
         excluded = ["/_next/image", "/api/private", "/_next/static/../secret",
