@@ -11,6 +11,8 @@ on:
       - 'tools/test_hilo_synthetic_preflight.py'
       - 'tools/hilo_browser_links.py'
       - 'tools/test_hilo_browser_links.py'
+      - 'tools/hilo_asset_probe.py'
+      - 'tools/test_hilo_asset_probe.py'
       - 'tools/hilo_synthetic_fixture.json'
       - 'config/hilo-growth.json'
       - 'docs/HILO-GROWTH*.md'
@@ -47,6 +49,8 @@ jobs:
           python3 tools/hilo_synthetic_preflight.py tools/hilo_synthetic_fixture.json
       - name: Test read-only browser link inventory
         run: python3 -m unittest discover -s tools -p 'test_hilo_browser_links.py' -v
+      - name: Test bounded public static-asset checks
+        run: python3 -m unittest discover -s tools -p 'test_hilo_asset_probe.py' -v
       - name: Execute bounded read-only audits, not paid model agents
         run: python3 tools/hilo_growth.py run --online --cycle "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
       - name: Render static developer page without a web service
@@ -70,6 +74,7 @@ jobs:
             if grep -q 'WANTED' artifacts/hilo-growth/public-wanted-dom.html; then
               printf 'public_browser_DOM_observed_no_asset_success_claim\n' > artifacts/hilo-growth/public-browser-status.txt
               python3 tools/hilo_browser_links.py --html artifacts/hilo-growth/public-wanted-dom.html --report artifacts/hilo-growth/report.json --output artifacts/hilo-growth/public-browser-links.json
+              python3 tools/hilo_asset_probe.py --inventory artifacts/hilo-growth/public-browser-links.json --output artifacts/hilo-growth/public-static-assets.json
             else
               printf 'public_browser_DOM_does_not_establish_WANTED_render\n' > artifacts/hilo-growth/public-browser-status.txt
             fi
