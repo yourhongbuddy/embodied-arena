@@ -16,7 +16,7 @@ python tools/hilo_growth.py plan
 python tools/hilo_growth.py run --online --cycle 2026-09-22
 ```
 
-`--online` performs bounded GET requests only to fixed public project hosts and a control domain. It does not crawl stores, authenticate or post. Store evidence is a dated source inventory; only an actual research pass can refresh it. A network failure is a failed measurement, not automatic proof the site is down. SQLite and raw execution artifacts stay in an operator-controlled artifact directory, not the public repository. One cycle is bound to one manifest. Reconcile stranded running jobs; never auto-replay an uncertain external write.
+`--online` performs bounded GET requests only to fixed public project hosts and a control domain. It also compares a small reviewed set of custom-domain routes against the DigitalOcean origin and records status drift without changing routing. It does not crawl stores, authenticate or post. Store evidence is a dated source inventory; only an actual research pass can refresh it. A network failure is a failed measurement, not automatic proof the site is down. SQLite and raw execution artifacts stay in an operator-controlled artifact directory, not the public repository. One cycle is bound to one manifest. Reconcile stranded running jobs; never auto-replay an uncertain external write.
 
 ## Repair and SEO priorities
 
@@ -29,6 +29,10 @@ Stabilize canonical origin to `https://getrobotrouter.com`, add a sitemap, prese
 The registry distinguishes ChatGPT/Codex plugins, legacy GPTs, portable skills, a repository-hosted Claude marketplace, MCP registries, Rebind packages, demos and communities. Each venue gets an appropriate artifact, not the same promotional link. The plugin package is skills-only and does not claim that the existing MCP endpoint passes every client's protocol requirements. Provider-specific schema/install tests and publisher identity, license, privacy/terms/support review remain required before public-store submission.
 
 OpenAI's checked September 22 guidance says personal accounts cannot create/publish new GPTs and provides a plugin submission route. Skills.sh documents discovery through genuine installations. Rebind's publishing guide requires a real script package, a signed-in app and publishing access; a website is not such a package. Show HN requires a substantial usable artifact. The official MCP registry requires publisher authentication and compliant server metadata. These are researched candidates, not submissions or affiliations.
+
+### OpenAI packaging state
+
+The portable plugins/hilo-benchmark/plugin.json may include extensions.com.openai.interface presentation metadata while remaining skills-only. Do not add privacy-policy, terms-of-service, support, logo, capability, or publisher assertions unless their URLs/claims are actually approved and verified. Preparing install-surface metadata is not submission, review, approval, publication, installation, or reach.
 
 ## Outreach and inreach
 
