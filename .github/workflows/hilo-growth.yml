@@ -23,6 +23,7 @@ on:
       - '.agents/plugins/marketplace.json'
       - '.claude-plugin/marketplace.json'
       - 'distribution/**'
+      - 'tools/test_hilo_static_demo.py'
       - 'public/hilo/**'
       - 'public/sitemap.xml'
       - 'public/robots.txt'
@@ -55,6 +56,21 @@ jobs:
         run: python3 -m unittest discover -s tools -p 'test_hilo_asset_probe.py' -v
       - name: Test bounded public WANTED documentation-link checks
         run: python3 -m unittest discover -s tools -p 'test_hilo_link_probe.py' -v
+      - name: Test synthetic static demo packaging and evidence bounds
+        run: python3 -m unittest discover -s tools -p 'test_hilo_static_demo.py' -v
+      - name: Smoke-render candidate static demo locally (no network upload)
+        shell: bash
+        run: |
+          mkdir -p artifacts/hilo-growth
+          chrome="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$chrome" ]; then
+            printf 'local_chrome_unavailable\n' > artifacts/hilo-growth/static-demo-browser-status.txt
+          else
+            timeout 30 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --disable-background-networking --dump-dom "file://$PWD/distribution/hf-static-demo/index.html" > artifacts/hilo-growth/static-demo-dom.html 2> artifacts/hilo-growth/static-demo-browser-stderr.txt
+            grep -q "MISMATCH: Declared 0 seconds" artifacts/hilo-growth/static-demo-dom.html
+            grep -q "Verified field hours: 0" artifacts/hilo-growth/static-demo-dom.html
+            printf 'local_static_demo_DOM_rendered; not a public Space\n' > artifacts/hilo-growth/static-demo-browser-status.txt
+          fi
       - name: Execute bounded read-only audits, not paid model agents
         run: python3 tools/hilo_growth.py run --online --cycle "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
       - name: Render static developer page without a web service
