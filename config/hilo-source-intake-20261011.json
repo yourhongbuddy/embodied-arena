@@ -1,0 +1,32 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-11",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "embodied-agent-arena-multicapability-eval",
+      "publisher": "Embodied Agent Arena authors (HKUST Guangzhou / CUHK / Knowin AI)",
+      "title": "Are Frontier VLM Agents Ready to Be Robot Generalists? An Empirical Study with the Embodied Agent Arena",
+      "published_on": "2026-10-01",
+      "retrieved_on": "2026-10-11",
+      "url": "https://github.com/embodied-agent-arena/embodied-agent-arena",
+      "finding": "The authors publish an evaluation harness spanning 1,000 cases from 32 established sources plus GeoProbe, a 168-case geometry suite, across five embodied capabilities. The public repository documents a pinned dataset revision, hash validation, inspectable dry-run planning, checkpoint/resume for evaluation, and offline scoring of saved predictions. The authors' seven-model scores are reported results, not independently reproduced HILO evidence.",
+      "hilo_adaptation": "As an advisory, non-ranking HILO integration-method reference, consider pinned benchmark inputs, deterministic source checks, dry-run plans, checkpointable diagnostics and offline scoring of saved predictions. Preserve each case's provenance and distinguish visual/simulation tests, real robot deployment, and longitudinal human evidence. Do not convert benchmark cases or predicted action labels to verified robot hours, voluntary human keep decisions, field-safety claims or certification.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI October 7 product and safety updates; existing October 6 Ironclad method",
+      "url": "https://openai.com/research/index/",
+      "retrieved_on": "2026-10-11",
+      "reason": "The latest visible OpenAI items are October 7 product/safety releases and October 6 mathematics/Ironclad research. The Ironclad workflow/rubric method is already staged on PR #7; the targeted pass found no distinct robotics demonstrations, preference-labeling, video-data quality, domain-randomization or continuous-evaluation construction method to add today. No exhaustive Stanford, Harvard or Oxford source scan is claimed."
+    }
+  ]
+}
