@@ -127,6 +127,22 @@ class DailySourceIntakeTests(unittest.TestCase):
         self.assertIn("predecision", intake["candidates"][0]["hilo_adaptation"])
         self.assertIn("WANTED scoring", intake["candidates"][1]["hilo_adaptation"])
 
+    def test_november_biobasicsbench_is_method_only_not_robot_evidence(self):
+        intake = json.loads((h.ROOT / "config/hilo-source-intake-20261107.json").read_text(encoding="utf-8"))
+        self.assertFalse(intake["automatic_promotion"])
+        self.assertEqual(len(intake["candidates"]), 1)
+        source = intake["candidates"][0]
+        self.assertEqual(source["published_on"], "2026-11-06")
+        self.assertEqual(source["retrieved_on"], "2026-11-07")
+        self.assertEqual(source["admission_status"], "proposed")
+        self.assertFalse(source["consumed_by_workers"])
+        self.assertEqual(source["rights_scope"], "method_reference_only")
+        self.assertIn("whole deployment/environment units", source["hilo_adaptation"])
+        self.assertIn("100 worker jobs", source["hilo_adaptation"])
+        self.assertIn("human", source["hilo_adaptation"])
+        self.assertEqual(len(h.make_plan(h.load_manifest(self.manifest_path))["jobs"]), 100)
+
+
 
 if __name__ == "__main__":
     unittest.main()
