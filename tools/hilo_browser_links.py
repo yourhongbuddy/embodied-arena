@@ -35,13 +35,20 @@ class References(HTMLParser):
 
 
 def public_path(raw: str, base: str) -> str | None:
-    u = urlsplit(urljoin(base, raw))
-    if u.scheme != "https" or u.hostname != PUBLIC_HOST or u.port not in (None, 443):
+    # Untrusted rendered DOM attributes can contain broken bracketed hosts or
+    # invalid ports. One malformed href must not abort the entire site audit.
+    if not isinstance(raw, str):
         return None
-    if u.username or u.password:
+    try:
+        u = urlsplit(urljoin(base, raw))
+        if u.scheme != "https" or u.hostname != PUBLIC_HOST or u.port not in (None, 443):
+            return None
+        if u.username or u.password:
+            return None
+        # Deliberately omit query strings and fragments from evidence artifacts.
+        return u.path or "/"
+    except ValueError:
         return None
-    # Deliberately omit query strings and fragments from evidence artifacts.
-    return u.path or "/"
 
 
 def summarize(html: str, report: dict, base: str = BASE) -> dict:
