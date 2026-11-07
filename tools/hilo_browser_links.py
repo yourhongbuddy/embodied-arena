@@ -81,7 +81,7 @@ def summarize(html: str, report: dict, base: str = BASE) -> dict:
         "same_origin_links": links,
         "same_origin_assets": assets,
         "broken_link_paths_confirmed_by_existing_probes": sorted(
-            {row["path"] for row in links if row["http_status_from_existing_probe"] == 404}),
+            {row["path"] for row in links if row["http_status_from_existing_probe"] in (404, 410)}),
         "unverified_link_count": sum(not x["checked"] for x in links),
         "unverified_asset_count": sum(not x["checked"] for x in assets),
     }
