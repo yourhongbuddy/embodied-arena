@@ -47,6 +47,25 @@ class BrowserLinkTests(unittest.TestCase):
                                      "https://getrobotrouter.com/wanted-10k"),
                          "/wanted-10k/sdk")
 
+    def test_malformed_public_href_does_not_abort_inventory(self):
+        malformed = ("https://[invalid/a", "https://getrobotrouter.com:invalid/a",
+                     "https://getrobotrouter.com:999999/a", "//[::1")
+        for ref in malformed:
+            with self.subTest(ref=ref):
+                self.assertIsNone(public_path(ref, "https://getrobotrouter.com/wanted-10k"))
+        self.assertIsNone(public_path(None, "https://getrobotrouter.com/wanted-10k"))
+        page = ('<a href="https://[invalid/a">Broken URL</a>'
+                '<a href="https://getrobotrouter.com:invalid/a">Bad port</a>'
+                '<a href="/wanted-10k/protocol?secret=discard">Protocol</a>'
+                '<script src="https://getrobotrouter.com:999999/static/app.js"></script>')
+        observed = summarize(page, {"records": []})
+        self.assertEqual([r["path"] for r in observed["same_origin_links"]],
+                         ["/wanted-10k/protocol"])
+        self.assertEqual(observed["same_origin_assets"], [])
+        self.assertNotIn("secret", str(observed))
+        self.assertEqual(observed["unverified_link_count"], 1)
+
+
 
 if __name__ == "__main__":
     unittest.main()
