@@ -28,6 +28,21 @@ class BrowserLinkTests(unittest.TestCase):
         self.assertNotIn("external.example", str(result))
         self.assertNotIn("person@example.com", str(result))
 
+    def test_gone_410_is_confirmed_broken_but_403_is_not(self):
+        page = ('<a href="/wanted-10k/gone">Gone</a>'
+                '<a href="/wanted-10k/forbidden">Forbidden</a>')
+        report = {"records": [
+            {"result": {"measurement": {"url": "https://getrobotrouter.com/wanted-10k/gone",
+                                        "status_code": 410}}},
+            {"result": {"measurement": {"url": "https://getrobotrouter.com/wanted-10k/forbidden",
+                                        "status_code": 403}}},
+        ]}
+        result = summarize(page, report)
+        self.assertEqual(result["broken_link_paths_confirmed_by_existing_probes"],
+                         ["/wanted-10k/gone"])
+        self.assertEqual(result["unverified_link_count"], 0)
+        self.assertTrue(all(x["checked"] for x in result["same_origin_links"]))
+
     def test_unprobed_and_failed_measurements_are_not_broken_link_proof(self):
         page = '<a href="/wanted-10k/missing">Missing?</a>'
         report = {"records": [
