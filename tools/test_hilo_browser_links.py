@@ -22,11 +22,44 @@ class BrowserLinkTests(unittest.TestCase):
         self.assertEqual(result["broken_link_paths_confirmed_by_existing_probes"],
                          ["/wanted-10k/data-engine.html"])
         self.assertEqual(result["unverified_asset_count"], 3)
-        self.assertEqual(result["unverified_link_count"], 0)
+        # The SDK href contains a query: a queryless route probe cannot verify it.
+        self.assertEqual(result["unverified_link_count"], 1)
         self.assertTrue(result["not_a_full_crawl"])
         self.assertNotIn("secret", str(result))
         self.assertNotIn("external.example", str(result))
         self.assertNotIn("person@example.com", str(result))
+
+
+    def test_query_bearing_link_is_not_falsely_verified_by_queryless_probe(self):
+        page = ('<a href="/wanted-10k/sdk?token=do-not-save">Parameterized SDK</a>'
+                '<a href="/wanted-10k/gone?mode=preview">Parameterized Gone</a>'
+                '<a href="/wanted-10k/protocol#rules">Plain protocol</a>'
+                '<a href="/wanted-10k/protocol?tracking=omit">Query variant</a>')
+        report = {"records": [
+            {"result": {"measurement": {"url": "https://getrobotrouter.com/wanted-10k/sdk",
+                                        "status_code": 200}}},
+            {"result": {"measurement": {"url": "https://getrobotrouter.com/wanted-10k/gone",
+                                        "status_code": 404}}},
+            {"result": {"measurement": {"url": "https://getrobotrouter.com/wanted-10k/protocol",
+                                        "status_code": 200}}},
+        ]}
+        result = summarize(page, report)
+        self.assertEqual(result["unverified_link_count"], 3)
+        self.assertEqual(result["broken_link_paths_confirmed_by_existing_probes"], [])
+        self.assertTrue(all(row["query_variant_unverified"]
+                            for row in result["same_origin_links"]))
+        self.assertNotIn("do-not-save", str(result))
+        self.assertNotIn("tracking=omit", str(result))
+
+    def test_fragment_only_link_matches_path_probe(self):
+        page = '<a href="/wanted-10k/protocol#rules">Protocol</a>'
+        report = {"records": [{"result": {"measurement": {
+            "url": "https://getrobotrouter.com/wanted-10k/protocol",
+            "status_code": 200}}}]}
+        result = summarize(page, report)
+        self.assertEqual(result["unverified_link_count"], 0)
+        self.assertTrue(result["same_origin_links"][0]["checked"])
+        self.assertFalse(result["same_origin_links"][0]["query_variant_unverified"])
 
     def test_gone_410_is_confirmed_broken_but_403_is_not(self):
         page = ('<a href="/wanted-10k/gone">Gone</a>'
