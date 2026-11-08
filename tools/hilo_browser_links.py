@@ -65,12 +65,26 @@ def summarize(html: str, report: dict, base: str = BASE) -> dict:
                 statuses[path.rstrip("/") or "/"] = observed["status_code"]
 
     def classify(refs):
-        paths = sorted({path for raw in refs if (path := public_path(raw, base))})
+        # A path-only GET does not establish the status of an href with a
+        # query string. Never retain query values (which might contain tokens).
+        # If both plain and query-bearing variants occur, mark the aggregated
+        # path unverified rather than claiming every variant was checked.
+        paths = {}
+        for raw in refs:
+            path = public_path(raw, base)
+            if path is None:
+                continue
+            try:
+                has_query = bool(urlsplit(urljoin(base, raw)).query)
+            except ValueError:
+                continue
+            paths[path] = paths.get(path, False) or has_query
         rows = []
-        for path in paths:
-            status = statuses.get(path.rstrip("/") or "/")
+        for path, query_variant in sorted(paths.items()):
+            status = None if query_variant else statuses.get(path.rstrip("/") or "/")
             rows.append({"path": path, "http_status_from_existing_probe": status,
-                         "checked": status is not None})
+                         "checked": status is not None,
+                         "query_variant_unverified": query_variant})
         return rows
 
     links, assets = classify(parsed.links), classify(parsed.assets)
