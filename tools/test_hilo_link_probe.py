@@ -36,6 +36,27 @@ class DocLinkProbeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe_inventory({"same_origin_links": items}, limit=17)
 
+    def test_query_bearing_inventory_links_are_not_measured_as_queryless_urls(self):
+        # The DOM inventory redacts query values. A path-only GET is not proof
+        # about a URL whose behavior can depend on its omitted query string.
+        inventory = {"same_origin_links": [
+            {"path": "/wanted-10k/parameterized", "checked": False,
+             "http_status_from_existing_probe": None,
+             "query_variant_unverified": True},
+            {"path": "/wanted-10k/plain", "checked": False,
+             "http_status_from_existing_probe": None,
+             "query_variant_unverified": False},
+            {"path": "/wanted-10k/mixed", "checked": False,
+             "http_status_from_existing_probe": None,
+             "query_variant_unverified": True},
+        ]}
+        called = []
+        report = probe_inventory(inventory, fetch=lambda path: called.append(path) or 200)
+        self.assertEqual(called, ["/wanted-10k/plain"])
+        self.assertEqual(report["probed"], 1)
+        self.assertEqual(report["confirmed_missing"], [])
+        self.assertNotIn("parameterized", str(report))
+
     def test_missing_is_not_confused_with_redirect_or_network_failure(self):
         statuses = {"/wanted-10k/a": 206, "/wanted-10k/b": 404,
                     "/wanted-10k/c": 410, "/wanted-10k/d": 302,
