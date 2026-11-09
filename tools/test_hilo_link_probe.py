@@ -57,6 +57,27 @@ class DocLinkProbeTests(unittest.TestCase):
         self.assertEqual(report["confirmed_missing"], [])
         self.assertNotIn("parameterized", str(report))
 
+    def test_offset_checks_remaining_docs_without_replaying_first_batch(self):
+        inventory = {"same_origin_links": [
+            {"path": f"/wanted-10k/doc-{i:02}", "checked": False,
+             "http_status_from_existing_probe": None}
+            for i in range(28)
+        ]}
+        seen = []
+        first = probe_inventory(inventory, fetch=lambda p: seen.append(p) or 200)
+        second = probe_inventory(inventory, fetch=lambda p: seen.append(p) or 200,
+                                 offset=16)
+        self.assertEqual(first["probed"], 16)
+        self.assertEqual(second["probed"], 12)
+        self.assertEqual(second["offset"], 16)
+        self.assertEqual(second["unprobed_eligible"], 16)
+        self.assertEqual(len(seen), 28)
+        self.assertEqual(len(set(seen)), 28)
+        self.assertEqual(first["result_counts"]["http_success"], 16)
+        self.assertEqual(second["result_counts"]["http_success"], 12)
+        with self.assertRaises(ValueError):
+            probe_inventory(inventory, offset=-1, fetch=lambda _: 200)
+
     def test_missing_is_not_confused_with_redirect_or_network_failure(self):
         statuses = {"/wanted-10k/a": 206, "/wanted-10k/b": 404,
                     "/wanted-10k/c": 410, "/wanted-10k/d": 302,
