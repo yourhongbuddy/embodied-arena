@@ -47,9 +47,12 @@ def fetch_status(path: str) -> int | None:
         return None
 
 
-def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_LINKS) -> dict:
+def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_LINKS,
+                    offset: int = 0) -> dict:
     if not 0 <= limit <= MAX_LINKS:
         raise ValueError("Link probe limit must be between 0 and 16")
+    if not isinstance(offset, int) or offset < 0:
+        raise ValueError("Link probe offset must be a non-negative integer")
     raw = inventory.get("same_origin_links")
     if not isinstance(raw, list):
         raise ValueError("Browser link inventory must be a list")
@@ -62,7 +65,7 @@ def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_LINKS)
                     # queryless GET cannot validate a query-bearing variant.
                     and row.get("query_variant_unverified") is not True})
     rows = []
-    for path in paths[:limit]:
+    for path in paths[offset:offset + limit]:
         try:
             status = fetch(path)
         except (OSError, urllib.error.URLError):
@@ -74,7 +77,8 @@ def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_LINKS)
         rows.append({"path": path, "status": status, "result": result})
     kinds = ("http_success", "http_missing", "http_other", "measurement_failed")
     return {"vantage": "bounded_public_WANTED_doc_GET",
-            "fixed_origin": HOST, "limit": limit, "probed": len(rows),
+            "fixed_origin": HOST, "limit": limit, "offset": offset,
+            "probed": len(rows),
             "eligible_unverified": len(paths),
             "unprobed_eligible": len(paths)-len(rows),
             "not_a_full_crawl": True, "redirects_followed": False,
@@ -89,9 +93,10 @@ def main() -> None:
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=MAX_LINKS)
+    parser.add_argument("--offset", type=int, default=0)
     args = parser.parse_args()
     summary = probe_inventory(json.loads(args.inventory.read_text(encoding="utf-8")),
-                              limit=args.limit)
+                              limit=args.limit, offset=args.offset)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print("doc_links_probed={} {}".format(summary["probed"],
