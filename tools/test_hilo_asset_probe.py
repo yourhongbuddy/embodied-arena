@@ -15,6 +15,22 @@ class AssetProbeTests(unittest.TestCase):
         self.assertEqual(result["unprobed_eligible"], 1)
         self.assertFalse(result["confirmed_missing"])
 
+    def test_query_dependent_asset_is_not_misverified_by_stripped_path(self):
+        # Browser-link inventory deliberately retains only sanitized paths.
+        # Query-bearing and mixed variants require their own URL evidence.
+        inventory = {"same_origin_assets": [
+            {"path": "/_next/static/query.js", "query_variant_unverified": True},
+            {"path": "/_next/static/mixed.css", "query_variant_unverified": True},
+            {"path": "/_next/static/plain.js", "query_variant_unverified": False},
+        ]}
+        requested = []
+        result = probe_inventory(inventory,
+                                 fetch=lambda path: requested.append(path) or 200)
+        self.assertEqual(requested, ["/_next/static/plain.js"])
+        self.assertEqual(result["probed"], 1)
+        self.assertEqual(result["result_counts"]["http_success"], 1)
+        self.assertNotIn("query.js", str(result))
+
     def test_http_missing_only_explicit_404_or_410(self):
         statuses = {"/_next/static/ok.js": 206, "/_next/static/no.js": 404,
                     "/_next/static/blocked.js": 403, "/_next/static/moved.js": 302,
