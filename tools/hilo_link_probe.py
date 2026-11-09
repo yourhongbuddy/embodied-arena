@@ -80,7 +80,7 @@ def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_LINKS,
             "fixed_origin": HOST, "limit": limit, "offset": offset,
             "probed": len(rows),
             "eligible_unverified": len(paths),
-            "unprobed_eligible": len(paths)-len(rows),
+            "unprobed_eligible": max(0, len(paths)-offset-len(rows)),
             "not_a_full_crawl": True, "redirects_followed": False,
             "result_counts": {kind: sum(row["result"] == kind for row in rows)
                               for kind in kinds},
