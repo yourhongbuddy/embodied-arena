@@ -59,7 +59,10 @@ def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_ASSETS
     if not isinstance(raw, list):
         raise ValueError("Asset inventory must be a list")
     paths = sorted({row.get("path") for row in raw if isinstance(row, dict)
-                    and allowed_asset_path(row.get("path"))})
+                    and allowed_asset_path(row.get("path"))
+                    # A sanitized asset path is not evidence for a
+                    # query-bearing resource (e.g. versioned/optimized asset).
+                    and row.get("query_variant_unverified") is not True})
     selected = paths[:limit]
     rows = []
     for path in selected:
