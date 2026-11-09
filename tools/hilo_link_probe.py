@@ -57,7 +57,10 @@ def probe_inventory(inventory: dict, fetch=fetch_status, limit: int = MAX_LINKS)
     paths = sorted({row["path"] for row in raw if isinstance(row, dict)
                     and allowed_path(row.get("path"))
                     and row.get("checked") is False
-                    and row.get("http_status_from_existing_probe") is None})
+                    and row.get("http_status_from_existing_probe") is None
+                    # The DOM inventory removes URL queries for privacy. A
+                    # queryless GET cannot validate a query-bearing variant.
+                    and row.get("query_variant_unverified") is not True})
     rows = []
     for path in paths[:limit]:
         try:
