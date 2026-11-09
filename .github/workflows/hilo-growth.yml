@@ -96,6 +96,7 @@ jobs:
               python3 tools/hilo_browser_links.py --html artifacts/hilo-growth/public-wanted-dom.html --report artifacts/hilo-growth/report.json --output artifacts/hilo-growth/public-browser-links.json
               python3 tools/hilo_asset_probe.py --inventory artifacts/hilo-growth/public-browser-links.json --output artifacts/hilo-growth/public-static-assets.json
               python3 tools/hilo_link_probe.py --inventory artifacts/hilo-growth/public-browser-links.json --output artifacts/hilo-growth/public-document-links.json
+              python3 tools/hilo_link_probe.py --inventory artifacts/hilo-growth/public-browser-links.json --offset 16 --output artifacts/hilo-growth/public-document-links-next.json
             else
               printf 'public_browser_DOM_does_not_establish_WANTED_render\n' > artifacts/hilo-growth/public-browser-status.txt
             fi
