@@ -20,3 +20,8 @@
 The separate GrowthOps PR #10 final-head workflows failed with **zero jobs**, a different CI failure mode; no inference of a global hosting outage or shared root cause. The source and admission boundaries remain untouched: frozen WANTED scoring, privacy/consent, safety-stop authority, experiment cohorts, human choice, sealed holdouts. **No new paid spending initiated**. Draft site diagnostic PR #8 and merged GrowthOps PR #9 untouched.
 
 **Next:** resolve PR #10 no-job CI dispatch with actual account/workflow annotations; review this PR's disabled-live correction on a real runner when available; promote public research only on demonstrated methodological novelty plus human entailment review. No new source evidence admitted today.
+
+
+## Same-day actual PR #7 validation — November 10, 17:50 UTC
+
+**This is fresh proof rather than a forecast:** [GitHub Actions data-engine #42869099648](https://github.com/yourhongbuddy/embodied-arena/actions/runs/42869099648) finished **successfully** after this documentation branch update. Its retained/downloaded artifact `hilo-data-engine-42869099648-1` includes `2026-11-10/plan.json`, created `2026-11-10T17:50:58.044077+00:00`. Verified from the JSON: `status:planned_only`, exactly **100** entries in `jobs`, `planned_workers:100`, `live_started:0`, `live_completed:0`, `source_cards_refreshed_this_run:false`. No new public-method cards promoted; no paid model execution or data collection. Workflow succeeded rather than the earlier default-branch `blocked_missing_configuration` failure. This does not silently merge the PR's `live_disabled` correction onto `digitalocean`; the old default branch remains an independent release blocker. Full repository Verify for the latest doc revision must be checked separately.
