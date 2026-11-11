@@ -15,6 +15,8 @@ on:
       - 'tools/test_hilo_asset_probe.py'
       - 'tools/hilo_link_probe.py'
       - 'tools/test_hilo_link_probe.py'
+      - 'tools/hilo_route_readiness.py'
+      - 'tools/test_hilo_route_readiness.py'
       - 'tools/hilo_synthetic_fixture.json'
       - 'config/hilo-growth.json'
       - 'docs/HILO-GROWTH*.md'
@@ -73,6 +75,16 @@ jobs:
           fi
       - name: Execute bounded read-only audits, not paid model agents
         run: python3 tools/hilo_growth.py run --online --cycle "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Test and retain fail-closed public route release blockers
+        if: always()
+        shell: bash
+        run: |
+          python3 -m unittest discover -s tools -p 'test_hilo_route_readiness.py' -v
+          if [ -s artifacts/hilo-growth/report.json ]; then
+            python3 tools/hilo_route_readiness.py --report artifacts/hilo-growth/report.json --output artifacts/hilo-growth/public-route-readiness.json
+          else
+            printf '{"classification":"measurement_unconfirmed","release_clearance":false,"reason":"missing_audit_report"}\n' > artifacts/hilo-growth/public-route-readiness.json
+          fi
       - name: Render static developer page without a web service
         shell: bash
         run: |
