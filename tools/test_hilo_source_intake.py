@@ -144,5 +144,24 @@ class DailySourceIntakeTests(unittest.TestCase):
 
 
 
+    def test_november_monitorability_method_is_proposed_and_not_robot_evidence(self):
+        intake = json.loads((h.ROOT / "config/hilo-source-intake-20261111.json").read_text(encoding="utf-8"))
+        self.assertFalse(intake["automatic_promotion"])
+        self.assertEqual(intake["review_date"], "2026-11-11")
+        self.assertEqual(len(intake["candidates"]), 1)
+        candidate = intake["candidates"][0]
+        self.assertEqual(candidate["published_on"], "2026-11-10")
+        self.assertEqual(candidate["retrieved_on"], "2026-11-11")
+        self.assertEqual(candidate["admission_status"], "proposed")
+        self.assertFalse(candidate["consumed_by_workers"])
+        self.assertEqual(candidate["rights_scope"], "method_reference_only")
+        self.assertIn("observable actions", candidate["hilo_adaptation"])
+        self.assertIn("hidden reasoning traces", candidate["hilo_adaptation"])
+        manifest = h.load_manifest(self.manifest_path)
+        planned = h.make_plan(manifest)
+        self.assertEqual(len(planned["jobs"]), 100)
+        self.assertNotIn(candidate["id"], {sid for job in planned["jobs"] for sid in job["source_ids"]})
+
+
 if __name__ == "__main__":
     unittest.main()
