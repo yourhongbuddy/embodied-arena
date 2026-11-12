@@ -184,9 +184,15 @@ class PageFacts(HTMLParser):
 
 def inspect_html(body: str, requested_url: str | None = None) -> dict[str, Any]:
     p = PageFacts(); p.feed(body)
+    # A malformed canonical (for example, an unmatched IPv6 bracket) must be
+    # flagged as failed SEO evidence, not crash the entire audit worker.
+    try:
+        canonical = urllib.parse.urlsplit(p.canonical or '')
+    except ValueError:
+        canonical = urllib.parse.urlsplit('')
     checks = {'title': bool(p.title.strip()), 'description': bool(p.meta.get('description')),
-        'canonical_primary_origin': bool(p.canonical and urllib.parse.urlsplit(p.canonical).scheme == 'https'
-                                         and urllib.parse.urlsplit(p.canonical).netloc == 'getrobotrouter.com'),
+        'canonical_primary_origin': bool(p.canonical and canonical.scheme == 'https'
+                                         and canonical.netloc == 'getrobotrouter.com'),
         'open_graph': all(p.meta.get(k) for k in ('og:title', 'og:description', 'og:image')),
         'social_card': p.meta.get('twitter:card') == 'summary_large_image', 'one_h1': p.h1 == 1,
         'single_canonical': p.canonical_count == 1,
@@ -194,7 +200,6 @@ def inspect_html(body: str, requested_url: str | None = None) -> dict[str, Any]:
     if requested_url is not None:
         # Checking the origin alone misses a canonical that wrongly points to a
         # different WANTED page (or carries tracking parameters).
-        canonical = urllib.parse.urlsplit(p.canonical or '')
         requested = urllib.parse.urlsplit(requested_url)
         checks['canonical_matches_requested_route'] = bool(
             checks['canonical_primary_origin']
