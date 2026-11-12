@@ -72,6 +72,20 @@ class GrowthTests(unittest.TestCase):
     def test_html_audit_finds_weak_metadata(self):
         result=h.inspect_html('<title>HILO</title><h1>HILO</h1>')
         self.assertTrue(result['checks']['title']);self.assertIn('canonical_primary_origin',result['missing'])
+    def test_malformed_canonical_is_a_failed_check_not_a_worker_exception(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for malformed in ('https://[broken/wanted-10k/sdk',
+                          'https://[::1/wanted-10k/sdk'):
+            with self.subTest(canonical=malformed):
+                body = ('<title>SDK</title><meta name="description" content="Robot SDK">'
+                        '<link rel="canonical" href="' + malformed + '"><h1>SDK</h1>')
+                result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+                self.assertTrue(result['eligible'])
+                self.assertFalse(result['checks']['canonical_primary_origin'])
+                self.assertFalse(result['checks']['canonical_matches_requested_route'])
+                self.assertIn('canonical_primary_origin', result['missing'])
+                self.assertIn('canonical_matches_requested_route', result['missing'])
+
     def test_html_canonical_cannot_use_lookalike_host(self):
         result=h.inspect_html('<link rel="canonical" href="https://getrobotrouter.com.evil.invalid/">')
         self.assertFalse(result['checks']['canonical_primary_origin'])
