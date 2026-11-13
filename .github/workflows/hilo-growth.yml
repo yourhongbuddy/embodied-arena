@@ -26,6 +26,8 @@ on:
       - '.claude-plugin/marketplace.json'
       - 'distribution/**'
       - 'tools/test_hilo_static_demo.py'
+      - 'tools/hilo_ros2_inventory.py'
+      - 'tools/test_hilo_ros2_inventory.py'
       - 'public/hilo/**'
       - 'public/sitemap.xml'
       - 'public/robots.txt'
@@ -52,6 +54,10 @@ jobs:
         run: |
           python3 -m unittest discover -s tools -p 'test_hilo_synthetic_preflight.py' -v
           python3 tools/hilo_synthetic_preflight.py tools/hilo_synthetic_fixture.json
+      - name: Test synthetic-only ROS 2 topic inventory feasibility
+        run: |
+          python3 -m unittest discover -s tools -p 'test_hilo_ros2_inventory.py' -v
+          python3 tools/hilo_ros2_inventory.py distribution/ros2-synthetic-inventory.json
       - name: Test read-only browser link inventory
         run: python3 -m unittest discover -s tools -p 'test_hilo_browser_links.py' -v
       - name: Test bounded public static-asset checks
