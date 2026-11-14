@@ -163,5 +163,23 @@ class DailySourceIntakeTests(unittest.TestCase):
         self.assertNotIn(candidate["id"], {sid for job in planned["jobs"] for sid in job["source_ids"]})
 
 
+
+    def test_november_fuzzy_robustness_stays_synthetic_and_unconsumed(self):
+        intake = json.loads((h.ROOT / "config/hilo-source-intake-20261114.json").read_text(encoding="utf-8"))
+        self.assertFalse(intake["automatic_promotion"])
+        row = intake["candidates"][0]
+        self.assertEqual(row["published_on"], "2026-11-12")
+        self.assertEqual(row["retrieved_on"], "2026-11-14")
+        self.assertEqual(row["admission_status"], "proposed")
+        self.assertFalse(row["consumed_by_workers"])
+        self.assertEqual(row["rights_scope"], "method_reference_only")
+        self.assertIn("synthetic-only", row["hilo_adaptation"])
+        self.assertIn("sealed holdouts", row["hilo_adaptation"])
+        self.assertIn("human", row["hilo_adaptation"])
+        plan = h.make_plan(h.load_manifest(self.manifest_path))
+        self.assertEqual(len(plan["jobs"]), 100)
+        self.assertNotIn(row["id"], {sid for job in plan["jobs"] for sid in job["source_ids"]})
+
+
 if __name__ == "__main__":
     unittest.main()
