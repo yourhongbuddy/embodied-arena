@@ -1,0 +1,27 @@
+# HILO data-engine primary-source daily — November 10, 2026
+
+**Selective primary-source retrieval November 10, 2026 PST; data-engine PR #7 only. No automatic worker-source promotion, private data, dataset copying, model execution, robot hours or certification.**
+
+## Reviewed today; no new method admitted
+
+- [OpenAI Alignment Research index](https://alignment.openai.com/) fetched November 10: latest displayed entry remains **November 3, 2026** (*Eval-production behavior gaps in agent safety and the role of eval-awareness*), followed by November 2 (*Training activation classifiers for safety and alignment*), October 29 (*How we detect frontier model misalignment*) and October 20 (*Beyond g-mean²*). These topics were already evaluated in existing staged source intake; no materially new November 10 method was found in this **specific index**, which is not a claim all OpenAI pages were searched.
+- [OpenAI BioBasicsBench](https://openai.com/index/measuring-how-ai-agents-handle-wet-lab-science/) November 6 source remains a **proposed** methodological analogy for independent expert judgments, insufficient-evidence outcomes and whole-task resampling. Its 100 laboratory tasks are neither the HILO 100 offline research jobs nor robot deployment/human observation evidence. No duplicate source promotion.
+- Existing public OpenAI method cards include [human preferences](https://openai.com/index/learning-from-human-preferences/), human demonstrations and RL feedback, Dactyl/domain randomization, weak video-action labeling, data partnerships, labeling quality/deduplication, safety/privacy and continuous evaluations. No public article grants rights to copy OpenAI's private datasets or to claim its internal practices.
+- Separate [Stanford BEHAVIOR](https://behavior.stanford.edu/challenge/index.html), [Harvard SIFToM](https://hsi.harvard.edu/), Oxford and robotics/digital-twin references remain attributed *advisory* sources. Simulation, synthetic trials, surveys or model-generated ratings cannot count as verified human resident hours, human keep votes or HILO field performance.
+
+**Admission:** No materially distinct new source clearing the source-entailment, provenance, rights, evidence-class, safety, privacy, sealed-holdout and independent human-review gates in [HILO-SOURCE-ADMISSION.md](HILO-SOURCE-ADMISSION.md). No edits to `config/hilo-data-engine.json`, staged intake identifiers, source manifest hashes or worker prompts. Existing `consumed_by_workers:false` staged sources remain unconsumed. Source admission/rejection cannot be automated.
+
+## Independent runtime evidence (not a new worker execution)
+
+[November 9 successful PR #7 workflow 42670245801](https://github.com/yourhongbuddy/embodied-arena/actions/runs/42670245801) passed **48/48 offline data tests** and planned **100 jobs**, with zero authorized live starts/completions. That CI result belongs to the then-current code commit `1708a10e9af5de7cef756e50c82408750a77b869`, not this November 10 documentation commit.
+
+[November 9 default-branch workflow 42723265243](https://github.com/yourhongbuddy/embodied-arena/actions/runs/42723265243) has an actual job/log inspected November 10: offline validation and plan steps **passed**; `Check live execution configuration without exposing secrets` **failed** with `blocked_missing_configuration`, showing disabled live flag and missing model/key, followed by *skipped* live workers. No secret values were logged. The old default-branch preflight incorrectly treats intentional disabled-live operation as failure. This open PR has the `live_disabled` correction; review it through ordinary test/merge gates, **do not insert credentials, enable paid execution, or merge unverified**.
+
+The separate GrowthOps PR #10 final-head workflows failed with **zero jobs**, a different CI failure mode; no inference of a global hosting outage or shared root cause. The source and admission boundaries remain untouched: frozen WANTED scoring, privacy/consent, safety-stop authority, experiment cohorts, human choice, sealed holdouts. **No new paid spending initiated**. Draft site diagnostic PR #8 and merged GrowthOps PR #9 untouched.
+
+**Next:** resolve PR #10 no-job CI dispatch with actual account/workflow annotations; review this PR's disabled-live correction on a real runner when available; promote public research only on demonstrated methodological novelty plus human entailment review. No new source evidence admitted today.
+
+
+## Same-day actual PR #7 validation — November 10, 17:50 UTC
+
+**This is fresh proof rather than a forecast:** [GitHub Actions data-engine #42869099648](https://github.com/yourhongbuddy/embodied-arena/actions/runs/42869099648) finished **successfully** after this documentation branch update. Its retained/downloaded artifact `hilo-data-engine-42869099648-1` includes `2026-11-10/plan.json`, created `2026-11-10T17:50:58.044077+00:00`. Verified from the JSON: `status:planned_only`, exactly **100** entries in `jobs`, `planned_workers:100`, `live_started:0`, `live_completed:0`, `source_cards_refreshed_this_run:false`. No new public-method cards promoted; no paid model execution or data collection. Workflow succeeded rather than the earlier default-branch `blocked_missing_configuration` failure. This does not silently merge the PR's `live_disabled` correction onto `digitalocean`; the old default branch remains an independent release blocker. Full repository Verify for the latest doc revision must be checked separately.

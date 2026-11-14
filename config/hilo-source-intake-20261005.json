@@ -1,0 +1,32 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-05",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "stanford-ditto-x-intervention-trajectories",
+      "publisher": "Stanford TML / Columbia Robotics",
+      "title": "DITTO-X: Forward and Reverse Teleoperation for Dexterous Manipulation and Human Intervention",
+      "published_on": "2026-09-30",
+      "retrieved_on": "2026-10-05",
+      "url": "https://tml.stanford.edu/ditto-x/",
+      "finding": "DITTO-X explicitly separates fully teleoperated demonstrations, human-intervened policy rollouts used for DAgger, and fully autonomous evaluation rollouts. Its public DITTO-Human release reports 1,888 episodes across six tasks and three dexterous hands, including successful and failed episodes. The DAgger procedure collects corrections at states where the deployed policy fails, and quantity-matched demonstrations from the original task distribution underperform those failure-state corrections.",
+      "hilo_adaptation": "Use as a non-ranking method reference for preserving demonstration data, human intervention and recovery episodes, and autonomous evaluation evidence as separate provenance classes. Retain intervention timing and failure/recovery provenance rather than collapsing them into task success. Never count teleoperation or intervention time as autonomous resident hours, infer voluntary human retention from operator rescue, convert simulation or training trajectories into WANTED resident hours, or grant certification.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI research index — October 5 method scan",
+      "url": "https://openai.com/research/index/",
+      "retrieved_on": "2026-10-05",
+      "reason": "The targeted fresh OpenAI primary-source pass did not surface a materially distinct new demonstrations, preference-labeling, robotics-data, domain-randomization, privacy, safety, or continuous-evaluation construction method beyond sources already admitted or staged. No worker-source promotion was warranted."
+    }
+  ]
+}

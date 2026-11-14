@@ -1,0 +1,38 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-15",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-third-moment-supervised-trajectories",
+      "publisher": "OpenAI",
+      "title": "How Third Moment Research runs 10,000 agents for 36+ hours",
+      "published_on": "2026-10-14",
+      "retrieved_on": "2026-10-15",
+      "url": "https://openai.com/index/third-moment-research/",
+      "finding": "OpenAI's published customer case study attributes to Third Moment Research a workflow that examines timestamped, recorded agent simulation trajectories and their codebase for repeated polling and backtesting bottlenecks. The company reports using an outer agent harness to inspect unfinished subagent trajectories and decide whether to retry, terminate, or escalate to a person. It also describes synthetic scenario generation around recurring agent weaknesses. This is a third-party implementation described in an OpenAI case study, not a disclosed OpenAI internal research or robotics-data process; its performance claims are company-reported.",
+      "hilo_adaptation": "Consider optional non-ranking job-provenance diagnostics for research tasks: record declared objective, inputs, bounded execution steps, timestamps, incomplete/failed/completed state, reason for retry, and human escalation. Retain manual authorization for any retries with uncertain side effects, do not modify queue atomicity or replay policy, and segregate synthetic simulations from real robot use, human preference votes, verified WANTED hours, safety incidents and certification evidence. The company's 10,000 running agents have no relation to HILO's 10,000 addressable slots.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Stanford, Harvard and Oxford incremental method review",
+      "url": "https://behavior.stanford.edu/challenge/index.html",
+      "retrieved_on": "2026-10-15",
+      "reason": "The targeted institutional check did not establish a distinct new primary method beyond existing separately attributed BEHAVIOR/SIFToM/GOALS references or previously staged DITTO-X and Embodied Agent Arena. This was not an exhaustive scan, and no external candidate was silently promoted."
+    },
+    {
+      "title": "OpenAI Third Moment usage and scale metrics",
+      "url": "https://openai.com/index/third-moment-research/",
+      "retrieved_on": "2026-10-15",
+      "reason": "Company-reported 10,000 concurrent agents, token volume, and latency gains are not HILO measurements, robot field evidence or reusable OpenAI internal data methodology; only the narrow explicit trajectory-review and escalation practices above are staged as a candidate."
+    }
+  ]
+}
