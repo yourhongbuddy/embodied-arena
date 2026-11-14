@@ -1,0 +1,32 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-11-14",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-fuzzy-robustness-repeated-adversarial-evals-20261112",
+      "publisher": "OpenAI",
+      "title": "Improving Fuzzy Robustness in LLM Safety with Automated Red Teaming",
+      "published_on": "2026-11-12",
+      "retrieved_on": "2026-11-14",
+      "url": "https://alignment.openai.com/fuzzy-robustness/",
+      "finding": "OpenAI reports a controlled model-safety study using adaptive automated red-team search with repeated success criteria (worst@n) to build adversarial training examples, then testing robustness against held-out and adaptive multi-turn attackers. Reported improvement applies to language-model safety refusals and training, not real robots, physical safety stops, consent, human keep votes or long-duration field reliability.",
+      "hilo_adaptation": "Propose a synthetic-only, non-ranking stress-test plan for *evaluation tools* that repeats independently sampled adversarial/ambiguous intervention and stop-right scenarios, reports both worst-case failure and legitimate-task false-refusal rates, and requires a human review of each claim. Do not perform unapproved real-robot adversarial trials, train on sealed holdouts, modify frozen WANTED scoring/cohorts, import OpenAI data, infer human votes/field hours or claim physical certification.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI — Introducing ChatGPT Wallet",
+      "url": "https://openai.com/index/introducing-chatgpt-wallet/",
+      "retrieved_on": "2026-11-14",
+      "reason": "Previously reviewed November 13 payment authorization announcement; no distinct consented robotics data-collection, human preference, domain-randomization or longitudinal robot-evaluation method. Rechecked only for novelty; no card or partnership claim."
+    }
+  ]
+}
