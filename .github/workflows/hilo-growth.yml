@@ -7,11 +7,27 @@ on:
     paths:
       - 'tools/hilo_growth.py'
       - 'tools/test_hilo_growth.py'
+      - 'tools/hilo_synthetic_preflight.py'
+      - 'tools/test_hilo_synthetic_preflight.py'
+      - 'tools/hilo_browser_links.py'
+      - 'tools/test_hilo_browser_links.py'
+      - 'tools/hilo_asset_probe.py'
+      - 'tools/test_hilo_asset_probe.py'
+      - 'tools/hilo_link_probe.py'
+      - 'tools/test_hilo_link_probe.py'
+      - 'tools/hilo_route_readiness.py'
+      - 'tools/test_hilo_route_readiness.py'
+      - 'tools/hilo_synthetic_fixture.json'
       - 'config/hilo-growth.json'
       - 'docs/HILO-GROWTH*.md'
+      - 'docs/HILO-SYNTHETIC-PREFLIGHT.md'
       - 'plugins/hilo-benchmark/**'
+      - '.agents/plugins/marketplace.json'
       - '.claude-plugin/marketplace.json'
-      - 'distribution/openai-submission.json'
+      - 'distribution/**'
+      - 'tools/test_hilo_static_demo.py'
+      - 'tools/hilo_ros2_inventory.py'
+      - 'tools/test_hilo_ros2_inventory.py'
       - 'public/hilo/**'
       - 'public/sitemap.xml'
       - 'public/robots.txt'
@@ -31,10 +47,50 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           persist-credentials: false
+          fetch-depth: 2
       - name: Test queue, evidence boundaries and metadata
         run: python3 -m unittest discover -s tools -p 'test_hilo_growth.py' -v
+      - name: Test synthetic-only developer telemetry preflight
+        run: |
+          python3 -m unittest discover -s tools -p 'test_hilo_synthetic_preflight.py' -v
+          python3 tools/hilo_synthetic_preflight.py tools/hilo_synthetic_fixture.json
+      - name: Test synthetic-only ROS 2 topic inventory feasibility
+        run: |
+          python3 -m unittest discover -s tools -p 'test_hilo_ros2_inventory.py' -v
+          python3 tools/hilo_ros2_inventory.py distribution/ros2-synthetic-inventory.json
+      - name: Test read-only browser link inventory
+        run: python3 -m unittest discover -s tools -p 'test_hilo_browser_links.py' -v
+      - name: Test bounded public static-asset checks
+        run: python3 -m unittest discover -s tools -p 'test_hilo_asset_probe.py' -v
+      - name: Test bounded public WANTED documentation-link checks
+        run: python3 -m unittest discover -s tools -p 'test_hilo_link_probe.py' -v
+      - name: Test synthetic static demo packaging and evidence bounds
+        run: python3 -m unittest discover -s tools -p 'test_hilo_static_demo.py' -v
+      - name: Smoke-render candidate static demo locally (no network upload)
+        shell: bash
+        run: |
+          mkdir -p artifacts/hilo-growth
+          chrome="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$chrome" ]; then
+            printf 'local_chrome_unavailable\n' > artifacts/hilo-growth/static-demo-browser-status.txt
+          else
+            timeout 30 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --disable-background-networking --dump-dom "file://$PWD/distribution/hf-static-demo/index.html" > artifacts/hilo-growth/static-demo-dom.html 2> artifacts/hilo-growth/static-demo-browser-stderr.txt
+            grep -q "MISMATCH: Declared 0 seconds" artifacts/hilo-growth/static-demo-dom.html
+            grep -q "Verified field hours: 0" artifacts/hilo-growth/static-demo-dom.html
+            printf 'local_static_demo_DOM_rendered; not a public Space\n' > artifacts/hilo-growth/static-demo-browser-status.txt
+          fi
       - name: Execute bounded read-only audits, not paid model agents
         run: python3 tools/hilo_growth.py run --online --cycle "${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Test and retain fail-closed public route release blockers
+        if: always()
+        shell: bash
+        run: |
+          python3 -m unittest discover -s tools -p 'test_hilo_route_readiness.py' -v
+          if [ -s artifacts/hilo-growth/report.json ]; then
+            python3 tools/hilo_route_readiness.py --report artifacts/hilo-growth/report.json --output artifacts/hilo-growth/public-route-readiness.json
+          else
+            printf '{"classification":"measurement_unconfirmed","release_clearance":false,"reason":"missing_audit_report"}\n' > artifacts/hilo-growth/public-route-readiness.json
+          fi
       - name: Render static developer page without a web service
         shell: bash
         run: |
@@ -43,6 +99,27 @@ jobs:
             timeout 30 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --window-size=1440,1100 --screenshot="$PWD/artifacts/hilo-growth/developer-preview.png" "file://$PWD/public/hilo/developers.html"
           else
             printf 'Browser unavailable; visual test not performed.\n' > artifacts/hilo-growth/browser-status.txt
+          fi
+      - name: Independently render public WANTED and inventory known link statuses
+        shell: bash
+        continue-on-error: true
+        run: |
+          mkdir -p artifacts/hilo-growth
+          chrome="$(command -v google-chrome || command -v chromium || true)"
+          if [ -z "$chrome" ]; then
+            printf 'public_browser_unavailable\n' > artifacts/hilo-growth/public-browser-status.txt
+          elif timeout 35 "$chrome" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --disable-extensions --window-size=1440,1100 --virtual-time-budget=5000 --dump-dom "https://getrobotrouter.com/wanted-10k" > artifacts/hilo-growth/public-wanted-dom.html 2> artifacts/hilo-growth/public-browser-stderr.txt; then
+            if grep -q 'WANTED' artifacts/hilo-growth/public-wanted-dom.html; then
+              printf 'public_browser_DOM_observed_no_asset_success_claim\n' > artifacts/hilo-growth/public-browser-status.txt
+              python3 tools/hilo_browser_links.py --html artifacts/hilo-growth/public-wanted-dom.html --report artifacts/hilo-growth/report.json --output artifacts/hilo-growth/public-browser-links.json
+              python3 tools/hilo_asset_probe.py --inventory artifacts/hilo-growth/public-browser-links.json --output artifacts/hilo-growth/public-static-assets.json
+              python3 tools/hilo_link_probe.py --inventory artifacts/hilo-growth/public-browser-links.json --output artifacts/hilo-growth/public-document-links.json
+              python3 tools/hilo_link_probe.py --inventory artifacts/hilo-growth/public-browser-links.json --offset 16 --output artifacts/hilo-growth/public-document-links-next.json
+            else
+              printf 'public_browser_DOM_does_not_establish_WANTED_render\n' > artifacts/hilo-growth/public-browser-status.txt
+            fi
+          else
+            printf 'public_browser_render_failed_not_global_outage_evidence\n' > artifacts/hilo-growth/public-browser-status.txt
           fi
       - name: Preserve actual evidence and source bundle
         if: always()
