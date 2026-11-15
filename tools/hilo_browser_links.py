@@ -59,10 +59,26 @@ def summarize(html: str, report: dict, base: str = BASE) -> dict:
         result = entry.get("result") or {}
         observed = result.get("measurement") or {}
         url = observed.get("url")
-        if url:
-            path = public_path(url, base)
-            if path and observed.get("status_code") is not None:
-                statuses[path.rstrip("/") or "/"] = observed["status_code"]
+        # A query-bearing HTTP observation cannot verify a queryless href.
+        # Never retain a query value from public measurement artifacts.
+        if not isinstance(url, str):
+            continue
+        try:
+            observed_url = urlsplit(url)
+            if observed_url.query or observed_url.fragment:
+                continue
+        except ValueError:
+            continue
+        path = public_path(url, base)
+        code = observed.get("status_code")
+        if path and type(code) is int and 100 <= code <= 599:
+            key = path.rstrip("/") or "/"
+            # Conflicting observations are not proof of either status;
+            # do not let record ordering fabricate a confirmed 404.
+            if key in statuses and statuses[key] != code:
+                statuses[key] = None
+            else:
+                statuses.setdefault(key, code)
 
     def classify(refs):
         # A path-only GET does not establish the status of an href with a
