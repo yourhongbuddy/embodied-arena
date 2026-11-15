@@ -115,5 +115,27 @@ class BrowserLinkTests(unittest.TestCase):
 
 
 
+    def test_query_scoped_probe_cannot_verify_plain_href(self):
+        page = '<a href="/wanted-10k/sdk">SDK</a>'
+        report = {"records": [{"result": {"measurement": {
+            "url": "https://getrobotrouter.com/wanted-10k/sdk?token=redact",
+            "status_code": 404}}}]}
+        result = summarize(page, report)
+        self.assertEqual(result["unverified_link_count"], 1)
+        self.assertEqual(result["broken_link_paths_confirmed_by_existing_probes"], [])
+        self.assertNotIn("redact", str(result))
+
+    def test_conflicting_http_observations_fail_closed(self):
+        page = '<a href="/wanted-10k/sdk">SDK</a>'
+        observations = [200, 404, 200]
+        report = {"records": [{"result": {"measurement": {
+            "url": "https://getrobotrouter.com/wanted-10k/sdk",
+            "status_code": status}}} for status in observations]}
+        result = summarize(page, report)
+        self.assertEqual(result["unverified_link_count"], 1)
+        self.assertEqual(result["broken_link_paths_confirmed_by_existing_probes"], [])
+        self.assertIsNone(result["same_origin_links"][0]["http_status_from_existing_probe"])
+
+
 if __name__ == "__main__":
     unittest.main()
