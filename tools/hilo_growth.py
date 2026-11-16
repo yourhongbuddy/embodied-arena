@@ -61,6 +61,16 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError('This runner has no live-model or publication adapter')
     if not 1 <= config.get('max_concurrency', 0) <= 10:
         raise ValueError('Concurrency must be 1..10')
+    baseline_ids = set()
+    for row in config.get('route_baselines', []):
+        if row.get('id') in baseline_ids:
+            raise ValueError('Route baseline IDs must be unique')
+        baseline_ids.add(row.get('id'))
+        datetime.fromisoformat(row['retrieved_on'])
+        for key, host in (('public_url', 'getrobotrouter.com'), ('baseline_url', 'shark-app-pqh5h.ondigitalocean.app')):
+            u = urllib.parse.urlsplit(row[key])
+            if u.scheme != 'https' or u.hostname != host or u.port not in (None, 443) or u.username or u.password:
+                raise ValueError('Route baselines must compare fixed public and DigitalOcean HTTPS origins')
     slots, ids = set(), set()
     for target in config.get('targets', []):
         slot, ident = target['slot'], target['id']
@@ -149,29 +159,80 @@ class Queue:
 
 class PageFacts(HTMLParser):
     def __init__(self):
-        super().__init__(); self.title_open = False; self.title = ''; self.meta = {}; self.canonical = None; self.h1 = 0
+        super().__init__(); self.title_open = False; self.title = ''; self.meta = {}; self.canonical = None; self.canonical_count = 0; self.h1 = 0; self.robots_noindex = False
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == 'title': self.title_open = True
         if tag == 'h1': self.h1 += 1
-        if tag == 'meta': self.meta[a.get('name', a.get('property', ''))] = a.get('content', '')
-        if tag == 'link' and 'canonical' in (a.get('rel') or '').split(): self.canonical = a.get('href')
+        if tag == 'meta':
+            name = (a.get('name') or a.get('property') or '').lower()
+            content = a.get('content') or ''
+            self.meta[name] = content
+            # A successful HTML response can still explicitly request exclusion.
+            # Retain a prior noindex when a later duplicate meta tag says index.
+            if name in ('robots', 'googlebot', 'bingbot'):
+                directives = content.lower().replace(',', ' ').split()
+                self.robots_noindex |= any(item in ('noindex', 'none') for item in directives)
+        if tag == 'link' and 'canonical' in (a.get('rel') or '').lower().split():
+            self.canonical_count += 1
+            self.canonical = a.get('href')
     def handle_endtag(self, tag):
         if tag == 'title': self.title_open = False
     def handle_data(self, data):
         if self.title_open: self.title += data
 
 
-def inspect_html(body: str) -> dict[str, Any]:
+def inspect_html(body: str, requested_url: str | None = None) -> dict[str, Any]:
     p = PageFacts(); p.feed(body)
+    # A malformed canonical (for example, an unmatched IPv6 bracket) must be
+    # flagged as failed SEO evidence, not crash the entire audit worker.
+    try:
+        canonical = urllib.parse.urlsplit(p.canonical or '')
+    except ValueError:
+        canonical = urllib.parse.urlsplit('')
     checks = {'title': bool(p.title.strip()), 'description': bool(p.meta.get('description')),
-        'canonical_primary_origin': bool(p.canonical and urllib.parse.urlsplit(p.canonical).scheme == 'https'
-                                         and urllib.parse.urlsplit(p.canonical).netloc == 'getrobotrouter.com'),
+        'canonical_primary_origin': bool(p.canonical and canonical.scheme == 'https'
+                                         and canonical.netloc == 'getrobotrouter.com'),
         'open_graph': all(p.meta.get(k) for k in ('og:title', 'og:description', 'og:image')),
-        'social_card': p.meta.get('twitter:card') == 'summary_large_image', 'one_h1': p.h1 == 1}
+        'social_card': p.meta.get('twitter:card') == 'summary_large_image', 'one_h1': p.h1 == 1,
+        'single_canonical': p.canonical_count == 1,
+        'indexable_robots_meta': not p.robots_noindex}
+    if requested_url is not None:
+        # Checking the origin alone misses a canonical that wrongly points to a
+        # different WANTED page (or carries tracking parameters).
+        requested = urllib.parse.urlsplit(requested_url)
+        checks['canonical_matches_requested_route'] = bool(
+            checks['canonical_primary_origin']
+            and canonical.path.rstrip('/') == requested.path.rstrip('/')
+            and not canonical.query and not canonical.fragment)
     return {'title': p.title.strip(), 'canonical': p.canonical, 'checks': checks,
             'missing': [k for k, v in checks.items() if not v]}
 
+
+def inspect_seo_response(status_code: int | None, content_type: str, body: str,
+                         requested_url: str | None = None,
+                         x_robots_tags: list[str] | None = None) -> dict[str, Any]:
+    """Only score metadata after a successful HTML response."""
+    if status_code != 200:
+        return {'eligible': False, 'reason': f'http_status_{status_code}', 'checks': {},
+                'missing': ['http_200']}
+    if 'text/html' not in content_type.lower():
+        return {'eligible': False, 'reason': 'non_html_response', 'checks': {},
+                'missing': ['html_response']}
+    result = inspect_html(body, requested_url=requested_url)
+    # Inspect each public header, including duplicates and bot-scoped values.
+    # A later 'index' directive cannot cancel a previous 'noindex'.
+    header_noindex = any(
+        directive.strip().lower().split(':', 1)[-1].strip().split()[0] in ('noindex', 'none')
+        for value in (x_robots_tags or [])
+        for directive in value.split(',')
+        if directive.strip() and directive.strip().lower().split(':', 1)[-1].strip()
+    )
+    result['checks']['indexable_x_robots_tag'] = not header_noindex
+    result['missing'] = [key for key, passed in result['checks'].items() if not passed]
+    result['eligible'] = True
+    result['reason'] = None
+    return result
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
@@ -198,11 +259,54 @@ def public_get(url: str) -> dict[str, Any]:
                 body = response.read(1048576).decode('utf-8', 'replace')
                 return {'url': original, 'final_url': url, 'started_at': started, 'finished_at': stamp(),
                     'status_code': response.code, 'content_type': response.headers.get('Content-Type', ''),
+                    'x_robots_tags': response.headers.get_all('X-Robots-Tag', []),
+                    # Public, allowlisted diagnostic headers only. Never store cookies,
+                    # authorization, request IDs, or unsanitized response headers.
+                    'origin_headers': {key: response.headers.get(header)
+                        for key, header in (
+                            ('server', 'Server'), ('etag', 'ETag'),
+                            ('last_modified', 'Last-Modified'),
+                            ('cache_control', 'Cache-Control'),
+                            ('x_do_app_id', 'X-DO-App-ID'),
+                            ('x_powered_by', 'X-Powered-By')) if response.headers.get(header)},
                     'seconds': round(time.monotonic()-timer, 3), 'body_sha256': hashlib.sha256(body.encode()).hexdigest(), 'body': body}
         except (OSError, urllib.error.URLError) as error:
             return {'url': original, 'started_at': started, 'finished_at': stamp(), 'error_type': type(error).__name__, 'status_code': None}
     return {'url': original, 'finished_at': stamp(), 'error_type': 'RedirectLimit', 'status_code': None}
 
+
+def public_probe_urls(config: dict[str, Any]) -> list[str]:
+    urls = {t['url'] for t in config['targets'] if t['kind'] == 'site'} | {'https://example.com/'}
+    for row in config.get('route_baselines', []):
+        urls.add(row['public_url']); urls.add(row['baseline_url'])
+    return sorted(urls)
+
+
+def compare_route_baselines(config: dict[str, Any], cached: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    checks = []
+    for row in config.get('route_baselines', []):
+        public = cached.get(row['public_url'], {}); baseline = cached.get(row['baseline_url'], {})
+        pstatus, bstatus = public.get('status_code'), baseline.get('status_code')
+        # Only successful responses with measured bodies can be compared for content drift.
+        # Error pages and failed DNS/probes are not evidence of a body mismatch.
+        body_comparable = (pstatus == 200 and bstatus == 200
+            and bool(public.get('body_sha256')) and bool(baseline.get('body_sha256')))
+        body_equal = (public['body_sha256'] == baseline['body_sha256']) if body_comparable else None
+        checks.append({'id': row['id'], 'public_url': row['public_url'], 'baseline_url': row['baseline_url'],
+            'public_status': pstatus, 'baseline_status': bstatus,
+            'public_final_url': public.get('final_url'), 'baseline_final_url': baseline.get('final_url'),
+            'public_origin_headers': public.get('origin_headers', {}),
+            'baseline_origin_headers': baseline.get('origin_headers', {}),
+            # A header mismatch is evidence of different responses, not proof
+            # of a particular deployment, CDN, or DNS root cause.
+            'origin_header_differences': sorted(key for key in
+                set(public.get('origin_headers', {})) | set(baseline.get('origin_headers', {}))
+                if public.get('origin_headers', {}).get(key) != baseline.get('origin_headers', {}).get(key)),
+            'comparable': pstatus is not None and bstatus is not None,
+            'status_mismatch': pstatus is not None and bstatus is not None and pstatus != bstatus,
+            'body_comparable': body_comparable, 'body_sha256_equal': body_equal,
+            'body_mismatch': body_equal is False})
+    return checks
 
 def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[str, Any]:
     plan = make_plan(config); queue = Queue(output / 'queue.sqlite', config, cycle)
@@ -213,7 +317,7 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
     queued_ids = {r['id'] for r in queue.records() if r['status'] == 'queued'}
     has_network_work = any(by_id[j]['lane'] in ('site_health', 'seo') for j in queued_ids)
     if online and has_network_work:
-        urls = sorted({t['url'] for t in targets.values() if t['kind'] == 'site'} | {'https://example.com/'})
+        urls = public_probe_urls(config)
         with ThreadPoolExecutor(max_workers=config['max_concurrency']) as pool:
             cached = dict(zip(urls, pool.map(public_get, urls)))
     def worker():
@@ -227,8 +331,10 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
                 measurement = dict(cached[target['url']]); body = measurement.pop('body', '')
                 result['measurement'] = measurement
                 if measurement.get('status_code') is None: result['status'] = 'measurement_failed'
-                if job['lane'] == 'seo' and 'text/html' in measurement.get('content_type', ''):
-                    result['seo'] = inspect_html(body)
+                if job['lane'] == 'seo':
+                    result['seo'] = inspect_seo_response(measurement.get('status_code'), measurement.get('content_type', ''), body,
+                                                         requested_url=target['url'],
+                                                         x_robots_tags=measurement.get('x_robots_tags', []))
             else:
                 result.update(status='measurement_failed', reason='network_not_requested')
             result['finished_at'] = stamp(); queue.finish(ident, token, result)
@@ -237,10 +343,14 @@ def run(config: dict[str, Any], output: Path, cycle: str, online: bool) -> dict[
     records = queue.records(); counts = {}
     for record in records: counts[record['status']] = counts.get(record['status'], 0) + 1
     control = cached.get('https://example.com/', {})
+    route_checks = compare_route_baselines(config, cached) if cached else []
     report = {'version': '0.1', 'cycle': cycle, 'finished_at': stamp(), 'manifest_sha256': digest(config),
         'registered_slots': 10000, 'assigned_slots': sum(j['target_id'] is not None for j in plan),
         'deterministic_job_statuses': counts, 'public_url_probes_attempted_this_execution': len(cached),
         'network_control_status': control.get('status_code'),
+        'route_baseline_checks': route_checks,
+        'route_status_mismatches': [row['id'] for row in route_checks if row['status_mismatch']],
+        'route_body_mismatches': [row['id'] for row in route_checks if row['body_mismatch']],
         'live_llm_agents_started': 0, 'live_llm_agents_completed': 0, 'live_llm_agents_failed': 0,
         'outbound_messages_sent_by_runner': 0, 'store_submissions_by_runner': 0, 'deployments_by_runner': 0,
         'real_robot_hours_collected': 0, 'note': 'Slots are capacity, not people, contacts, live LLM agents, impressions, or certified robot evidence. Pending/running work requires reconciliation; no automatic replay.',

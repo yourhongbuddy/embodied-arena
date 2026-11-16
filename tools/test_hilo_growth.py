@@ -50,7 +50,7 @@ class GrowthTests(unittest.TestCase):
     def test_atomic_claims_do_not_duplicate(self):
         with tempfile.TemporaryDirectory() as tmp:
             q=h.Queue(Path(tmp)/'q.sqlite',self.config,'test')
-            with ThreadPoolExecutor(max_workers=10) as pool: claims=list(pool.map(lambda _:q.claim(),range(40)))
+            with ThreadPoolExecutor(max_workers=10) as pool: claims=list(pool.map(lambda _:q.claim(),range(50)))
             ids=[c[0] for c in claims if c]
             self.assertEqual(len(ids),len(set(ids)))
             self.assertEqual(len(ids),sum(j['status']=='queued' for j in h.make_plan(self.config)))
@@ -63,7 +63,7 @@ class GrowthTests(unittest.TestCase):
     def test_cycle_cannot_change_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'q.sqlite';h.Queue(path,self.config,'test')
-            other=copy.deepcopy(self.config);other['version']='0.2'
+            other=copy.deepcopy(self.config);other['version']='0.3'
             with self.assertRaises(ValueError):h.Queue(path,other,'test')
     def test_stuck_jobs_are_not_automatically_replayed(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -72,6 +72,20 @@ class GrowthTests(unittest.TestCase):
     def test_html_audit_finds_weak_metadata(self):
         result=h.inspect_html('<title>HILO</title><h1>HILO</h1>')
         self.assertTrue(result['checks']['title']);self.assertIn('canonical_primary_origin',result['missing'])
+    def test_malformed_canonical_is_a_failed_check_not_a_worker_exception(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for malformed in ('https://[broken/wanted-10k/sdk',
+                          'https://[::1/wanted-10k/sdk'):
+            with self.subTest(canonical=malformed):
+                body = ('<title>SDK</title><meta name="description" content="Robot SDK">'
+                        '<link rel="canonical" href="' + malformed + '"><h1>SDK</h1>')
+                result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+                self.assertTrue(result['eligible'])
+                self.assertFalse(result['checks']['canonical_primary_origin'])
+                self.assertFalse(result['checks']['canonical_matches_requested_route'])
+                self.assertIn('canonical_primary_origin', result['missing'])
+                self.assertIn('canonical_matches_requested_route', result['missing'])
+
     def test_html_canonical_cannot_use_lookalike_host(self):
         result=h.inspect_html('<link rel="canonical" href="https://getrobotrouter.com.evil.invalid/">')
         self.assertFalse(result['checks']['canonical_primary_origin'])
@@ -87,18 +101,25 @@ class GrowthTests(unittest.TestCase):
         self.assertEqual(manifest['name'],'hilo-benchmark')
         self.assertTrue((p/'skills/hilo-audit/SKILL.md').is_file())
         self.assertFalse((p/'hooks').exists());self.assertFalse((p/'mcp.json').exists())
+    def test_openai_repo_marketplace_points_to_local_plugin(self):
+        market=json.loads((ROOT/'.agents/plugins/marketplace.json').read_text())
+        self.assertEqual(market['name'],'hilo-tools')
+        entry=market['plugins'][0]
+        self.assertEqual(entry['name'],'hilo-benchmark')
+        self.assertEqual(entry['source'],{'source':'local','path':'./plugins/hilo-benchmark'})
+        self.assertEqual(entry['policy']['installation'],'AVAILABLE')
     def test_submission_has_five_positive_three_negative_cases(self):
         submission=json.loads((ROOT/'distribution/openai-submission.json').read_text())
         self.assertEqual(submission['status'],'draft_not_submitted')
         self.assertEqual(len(submission['positive_tests']),5);self.assertEqual(len(submission['negative_tests']),3)
         self.assertIsNone(submission['official_listing_url'])
-
     def test_completed_cycle_does_not_repeat_network(self):
         with tempfile.TemporaryDirectory() as tmp,patch.object(h,'public_get') as fetch:
             fetch.return_value={'status_code':200,'content_type':'text/html','body':'<title>HILO</title>'}
             h.run(self.config,Path(tmp),'test',True)
             first=fetch.call_count
-            self.assertEqual(first,5)
+            expected=len(h.public_probe_urls(self.config))
+            self.assertEqual(first,expected)
             report=h.run(self.config,Path(tmp),'test',True)
             self.assertEqual(fetch.call_count,first)
             self.assertEqual(report['public_url_probes_attempted_this_execution'],0)
@@ -112,11 +133,240 @@ class GrowthTests(unittest.TestCase):
         urls=[n.text for n in ET.fromstring((ROOT/'public/sitemap.xml').read_text()).iter() if n.tag.endswith('}loc')]
         self.assertEqual(len(urls),len(set(urls)))
         self.assertIn('https://getrobotrouter.com/hilo/developers.html',urls)
+        self.assertIn('https://getrobotrouter.com/wanted-10k/conformance',urls)
+        self.assertIn('https://getrobotrouter.com/wanted-10k/sampling-stopping',urls)
         self.assertFalse(any('/account' in u or '/login' in u for u in urls))
         self.assertIn('Sitemap: https://getrobotrouter.com/sitemap.xml',(ROOT/'public/robots.txt').read_text())
     def test_seo_origin_is_fixed_not_request_controlled(self):
         source=(ROOT/'app/layout.tsx').read_text()
         self.assertIn('PUBLIC_SITE_ORIGIN',source)
         self.assertNotIn('h.get("host")',source)
+    def test_new_targets_have_reviewed_rules_and_no_submission_claim(self):
+        ids={t['id']:t for t in self.config['targets']}
+        for ident in ('developer-page','agent-skill-exchange'):
+            self.assertEqual(ids[ident]['retrieved_on'],'2026-09-23')
+            self.assertEqual(ids[ident]['status'],'candidate_not_submitted')
+            self.assertTrue(ids[ident]['rules_url'].startswith('https://'))
+
+    def test_github_copilot_repository_skill_is_safe_and_locally_scoped(self):
+        path = ROOT / '.github/skills/hilo-repo-review/SKILL.md'
+        skill = path.read_text(encoding='utf-8')
+        self.assertEqual(skill.splitlines()[:2], ['---', 'name: hilo-repo-review'])
+        self.assertIn('description:', skill.split('---', 2)[1])
+        self.assertIn('plugins/hilo-benchmark/skills/hilo-audit/SKILL.md', skill)
+        self.assertIn('tools/hilo_synthetic_fixture.json', skill)
+        self.assertIn('not a published marketplace listing', skill)
+        self.assertIn('never', skill.lower())
+        self.assertNotIn('allowed-tools:', skill)
+        self.assertFalse((ROOT / '.github/skills/hilo-repo-review/mcp.json').exists())
+
+    def test_openai_interface_metadata_is_present_without_policy_claims(self):
+        manifest=json.loads((ROOT/'plugins/hilo-benchmark/plugin.json').read_text())
+        interface=manifest['extensions']['com.openai']['interface']
+        self.assertEqual(interface['displayName'],'HILO Benchmark Review')
+        self.assertEqual(interface['websiteURL'],'https://getrobotrouter.com/wanted-10k')
+        self.assertGreaterEqual(len(interface['defaultPrompt']),2)
+        self.assertNotIn('privacyPolicyURL',interface)
+        self.assertNotIn('termsOfServiceURL',interface)
+
+    def test_route_baselines_are_fixed_public_read_only_origins(self):
+        h.validate_config(self.config)
+        self.assertGreaterEqual(len(self.config.get('route_baselines', [])), 5)
+        for row in self.config['route_baselines']:
+            self.assertTrue(row['public_url'].startswith('https://getrobotrouter.com/'))
+            self.assertTrue(row['baseline_url'].startswith('https://shark-app-pqh5h.ondigitalocean.app/'))
+
+    def test_route_baseline_status_drift_is_explicit(self):
+        cached={}
+        for url in h.public_probe_urls(self.config):
+            status=404 if url=='https://getrobotrouter.com/wanted-10k/data-engine.html' else 200
+            cached[url]={'status_code':status,'body_sha256':'x'}
+        rows={r['id']:r for r in h.compare_route_baselines(self.config,cached)}
+        self.assertTrue(rows['data-engine-origin']['status_mismatch'])
+        self.assertEqual(rows['data-engine-origin']['public_status'],404)
+        self.assertEqual(rows['data-engine-origin']['baseline_status'],200)
+        self.assertFalse(rows['wanted-origin']['status_mismatch'])
+
+    def test_route_body_drift_is_measured_only_when_both_http_200(self):
+        row = self.config['route_baselines'][0]
+        cfg = {'route_baselines': [row]}
+        public, baseline = row['public_url'], row['baseline_url']
+        def check(public_status, baseline_status, public_hash='one', baseline_hash='two'):
+            cached = {
+                public: {'status_code': public_status, 'body_sha256': public_hash},
+                baseline: {'status_code': baseline_status, 'body_sha256': baseline_hash},
+            }
+            return h.compare_route_baselines(cfg, cached)[0]
+        drift = check(200, 200)
+        self.assertTrue(drift['body_comparable'])
+        self.assertFalse(drift['body_sha256_equal'])
+        self.assertTrue(drift['body_mismatch'])
+        same = check(200, 200, 'same', 'same')
+        self.assertTrue(same['body_sha256_equal'])
+        self.assertFalse(same['body_mismatch'])
+        for unmeasured in (check(404, 200), check(None, 200), check(200, None),
+                           check(200, 200, None, 'two')):
+            self.assertFalse(unmeasured['body_comparable'])
+            self.assertIsNone(unmeasured['body_sha256_equal'])
+            self.assertFalse(unmeasured['body_mismatch'])
+        self.assertTrue(check(404, 200)['status_mismatch'])
+        self.assertFalse(check(None, 200)['comparable'])
+
+    def test_offline_report_never_invents_body_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = h.run(self.config, Path(tmp), 'body-drift-offline', False)
+            self.assertEqual(report['route_body_mismatches'], [])
+            self.assertEqual(report['route_baseline_checks'], [])
+
+    def test_seo_response_requires_http_200_html_before_metadata(self):
+        good=h.inspect_seo_response(200,'text/html; charset=utf-8','<title>HILO</title><h1>HILO</h1>')
+        missing=h.inspect_seo_response(404,'text/html','<title>Not Found</title><meta name="description" content="error"><h1>Missing</h1>')
+        nonhtml=h.inspect_seo_response(200,'application/xml','<urlset/>')
+        self.assertTrue(good['eligible'])
+        self.assertFalse(missing['eligible'])
+        self.assertEqual(missing['reason'],'http_status_404')
+        self.assertEqual(missing['missing'],['http_200'])
+        self.assertFalse(nonhtml['eligible'])
+        self.assertEqual(nonhtml['reason'],'non_html_response')
+
+
+
+    def test_seo_canonical_must_match_checked_route(self):
+        requested = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for canonical in ('https://getrobotrouter.com/wanted-10k',
+                          'https://getrobotrouter.com/wanted-10k/sdk?tracking=1',
+                          'https://getrobotrouter.com/wanted-10k/sdk#fragment'):
+            with self.subTest(canonical=canonical):
+                body = '<title>SDK</title><link rel="canonical" href="' + canonical + '"><h1>SDK</h1>'
+                report = h.inspect_seo_response(200, 'text/html', body, requested_url=requested)
+                self.assertTrue(report['eligible'])
+                self.assertTrue(report['checks']['canonical_primary_origin'])
+                self.assertFalse(report['checks']['canonical_matches_requested_route'])
+                self.assertIn('canonical_matches_requested_route', report['missing'])
+
+    def test_seo_canonical_accepts_exact_route_and_trailing_slash(self):
+        requested = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for canonical in (requested, requested + '/'):
+            with self.subTest(canonical=canonical):
+                body = '<title>SDK</title><link rel="canonical" href="' + canonical + '"><h1>SDK</h1>'
+                report = h.inspect_seo_response(200, 'text/html', body, requested_url=requested)
+                self.assertTrue(report['checks']['canonical_matches_requested_route'])
+                self.assertNotIn('canonical_matches_requested_route', report['missing'])
+
+
+    def test_duplicate_canonical_links_are_not_a_healthy_seo_page(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        canonical = '<link rel="canonical" href="' + url + '">'
+        body = '<title>SDK</title><h1>SDK</h1>' + canonical + canonical
+        result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+        self.assertTrue(result['eligible'])
+        self.assertTrue(result['checks']['canonical_matches_requested_route'])
+        self.assertFalse(result['checks']['single_canonical'])
+        self.assertIn('single_canonical', result['missing'])
+
+    def test_conflicting_canonicals_cannot_pass_when_last_is_correct(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        body = ('<title>SDK</title><h1>SDK</h1>'
+                '<link rel="canonical" href="https://getrobotrouter.com/wanted-10k">'
+                '<link rel="canonical" href="' + url + '">')
+        result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+        self.assertFalse(result['checks']['single_canonical'])
+        self.assertIn('single_canonical', result['missing'])
+
+
+    def test_x_robots_header_exclusion_and_repeated_directives(self):
+        body = '<title>SDK</title><h1>SDK</h1>'
+        for headers in (['noindex'], ['Googlebot: NOINDEX, follow'],
+                        ['index', 'bingbot: none'], ['googlebot: index, NOINDEX']):
+            with self.subTest(headers=headers):
+                result = h.inspect_seo_response(200, 'text/html', body,
+                                                x_robots_tags=headers)
+                self.assertTrue(result['eligible'])
+                self.assertFalse(result['checks']['indexable_x_robots_tag'])
+                self.assertIn('indexable_x_robots_tag', result['missing'])
+        for headers in ([], ['index, follow'], ['googlebot: index', 'bingbot: follow']):
+            result = h.inspect_seo_response(200, 'text/html', body,
+                                            x_robots_tags=headers)
+            self.assertTrue(result['checks']['indexable_x_robots_tag'])
+
+    def test_read_only_public_get_preserves_multiple_x_robots_headers(self):
+        from email.message import Message
+        class Response:
+            code = 200
+            def __init__(self):
+                self.headers = Message()
+                self.headers.add_header('Content-Type', 'text/html')
+                self.headers.add_header('X-Robots-Tag', 'index')
+                self.headers.add_header('X-Robots-Tag', 'googlebot: noindex')
+                self.headers.add_header('Server', 'unit-test-site')
+                self.headers.add_header('X-DO-App-ID', 'test-public-app')
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self, limit): return b'<title>SDK</title><h1>SDK</h1>'
+        with patch.object(h.urllib.request, 'build_opener') as build_opener:
+            build_opener.return_value.open.return_value = Response()
+            observed = h.public_get('https://getrobotrouter.com/wanted-10k/sdk')
+        self.assertEqual(observed['x_robots_tags'], ['index', 'googlebot: noindex'])
+        self.assertEqual(observed['origin_headers']['server'], 'unit-test-site')
+        self.assertEqual(observed['origin_headers']['x_do_app_id'], 'test-public-app')
+        self.assertNotIn('authorization', observed['origin_headers'])
+        result = h.inspect_seo_response(observed['status_code'],
+                                        observed['content_type'], observed['body'],
+                                        x_robots_tags=observed['x_robots_tags'])
+        self.assertFalse(result['checks']['indexable_x_robots_tag'])
+
+    def test_robots_meta_noindex_is_not_treated_as_healthy_seo(self):
+        url = 'https://getrobotrouter.com/wanted-10k/sdk'
+        for meta in ('<meta name="robots" content="noindex, follow">',
+                     '<meta name="googlebot" content="NOINDEX">',
+                     '<meta name="robots" content="none">'):
+            with self.subTest(meta=meta):
+                body = '<title>HILO</title><h1>HILO</h1>' + meta
+                result = h.inspect_seo_response(200, 'text/html', body, requested_url=url)
+                self.assertTrue(result['eligible'])
+                self.assertFalse(result['checks']['indexable_robots_meta'])
+                self.assertIn('indexable_robots_meta', result['missing'])
+
+    def test_robots_index_does_not_override_earlier_noindex(self):
+        body = ('<meta name="robots" content="noindex">'
+                '<meta name="robots" content="index, follow">'
+                '<title>HILO</title><h1>HILO</h1>')
+        self.assertFalse(h.inspect_html(body)['checks']['indexable_robots_meta'])
+        allowed = ('<meta name="robots" content="index, follow">'
+                   '<title>HILO</title><h1>HILO</h1>')
+        self.assertTrue(h.inspect_html(allowed)['checks']['indexable_robots_meta'])
+
+
+    def test_route_baseline_evidence_preserves_public_origin_fingerprints(self):
+        row = self.config['route_baselines'][0]
+        public, baseline = row['public_url'], row['baseline_url']
+        cached = {
+            public: {'status_code': 200, 'body_sha256': 'a',
+                     'final_url': public, 'origin_headers': {'server': 'public-edge', 'etag': 'aaa'}},
+            baseline: {'status_code': 200, 'body_sha256': 'b',
+                       'final_url': baseline, 'origin_headers': {'server': 'origin-web', 'etag': 'bbb'}},
+        }
+        check = h.compare_route_baselines({'route_baselines': [row]}, cached)[0]
+        self.assertEqual(check['public_final_url'], public)
+        self.assertEqual(check['baseline_final_url'], baseline)
+        self.assertEqual(check['public_origin_headers']['server'], 'public-edge')
+        self.assertEqual(check['baseline_origin_headers']['server'], 'origin-web')
+        self.assertEqual(check['origin_header_differences'], ['etag', 'server'])
+        self.assertTrue(check['body_mismatch'])
+        # Metadata differences do not assert a deployment root cause or an outage.
+        self.assertFalse(check['status_mismatch'])
+
+    def test_route_baseline_missing_headers_are_not_invented(self):
+        row = self.config['route_baselines'][0]
+        cached = {row['public_url']: {'status_code': 404},
+                  row['baseline_url']: {'status_code': 200}}
+        check = h.compare_route_baselines({'route_baselines': [row]}, cached)[0]
+        self.assertEqual(check['public_origin_headers'], {})
+        self.assertEqual(check['baseline_origin_headers'], {})
+        self.assertEqual(check['origin_header_differences'], [])
+        self.assertTrue(check['status_mismatch'])
+        self.assertFalse(check['body_mismatch'])
+
+
 
 if __name__=='__main__':unittest.main()

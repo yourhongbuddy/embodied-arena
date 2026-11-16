@@ -1,0 +1,37 @@
+{
+  "evidence_class": "synthetic_example",
+  "claimed_robot_hours": 0,
+  "wants_certification": false,
+  "topics": [
+    {
+      "topic": "/fixture/mission_status",
+      "ros_type": "std_msgs/msg/String",
+      "candidate_event_class": "DEPLOYMENT_LIFECYCLE"
+    },
+    {
+      "topic": "/fixture/robot_status",
+      "ros_type": "std_msgs/msg/String",
+      "candidate_event_class": "ROBOT_STATE"
+    },
+    {
+      "topic": "/fixture/requests",
+      "ros_type": "std_msgs/msg/String",
+      "candidate_event_class": "HUMAN_REQUEST"
+    },
+    {
+      "topic": "/fixture/actions",
+      "ros_type": "std_msgs/msg/String",
+      "candidate_event_class": "ROBOT_ACTION"
+    },
+    {
+      "topic": "/fixture/manual_control",
+      "ros_type": "std_msgs/msg/String",
+      "candidate_event_class": "HUMAN_INTERVENTION"
+    },
+    {
+      "topic": "/fixture/safety",
+      "ros_type": "std_msgs/msg/String",
+      "candidate_event_class": "INCIDENT"
+    }
+  ]
+}

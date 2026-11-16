@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex,nofollow">
+<title>HILO synthetic intervention audit — demonstration only</title>
+<meta name="description" content="Inspect six invented HILO event classes and see why undisclosed human assistance is a consistency problem, not a benchmark result.">
+<style>
+:root{font-family:system-ui,sans-serif;color-scheme:dark;background:#14222b;color:#f8fcfd}
+body{max-width:820px;margin:auto;padding:1.5rem;line-height:1.6}
+aside{border-left:4px solid #5ae0cb;background:#253e48;padding:1rem}
+section{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:1.5rem 0}
+article{border:1px solid #64828c;border-radius:8px;padding:1rem}
+strong.count{display:block;font-size:1.8rem}
+button{background:#5ae0cb;color:#081519;border:0;border-radius:6px;padding:.7rem 1rem;font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid white;outline-offset:3px}
+a{color:#a5e8ff}
+</style>
+</head>
+<body>
+<main>
+<h1>HILO: Can an intervention disappear from a report?</h1>
+<aside><strong>Invented synthetic example only.</strong> No robot operated, no human participant, no private recordings. <strong>Verified field hours: 0. Certification: none.</strong> This does not run the canonical WANTED scoring or conformance process.</aside>
+<p>Six imaginary events include one 45-second human intervention. Compare the recorded synthetic assistance against a deliberately false declaration. A consistency match does not establish real evidence, privacy rights, consent or safety.</p>
+<section aria-label="Synthetic event and assistance totals">
+<article><h2>Invented events</h2><strong class="count" id="events">6</strong></article>
+<article><h2>Recorded assistance</h2><strong class="count" id="actual">45 seconds</strong></article>
+<article><h2>Declared assistance</h2><strong class="count" id="declared">0 seconds</strong></article>
+</section>
+<button type="button" id="toggle">Change declaration to 45 seconds</button>
+<p id="result" role="status" aria-live="polite">MISMATCH: Declared 0 seconds, but invented event evidence records 45 seconds.</p>
+<noscript><p>JavaScript is disabled. The initial declaration of zero assistance conflicts with the synthetic intervention event's 45 seconds.</p></noscript>
+<details><summary>Inspect all six imaginary event classes</summary><ol>
+<li>DEPLOYMENT_LIFECYCLE</li><li>ROBOT_STATE</li><li>HUMAN_REQUEST</li><li>ROBOT_ACTION</li><li>HUMAN_INTERVENTION — 45 invented seconds</li><li>INCIDENT</li>
+</ol></details>
+<p>Read the <a href="https://getrobotrouter.com/wanted-10k/protocol">public protocol</a> or <a href="https://github.com/yourhongbuddy/embodied-arena">inspect the project source</a>.</p>
+<p><small>Everything on this page is bundled locally: no upload, user input, analytics, cookies, network call, model request or external asset. Real human votes, robot hours and certifications cannot be generated from this illustration.</small></p>
+</main>
+<script type="application/json" id="synthetic-data">{"evidence_class":"synthetic_example","claimed_robot_hours":0,"wants_certification":false,"events":[{"event_class":"DEPLOYMENT_LIFECYCLE"},{"event_class":"ROBOT_STATE"},{"event_class":"HUMAN_REQUEST"},{"event_class":"ROBOT_ACTION"},{"event_class":"HUMAN_INTERVENTION","human_assistance_seconds":45},{"event_class":"INCIDENT"}]}</script>
+<script>
+"use strict";
+const sample = JSON.parse(document.getElementById("synthetic-data").textContent);
+const seconds = sample.events.filter(function(e){return e.event_class === "HUMAN_INTERVENTION";}).reduce(function(total,e){return total+e.human_assistance_seconds;},0);
+let declared = 0;
+const button = document.getElementById("toggle");
+function render(){
+ document.getElementById("events").textContent=String(sample.events.length);
+ document.getElementById("actual").textContent=String(seconds)+" seconds";
+ document.getElementById("declared").textContent=String(declared)+" seconds";
+ document.getElementById("result").textContent=declared===seconds
+  ? "CONSISTENT SYNTHETIC DISCLOSURE: Both values are "+seconds+" seconds. No field evidence or certification follows."
+  : "MISMATCH: Declared "+declared+" seconds, but invented event evidence records "+seconds+" seconds.";
+ button.textContent=declared===0?"Change declaration to "+seconds+" seconds":"Show false zero-assistance declaration";
+}
+button.addEventListener("click",function(){declared=declared===0?seconds:0;render();});
+render();
+</script>
+</body>
+</html>
