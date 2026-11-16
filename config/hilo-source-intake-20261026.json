@@ -1,0 +1,44 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-26",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-ads-outcome-stage-logging-20261021",
+      "publisher": "OpenAI",
+      "title": "How we built ChatGPT’s novel ad stack for user trust and relevance",
+      "published_on": "2026-10-21",
+      "retrieved_on": "2026-10-26",
+      "url": "https://openai.com/index/building-chatgpt-ad-stack/",
+      "finding": "OpenAI's engineering account distinguishes eligibility, session creation, retrieval, candidate hydration/filtering, server-side delivery and acknowledged user-facing display as separately logged outcomes. It describes privacy-controlled measurement, model-based quality evaluation and human feedback. The account concerns advertising infrastructure, not robotics, and reports OpenAI's own design rather than a publicly reproducible implementation.",
+      "hilo_adaptation": "Propose a non-ranking, synthetic-only event-lineage completeness check for HILO telemetry: distinguish 'not eligible for capture', 'capture not requested', 'event not produced', 'event rejected', 'event recorded' and 'event independently reviewed' from actual human use or deployment. Record missingness and provenance separately; a logged event is not a verified human keep decision, field hour or certification. Do not deploy ad technology, collect conversations, change WANTED scoring or make model calls.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Stanford BEHAVIOR 2026 Challenge",
+      "url": "https://behavior.stanford.edu/challenge/index.html",
+      "retrieved_on": "2026-10-26",
+      "reason": "Benchmark rules and simulated household tasks already appear in HILO's separately attributed reference ledger. No new independent field method or license was established by this selective recheck."
+    },
+    {
+      "title": "Harvard SEAS Human-in-the-Loop robot learning (October 30 event)",
+      "url": "https://events.seas.harvard.edu/event/human-in-the-loop-robot-learning",
+      "retrieved_on": "2026-10-26",
+      "reason": "Future seminar abstract, not yet a published evaluated method to admit; preserve author attribution and revisit only if concrete primary results are later published."
+    },
+    {
+      "title": "Oxford OASIS-Map",
+      "url": "https://dynamic.robots.ox.ac.uk/projects/oasis-map/",
+      "retrieved_on": "2026-10-26",
+      "reason": "Already staged October 25 in a separate external-reference candidate; no duplication, training rights or robot-hour inference."
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-11-07",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-biobasicsbench-raw-controls-grouped-tasks-20261106",
+      "publisher": "OpenAI",
+      "title": "Measuring how AI agents handle everyday wet-lab science (BioBasicsBench)",
+      "published_on": "2026-11-06",
+      "retrieved_on": "2026-11-07",
+      "url": "https://openai.com/index/measuring-how-ai-agents-handle-wet-lab-science/",
+      "finding": "OpenAI and Ligo report 100 wet-lab interpretation tasks made from raw, sometimes ambiguous experimental evidence, each checked by an independent internal scientist, an external PhD-level reviewer and final internal review. Rubrics award credit for conclusions, measurements, reasoning and recognition of insufficient evidence. The seven-model evaluation uses five attempts per task and 95% intervals from resampling whole tasks while retaining within-task repeated attempts. Results concern wet-lab agents, not robots or longitudinal human choice.",
+      "hilo_adaptation": "Propose a non-ranking, synthetic-only HILO evidence-interpretation preflight: include conflicting observations and negative controls; require explicit insufficient-evidence outcomes and independent human rubric review; bootstrap whole deployment/environment units rather than treating repeat trials or frames as independent. This is a methodology hypothesis requiring human entailment review. Do not import BioBasicsBench data, copy proprietary evidence, count its 100 tasks as HILO 100 worker jobs, infer robot field hours, alter frozen scoring or holdouts, or claim certification.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI — Partnering with Hacktron to find vulnerabilities in OpenAI's systems",
+      "url": "https://openai.com/index/partnering-with-hacktron/",
+      "retrieved_on": "2026-11-07",
+      "reason": "November 6 partnership announcement, not a reusable robot-data collection or field-study method. No HILO partnership or access rights inferred."
+    },
+    {
+      "title": "Stanford / Columbia — DITTO-X human-intervention episodes",
+      "url": "https://tml.stanford.edu/ditto-x/",
+      "retrieved_on": "2026-11-07",
+      "reason": "Primary source already staged in the October ledger; teleoperation, human-intervened and autonomous task episodes are not resident hours or independent households. Avoid duplicate intake."
+    }
+  ]
+}

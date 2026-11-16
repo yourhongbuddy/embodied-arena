@@ -1,0 +1,19 @@
+# HILO data-engine daily — November 14, 2026
+
+**Retrieved:** 2026-11-14 PST; selective first-party method research. Work only in open data-engine PR #7, separate from GrowthOps #10 and draft site diagnostic #8. **One public methodological source staged, none promoted to worker inputs.**
+
+## New staged source (no automatic admission)
+
+[OpenAI Alignment, *Improving Fuzzy Robustness in LLM Safety with Automated Red Teaming*](https://alignment.openai.com/fuzzy-robustness/) — **published November 12, 2026; retrieved November 14**. OpenAI reports an automated adaptive attacker, repeated success criterion `worst@n`, and controlled evaluations on held-out/adaptive multi-turn tasks. These are model-safety robustness results in high-stakes text domains, not observations of any real robot or demonstration that adversarial robot operation is safe.
+
+**Proposed, non-normative HILO research:** a synthetic-only audit of robot-evaluation *tools* with independently repeated ambiguous intervention/stop-right scenarios, measuring worst-case false compliance *and* unnecessary refusal of legitimate instructions. Human entailment review is required. Do not adversarially operate real hardware, collect footage, infer human keep choices, borrow OpenAI private data, change sealed holdouts, official scores or cohorts, or certify hardware.
+
+Staged in `config/hilo-source-intake-20261114.json` with `automatic_promotion:false`, `admission_status:proposed`, `rights_scope:method_reference_only` and `consumed_by_workers:false`. Added a regression test in `tools/test_hilo_source_intake.py` requiring exclusion of its ID from the same 100-job plan. No `config/hilo-data-engine.json` or active worker-source changes. Source admission remains controlled by `docs/HILO-SOURCE-ADMISSION.md`; human review not claimed.
+
+Rechecked the [OpenAI public research index](https://openai.com/research/index/) (retrieved November 14): latest indexed method publication still November 6 BioBasicsBench. Previous sources on demonstration, human preferences, human/RL feedback, randomized simulation, video/weak labels, quality, privacy, safety and continuous evaluation remain separately attributed. [Stanford Robotics publication index](https://robotics.stanford.edu/publications.html), [Harvard SceneAgent](https://computationalrobotics.seas.harvard.edu/SceneAgent/) and [Oxford GOALS](https://www.ox.ac.uk/) are *not* newly promoted and none supplies HILO real-world field hours. Stanford/Harvard/Oxford/robot/digital-twin sources remain in their distinct reference class.
+
+## Actual execution and release boundaries
+
+Last independently completed open-PR data-engine workflow before today's commits: [run 43475645146](https://github.com/yourhongbuddy/embodied-arena/actions/runs/43475645146) on November 13, **49/49 offline tests passed**, 100 offline planned jobs, 0 live starts and completions. Today's changed source-intake test and documentation require **fresh** workflow verification; do not copy older counts as a current commit pass. The scheduled default-branch [run 43510770564](https://github.com/yourhongbuddy/embodied-arena/actions/runs/43510770564) on November 13 failed at the older intentionally-disabled-live preflight, not from live LLM execution. PR #7 has a proposed `live_disabled` correction requiring review, not additional secrets/credentials.
+
+No real robot hours, model requests, paid execution, preference votes, field labels, source admission, release/deployment, data purchase or certification. No modifications to frozen WANTED scoring, voluntary consent, privacy, safety stop authority, sealed holdouts or experiment cohorts. Next: independently inspect current PR #7 test results and retain a source-eligibility human review before any promotion. Keep the 100-job research design and data-class separation unchanged.

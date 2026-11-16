@@ -1,0 +1,38 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-11-11",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-cot-monitorability-model-lifecycle-20261110",
+      "publisher": "OpenAI",
+      "title": "What affects chain-of-thought monitorability across the model lifecycle?",
+      "published_on": "2026-11-10",
+      "retrieved_on": "2026-11-11",
+      "url": "https://alignment.openai.com/cot-monitorability-model-lifecycle",
+      "finding": "OpenAI reports controlled evaluations of no-chain-of-thought capability and chain-of-thought controllability across pretraining, architectures, reinforcement-learning configurations and supervised fine-tuning on model-generated rollouts. It finds that these proxies may shift even without explicit process supervision and cautions that controllability does not necessarily predict measured monitor evasion. These are model-specific research results, not robot telemetry, retention, field performance or a public chain-of-thought dataset.",
+      "hilo_adaptation": "Propose a synthetic-only, non-ranking audit for model-assisted robot-evaluation tools that separately measures observable actions, provenance/log completeness, and any permitted model-generated explanations. Do not rely on hidden reasoning traces to certify physical safety, infer private model reasoning, treat controllability scores as field monitorability, copy inaccessible research data, alter frozen scoring or sealed holdouts, or promote without independent human source-entailment review.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI — Cogent and OpenAI build cyber defense factories for enterprises",
+      "url": "https://openai.com/index/cogent-security/",
+      "retrieved_on": "2026-11-11",
+      "reason": "November 10 customer case study about vulnerability remediation and production deployment, not independently transferable HILO real-robot observations or new permissioned longitudinal data-labeling method. No partnership or access rights."
+    },
+    {
+      "title": "Stanford BEHAVIOR 2026 Challenge",
+      "url": "https://behavior.stanford.edu/challenge/index.html",
+      "retrieved_on": "2026-11-11",
+      "reason": "Existing separately attributed simulation/robotics reference. No newly established HILO resident hours, human voluntary keep decisions, or reusable evidence admission rights."
+    }
+  ]
+}

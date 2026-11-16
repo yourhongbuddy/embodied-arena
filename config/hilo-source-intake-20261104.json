@@ -1,0 +1,65 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-11-04",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "openai-alignment-eval-production-gap-20261103",
+      "publisher": "OpenAI",
+      "title": "Eval-production behavior gaps in agent safety and the role of eval-awareness",
+      "published_on": "2026-11-03",
+      "retrieved_on": "2026-11-04",
+      "url": "https://alignment.openai.com/eval-production-behavior-gap/",
+      "finding": "OpenAI reports an evaluation-versus-production comparison of safety-critical decisions across six served models, using a staged source-review pipeline that selects deidentified deployment decision contexts on pre-decision evidence rather than outcomes, aligns decisions with a reference evaluation rubric, and studies how assumed evaluation objectives shift model decisions. The authors acknowledge approximate matching, different case mixtures and limited generalization; the reported model-level safety gaps are not robotics evidence.",
+      "hilo_adaptation": "Propose a synthetic-only, non-ranking matched-case diagnostic of evaluation/field-context shift: lock a predecision matching rubric, record independent reviewer judgments and uncertainty, avoid outcome-conditioned selection, and test objective-framing sensitivity separately from the frozen WANTED protocol. Only consented independently reviewed real deployments could support later field comparisons. Do not ingest Codex logs, OpenAI private reasoning, private household records or held-out evaluation cases, or claim that six-model results predict human robot retention.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    },
+    {
+      "id": "openai-lifeval-everyday-task-priorities-20261102",
+      "publisher": "OpenAI",
+      "title": "LifeVal: Measuring AI progress on everyday tasks",
+      "published_on": "2026-11-02",
+      "retrieved_on": "2026-11-04",
+      "url": "https://openai.com/index/lifeval/",
+      "finding": "OpenAI describes creating an everyday-life task evaluation using the American Time Use Survey and Multinational Time Use Study as a task catalog, supplemented by a demographically representative survey of 3,995 respondents to identify tasks where people wanted AI assistance. These are author-reported assistant-task preference elicitation methods, not long-term robot deployment or retention evidence.",
+      "hilo_adaptation": "Propose an advisory, non-ranking HILO task-coverage audit that preregisters everyday-life assistance categories and compares candidate tasks against independently elicited human relevance, with abstentions and demographic uncertainty disclosed. Do not transfer OpenAI respondent data or scores, equate task desirability with continued robot adoption, manipulate human keep votes or modify WANTED scoring/holdouts.",
+      "evidence_class": "public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "worker_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI — Accelerating engineering for the physical world",
+      "url": "https://openai.com/index/accelerating-engineering-for-the-physical-world/",
+      "retrieved_on": "2026-11-04",
+      "reason": "November 3 engineering/partner case studies describe CAD and simulation iteration, but do not establish a separately reviewable WANTED longitudinal data-collection or scoring method. No commercial partner affiliation or rights inferred."
+    },
+    {
+      "title": "Harvard — SIFToM embodied spoken instructions",
+      "url": "https://dash.harvard.edu/handle/1/42731954",
+      "retrieved_on": "2026-11-04",
+      "reason": "Harvard-hosted ICRA research remains separately attributed academic context; not a new permissioned HILO longitudinal cohort or an OpenAI public-method worker source."
+    },
+    {
+      "title": "Oxford — OASIS-Map",
+      "url": "https://dynamic.robots.ox.ac.uk/projects/oasis-map/",
+      "retrieved_on": "2026-11-04",
+      "reason": "Longitudinal scene-change method already staged in October; do not duplicate or treat as real resident retention."
+    },
+    {
+      "title": "Stanford/Columbia — DITTO-X",
+      "url": "https://tml.stanford.edu/ditto-x/",
+      "retrieved_on": "2026-11-04",
+      "reason": "Human-intervention episodes were already staged in October as external evidence; episodes do not equal 10,000-hour real-world support or human keep votes."
+    }
+  ]
+}

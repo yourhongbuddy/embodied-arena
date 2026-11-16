@@ -1,0 +1,39 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-25",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "oxford-oasis-map-multisession-change-20260716",
+      "publisher": "Oxford Robotics Institute — Dynamic Robot Systems Group",
+      "title": "OASIS-Map: Object-Level Change Detection in Multi-Session Mapping using Semantic Correspondence Matching",
+      "published_on": "2026-07-16",
+      "retrieved_on": "2026-10-25",
+      "url": "https://arxiv.org/abs/2607.14899",
+      "finding": "Oxford researchers publicly describe multi-session mapping with dense image-patch semantic correspondences, incremental object association and change labels of static, appeared, disappeared, moved, or unknown. The paper evaluates car replacement, indoor 3RScan rearrangements and an outdoor market; these are author-reported inspection/mapping results, not HILO household-retention findings.",
+      "hilo_adaptation": "Propose a non-ranking synthetic repeated-visit regression fixture that distinguishes persistent, moved and uncertain objects; preserve unknown until sufficient observation, record gaps and intervention events separately. Do not infer long-term resident hours, individual consent, privacy rights, or WANTED performance from change detection.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false,
+      "supporting_author_page": "https://dynamic.robots.ox.ac.uk/projects/oasis-map/"
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI — Securing our frontier model training environment",
+      "url": "https://openai.com/index/securing-our-frontier-model-training-environment/",
+      "retrieved_on": "2026-10-25",
+      "reason": "Already staged on October 24 as a non-executing proposed OpenAI public-method card. No duplication or worker promotion."
+    },
+    {
+      "title": "Harvard SEAS — Human-in-the-Loop robot learning (scheduled October 30 seminar)",
+      "url": "https://events.seas.harvard.edu/event/human-in-the-loop-robot-learning",
+      "retrieved_on": "2026-10-25",
+      "reason": "Upcoming event abstract, not yet a published evaluated method in the reviewed source. No affiliation, outreach, or admission implied."
+    }
+  ]
+}

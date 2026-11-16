@@ -1,0 +1,45 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-28",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "stanford-columbia-ditto-x-teleoperation-handoffs-20260930",
+      "publisher": "Stanford University and Columbia University (authors)",
+      "title": "DITTO-X: Forward and Reverse Teleoperation for Dexterous Manipulation and Human Intervention",
+      "published_on": "2026-09-30",
+      "retrieved_on": "2026-10-28",
+      "url": "https://tml.stanford.edu/ditto-x/",
+      "supporting_paper": "https://arxiv.org/abs/2610.00781",
+      "finding": "The authors describe an actuated hand-agnostic teleoperation interface that aligns the operator's hand with the robot hand before human takeover, with forward demonstrations, reverse state-matched handoff, and DAgger correction loops. Their DITTO-Human public project page separates 847 fully teleoperated, 379 human-intervened, and 662 fully autonomous episodes across six dexterous-hand tasks (1,888 total). These author-reported task and dataset classifications are not HILO residence or keep decisions.",
+      "hilo_adaptation": "Propose an explicitly synthetic, non-ranking adapter/handoff fixture that distinguishes autonomous intervals, fully human-driven demonstrations, state-matched human takeovers, and the handback to autonomy. Check source evidence class, intervention start/end/duration, mode transitions, and gaps. Keep actual intervention seconds separate from robot task completion, real resident hours and voluntary human retention. No DITTO dataset ingestion, robot control or license inference.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "OpenAI — Securing our frontier model training environment",
+      "url": "https://openai.com/index/securing-our-frontier-model-training-environment/",
+      "retrieved_on": "2026-10-28",
+      "reason": "Previously staged October 24 as a proposed non-executing public method; no additional worker admission or source duplication."
+    },
+    {
+      "title": "Harvard SEAS — Human-in-the-Loop robot learning seminar",
+      "url": "https://events.seas.harvard.edu/event/human-in-the-loop-robot-learning",
+      "retrieved_on": "2026-10-28",
+      "reason": "Event is scheduled for October 30, 2026; description is not a published evaluated method or evidence of a field experiment."
+    },
+    {
+      "title": "Oxford Robotics Institute OASIS-Map",
+      "url": "https://dynamic.robots.ox.ac.uk/projects/oasis-map/",
+      "retrieved_on": "2026-10-28",
+      "reason": "Already proposed October 25 as an externally attributed method; no duplicate card."
+    }
+  ]
+}

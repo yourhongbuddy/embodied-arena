@@ -1,0 +1,32 @@
+{
+  "intake_version": "0.1",
+  "review_date": "2026-10-01",
+  "target_manifest": "config/hilo-data-engine.json",
+  "admission_policy": "docs/HILO-SOURCE-ADMISSION.md",
+  "automatic_promotion": false,
+  "candidates": [
+    {
+      "id": "anthropic-robot-exposure-environment-rubric",
+      "publisher": "Anthropic",
+      "title": "What work can robots do?",
+      "published_on": "2026-09-30",
+      "retrieved_on": "2026-10-01",
+      "url": "https://www.anthropic.com/research/what-work-can-robots-do",
+      "finding": "Anthropic maps physical work tasks to E0-E3 robot-exposure tiers based on the least structured environment in which current robots can perform the work, retains cited task-level evidence, publishes model reasoning and sources, and backtests historical exposure. Some task-time and cost estimates are model-generated and therefore remain estimates.",
+      "hilo_adaptation": "Use the environment-control rubric as a non-ranking method reference for preregistered preflight and generalization diagnostics. Preserve source citations and human review. Do not convert model ratings, task coverage, demonstrations, or economic estimates into WANTED resident hours, human keep votes, field safety evidence, or certification.",
+      "evidence_class": "external_public_primary_source",
+      "rights_scope": "method_reference_only",
+      "admission_target": "reference_sources",
+      "admission_status": "proposed",
+      "consumed_by_workers": false
+    }
+  ],
+  "reviewed_not_admitted": [
+    {
+      "title": "Disrupting a coordinated model-distillation campaign",
+      "url": "https://openai.com/index/disrupting-a-coordinated-model-distillation-campaign/",
+      "retrieved_on": "2026-10-01",
+      "reason": "Relevant security incident reporting, but it does not add a distinct HILO data-collection, preference-labeling, simulation, privacy, or continuous-evaluation construction method beyond already staged sources. No additional Stanford, Harvard, or Oxford primary source met the non-duplication and method-detail gates in this targeted pass."
+    }
+  ]
+}

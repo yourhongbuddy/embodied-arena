@@ -1,0 +1,22 @@
+# HILO public-method data engine — November 15, 2026
+
+**Research retrieved:** 2026-11-15 (America/Los_Angeles). Selected official primary sources, not an exhaustive scan. **No materially distinct new source cleared admission today; zero candidates promoted; no worker manifest changes.** Data engine remains separate in open PR #7, not GrowthOps PR #10 or draft site PR #8.
+
+## Selective public-method recheck, with evidence boundaries
+
+- [OpenAI public research index](https://openai.com/research/index/) (retrieved November 15) still lists November 6, 2026 BioBasicsBench as its latest indexed publication; the research index is not exhaustive of OpenAI's separately hosted alignment blog.
+- [OpenAI Alignment: fuzzy robustness](https://alignment.openai.com/fuzzy-robustness/) (published November 12, retrieved November 15) documents repeated automated adversarial tests and a `worst@n` criterion in *language-model* safety. This is already **proposed, not consumed** in `config/hilo-source-intake-20261114.json`. No duplicate intake or new promotion. Its suggested synthetic-only benchmark-tool stress tests are not physical-robot safety observations.
+- [OpenAI Alignment: chain-of-thought monitorability](https://alignment.openai.com/cot-monitorability-model-lifecycle/) (published November 10, retrieved November 15) compares imperfect proxies for model reasoning monitorability. Already proposed in the November 11 intake; do not infer access to hidden model traces, real robot intent or field observation.
+- [OpenAI misalignment report](https://alignment.openai.com/misalignment-reports/covert-underperformance-on-safety-research-tasks/) (initial discovery August 20; report updated November 4, retrieved November 15): controlled coding-task framing comparisons are not new robot data; previously reviewed on November 5. Never confuse update date with first publication.
+- The existing method ledger retains properly attributed public OpenAI references for demonstrations, human rankings/preferences, RL feedback, domain randomization, video/weak labels, data partnerships, deduplication/quality, safety/privacy and continuous evaluations. No claim about private OpenAI practices or copied data.
+- Separately attributed external-method checks: [Stanford Robotics publications](https://robotics.stanford.edu/publications.html) (retrieved November 15), [Harvard SceneAgent](https://computationalrobotics.seas.harvard.edu/SceneAgent/) (2026 preprint; site records November 1 CoRL acceptance, retrieved November 15), and existing Oxford GOALS/robot/digital-twin references. None is an affiliated project, permissioned HILO dataset or evidence of verified real robot residence hours. Publication dates not displayed are **not invented**.
+
+## Admission, execution and test gates
+
+`docs/HILO-SOURCE-ADMISSION.md` continues to require primary provenance, method entitlement, rights, separate `sources` vs `reference_sources`, human source-entailment review, privacy, consent, safety, and sealed holdout integrity. Existing staged candidates remain `consumed_by_workers:false`, `automatic_promotion:false` and method-reference only. Do not update the worker manifest or the unchanged **100 planned offline research jobs** from discovery alone.
+
+Previous independently verified PR #7 head `5d17c3ae34f2ab77d73320303b21731504cbe7fb` passed its [November 14 workflow](https://github.com/yourhongbuddy/embodied-arena/actions/runs/43622953433) and full Verify; **50/50 offline tests** passed. That preceding result does **not** automatically validate this documentation commit: inspect its own CI before claiming final-head success. Existing evidence recorded zero live research starts/completions, zero real robot hours and zero paid model requests.
+
+The older merged default-branch intentionally-disabled-live preflight remains a separate known problem; PR #7 contains a proposed `live_disabled` correction. Do not enable models, add credentials, or merge merely to turn a check green. No change to frozen WANTED scoring, safety stop authority, privacy, consent, independent keep votes, experiment cohorts, sample retention or sealed holdouts.
+
+**Next:** verify this commit's offline plan and CI, keep admission unchanged without new evidence, and prioritize human review of the most useful staged *method* candidates before any explicit promotion PR. No dataset ingestion, external spend, deployment or certification.
