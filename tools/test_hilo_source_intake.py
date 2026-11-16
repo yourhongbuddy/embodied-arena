@@ -181,5 +181,27 @@ class DailySourceIntakeTests(unittest.TestCase):
         self.assertNotIn(row["id"], {sid for job in plan["jobs"] for sid in job["source_ids"]})
 
 
+    def test_november_multimediate_reference_is_staged_without_field_hours_or_worker_promotion(self):
+        intake = json.loads((h.ROOT / "config/hilo-source-intake-20261116.json").read_text(encoding="utf-8"))
+        self.assertFalse(intake["automatic_promotion"])
+        self.assertEqual(intake["review_date"], "2026-11-16")
+        self.assertEqual(len(intake["candidates"]), 1)
+        source = intake["candidates"][0]
+        self.assertEqual(source["published_on"], "2026-08-25")
+        self.assertEqual(source["retrieved_on"], "2026-11-16")
+        self.assertEqual(source["admission_target"], "reference_sources")
+        self.assertEqual(source["evidence_class"], "external_public_primary_source")
+        self.assertEqual(source["admission_status"], "proposed")
+        self.assertFalse(source["consumed_by_workers"])
+        self.assertEqual(source["rights_scope"], "method_reference_only")
+        self.assertIn("agreement", source["hilo_adaptation"])
+        self.assertIn("minors", source["hilo_adaptation"])
+        self.assertIn("10,000 real robot hours", source["hilo_adaptation"])
+        self.assertIn("November 16", source["finding"])
+        plan = h.make_plan(h.load_manifest(self.manifest_path))
+        self.assertEqual(len(plan["jobs"]), 100)
+        self.assertNotIn(source["id"], {sid for job in plan["jobs"] for sid in job["source_ids"]})
+
+
 if __name__ == "__main__":
     unittest.main()
